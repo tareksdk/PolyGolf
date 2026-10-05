@@ -7,7 +7,7 @@ export function liveScope(ui) {
   if (!id || game.state === 'menu' || !game.round) return null;
   const m = ui.ranked?.match;
   if (m && game.round.competitiveId === m.id && ['playing','sudden'].includes(m.phase)) {
-    return { key:`ranked:${m.id}`, members:[{id:m.a_id,name:m.a_name,nameplate:m.a_plate},{id:m.b_id,name:m.b_name,nameplate:m.b_plate}] };
+    return { key:`ranked:${m.id}`, members:[{id:m.a_id,name:m.a_name,nameplate:m.a_plate},{id:m.b_id,name:m.b_name,nameplate:m.b_plate,...(m.bot?{...m.bot,bot:true}: {})}] };
   }
   const room = ui.cloud.room;
   if (room?.state.phase === 'playing' && room.state.members.some(p=>p.id===id && p.roundId===game.round.cloudId)) {

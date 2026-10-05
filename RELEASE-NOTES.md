@@ -1,5 +1,11 @@
 # PolyGolf · October 5, 2026
 
+Bot update: ranked matchmaking first checks for a human, then fills with a labelled bot after 60 seconds of continuous queue time for Rookie, Bronze and Silver (under 1300 Elo). Gold and higher remain human-only. Bot round totals are +1 (30%), par (40%), -1 (26%), -2 (3%) or -3 (1%). Plans are saved on the server; retries cannot reroll them. Bot wins, losses, forfeits and sudden death settle Elo once. Bots do not create fake accounts or leaderboard entries.
+
+Private-room hosts can add or remove bots and fill remaining slots, up to eight golfers total. A joining human replaces a bot in a full waiting lobby. Bot golfers, balls, swings and trails use the existing opponent display setting. Their shots are animated along the course route from a server-owned score plan. Competitive and Editor have exchanged places on Home.
+
+Bot validation: 140 tests pass, including room permissions, score timing, bot distributions and visual packets. Rollback-only live database checks cover the 60-second gate, Silver/Gold boundary, human priority, queue reset, saved scores, Elo, ties, retries, forfeit and backend-only permissions. Existing human-ranked regression checks also pass.
+
 - Caddie category changes update only the collection. Item artwork loads asynchronously in a worker and is cached on disk. Added search, rarity filters, sorting, and a continuous equipped trail in the floating island preview.
 - Direction timing is slower and updates every frame. A click locks the last displayed direction. Shot prediction runs off the main thread, with a chunked fallback for older browsers.
 - Locker Skip cancels the opening, spinning reel and reveal delay. It always reveals the already awarded result and never purchases twice.

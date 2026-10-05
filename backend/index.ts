@@ -1,3 +1,4 @@
+import {roomAction} from './rooms.ts';
 import {rankFor,awardRankPlates} from './shared/ranks.js';
 import {halloweenActive} from './shared/season.js';
 import {grantPattern,rollPattern} from './shared/finishes.js';
@@ -57,34 +58,12 @@ async function submit(p:any,b:any){
  if(finished){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
  result.finished=finished;if(finished)result.bonus=bonus;const state=await save(p,pm,{p_round:r.id,p_hole:b.index,p_result:result,p_record:record});return{state,result,reward,bonus,finished};
 }
-async function roomAction(action:string,p:any,b:any){
- if(action==='create_room'){info(b.mode,b.course);const c=info(b.mode,b.course);if(levelInfo(p.state.xp).level<c.level)throw Error('Unlock this course before hosting it.');const code=Array.from(crypto.getRandomValues(new Uint8Array(6)),v=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[v%32]).join('');const state={host:p.id,phase:'waiting',mode:b.mode,course:b.course,rulesVersion:RULES_VERSION,hole:0,members:[{id:p.id,name:p.username,nameplate:p.state.equipment.nameplate,ready:true,seen:Date.now()}],deadline:0};return{room:(await insert('rooms',{code,state}))[0]};}
- for(let attempt=0;attempt<4;attempt++){
-  const query=action==='join_room'?'code=eq.'+encodeURIComponent(String(b.code).trim().toUpperCase()):'id=eq.'+encodeURIComponent(b.roomId);const r=(await table('rooms',query))[0];if(!r)throw Error('Room not found. Check the six-character code.');const s=structuredClone(r.state);let member=s.members.find((m:any)=>m.id===p.id);
-  if(action==='join_room'){if(s.phase!=='waiting')throw Error('This round has already started.');if(!member){if(s.members.length>=8)throw Error('This room is full.');s.members.push({id:p.id,name:p.username,nameplate:p.state.equipment.nameplate,ready:false,seen:Date.now()});member=s.members.at(-1);}}
-  if(!member)throw Error('You are not a member of this room.');if(action!=='leave_room'&&s.rulesVersion!==RULES_VERSION)throw Error('This lobby uses an older course. Leave it and create a new room.');if(s.phase==='starting'){if(action==='room')return{room:r};throw Error('The round is starting. Please wait.');}member.seen=Date.now();member.nameplate=p.state.equipment.nameplate;
-  if(action==='leave_room'){s.members=s.members.filter((m:any)=>m.id!==p.id);if(s.host===p.id)s.host=s.members[0]?.id||null;if(!s.members.length)s.phase='closed';}
-  if(action==='ready_room'){if(s.phase!=='waiting')throw Error('The round has started.');member.ready=!member.ready;}
-  if(action==='start_room'){
-   if(s.host!==p.id||s.phase!=='waiting'||s.members.length<2||s.members.some((m:any)=>!m.ready))throw Error('The host can start when at least two golfers are ready.');
-   s.phase='starting';try{await rpc('room_cas',{p_id:r.id,p_revision:r.revision,p_state:s});}catch(e){if(attempt<3)continue;throw e;}
-   try{const players=await table('players','id=in.('+s.members.map((m:any)=>m.id).join(',')+')');const rounds=await insert('rounds',players.map((pl:any)=>({user_id:pl.id,room_id:r.id,mode:s.mode,course:s.course,equipment:pl.state.equipment,rules_version:RULES_VERSION,hole_count:s.mode==='golf'?GOLF_HOLE_COUNT:9})));s.members.forEach((m:any)=>m.roundId=rounds.find((rr:any)=>rr.user_id===m.id).id);s.phase='playing';s.deadline=Date.now()+360000;await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s});return{room:{...r,state:s,revision:r.revision+2}};}catch(e){s.phase='waiting';await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s}).catch(()=>{});throw e;}
-  }
-  if(s.phase==='playing'){
-   let rounds=await table('rounds','room_id=eq.'+r.id);if(Date.now()>s.deadline){for(const rr of rounds.filter((rr:any)=>rr.next_hole<=s.hole&&s.members.some((m:any)=>m.id===rr.user_id))){const pl=await player(rr.user_id);await submit(pl,{roundId:rr.id,index:rr.next_hole,transcript:[{kind:'skip',tick:0}],endTick:0});}rounds=await table('rounds','room_id=eq.'+r.id);}
-   s.members.forEach((m:any)=>{const rr=rounds.find((rr:any)=>rr.user_id===m.id);m.scores=rr?.holes.map((h:any)=>h.strokes)||[];m.nextHole=rr?.next_hole||0;});
-   if(s.members.every((m:any)=>m.nextHole>s.hole)){s.hole++;s.deadline=Date.now()+360000;if(s.hole>=(s.mode==='golf'?GOLF_HOLE_COUNT:9))s.phase='finished';}
-  }
-  if(s.host&&!s.members.some((m:any)=>m.id===s.host&&Date.now()-m.seen<120000))s.host=p.id;
-  try{const rev=await rpc('room_cas',{p_id:r.id,p_revision:r.revision,p_state:s});return{room:{...r,state:s,revision:rev}};}catch(e){if(attempt===3)throw e;}
- }
-}
 const matchPlates=new Map();
 async function enrichRanked(p:any,result:any){
  const pm=progress(p);if(awardRankPlates(pm,result.rating))result.state=await save(p,pm);
  const m=result.match;if(m){let plates=matchPlates.get(m.id);if(!plates){
-  const rows=await table('rounds','id=in.('+m.a_round+','+m.b_round+')&select=id,equipment');
-  plates={a_plate:rows.find((r:any)=>r.id===m.a_round)?.equipment?.nameplate,b_plate:rows.find((r:any)=>r.id===m.b_round)?.equipment?.nameplate};
+  const rows=await table('rounds','id=in.('+[m.a_round,m.b_round].filter(Boolean).join(',')+')&select=id,equipment');
+  plates={a_plate:rows.find((r:any)=>r.id===m.a_round)?.equipment?.nameplate,b_plate:m.bot?.equipment?.nameplate||rows.find((r:any)=>r.id===m.b_round)?.equipment?.nameplate};
   if(matchPlates.size>200)matchPlates.clear();matchPlates.set(m.id,plates);
  }Object.assign(m,plates);}return result;
 }
@@ -162,7 +141,7 @@ Deno.serve(async req=>{
   }else if(action==='open_locker'||action==='buy_bundle'){const pm=progress(p);const outcome=action==='open_locker'?openLocker(pm,b.id,b.requestId,()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296):buyBundle(pm,b.id);result={state:await save(p,pm),outcome};}
   else if(action==='claim_achievement'){const pm=progress(p),outcome=pm.claimAchievement(b.id);result={state:await save(p,pm),outcome};}
   else if(action==='save_map'){requireEditor(progress(p));const layout=validateMap(b.map),existing=(await table('maps','user_id=eq.'+p.id+'&name=eq.'+encodeURIComponent(layout.name)))[0];if(existing)await update('maps','id=eq.'+existing.id,{layout,updated_at:new Date().toISOString()});else{const count=await table('maps','user_id=eq.'+p.id+'&select=id');if(count.length>=30)throw Error('Your account holds up to 30 maps. Reuse a name to update one.');await insert('maps',{user_id:p.id,name:layout.name,layout});}result={ok:true};}
-  else if(['create_room','join_room','ready_room','start_room','leave_room','room'].includes(action))result=await roomAction(action,p,b);
+  else if(['create_room','join_room','ready_room','start_room','leave_room','room','add_room_bot','fill_room_bots','remove_room_bot'].includes(action))result=await roomAction(action,p,b,{table,rpc,insert,player,submit});
   else throw Error('Unknown action.');return new Response(JSON.stringify(result),{headers});
  }catch(e){return new Response(JSON.stringify({error:e instanceof Error?e.message:'Something went wrong.'}),{status:400,headers});}
 });

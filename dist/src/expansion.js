@@ -93,7 +93,7 @@ function multiplayer(ui) {
     !ui.cloud.session
       ? `<section class="panel empty-state"><h2>Meet us at the first tee.</h2><p>Sign in to save your progress and play with friends.</p>${button("Sign in / Create account", "account", "", "button yellow")}</section>`
       : r
-        ? `<section class="panel lobby-panel"><div class="row between"><div><span class="eyebrow">ROOM CODE</span><h2 class="room-code">${r.code}</h2></div><span class="badge">${s.members.length} / 8 GOLFERS</span></div><p>${s.mode === "golf" ? "Full golf" : "Mini-golf"} · ${list({ mode: s.mode })[s.course].name}</p><div class="lobby-members">${s.members.map((m) => `<div><span class="avatar">${esc(m.name[0].toUpperCase())}</span>${button(nameplate(m.name,m.nameplate,{compact:true}), "view-profile", `data-user="${m.id}"`, "profile-link")}<span>${m.id === s.host ? "HOST · " : ""}${m.ready ? "Ready" : "Getting ready"}</span></div>`).join("")}</div><div class="modal-actions">${button("Leave room", "leave-room", "", "button secondary")}${button("Toggle ready", "ready-room", "", "button secondary")}${s.host === ui.cloud.session.user.id ? button("Start round", "start-room", s.members.length < 2 || s.members.some((m) => !m.ready) ? "disabled" : "", "button yellow") : ""}</div><p class="small-note">Six minutes per hole. Scores and hole changes are shared automatically.</p></section>`
+        ? `<section class="panel lobby-panel"><div class="row between"><div><span class="eyebrow">ROOM CODE</span><h2 class="room-code">${r.code}</h2></div><span class="badge">${s.members.length} / 8 GOLFERS</span></div><p>${s.mode === "golf" ? "Full golf" : "Mini-golf"} · ${list({ mode: s.mode })[s.course].name}</p><div class="lobby-members">${s.members.map((m) => `<div><span class="avatar">${esc(m.name[0].toUpperCase())}</span>${m.bot ? nameplate(m.name,m.nameplate,{compact:true}) : button(nameplate(m.name,m.nameplate,{compact:true}), "view-profile", `data-user="${m.id}"`, "profile-link")}<span>${m.id === s.host ? "HOST · " : ""}${m.bot ? "BOT" : m.ready ? "Ready" : "Getting ready"}</span>${m.bot && s.host===ui.cloud.session.user.id ? button("Remove","remove-room-bot",`data-id="${m.id}"`,"text-button") : ""}</div>`).join("")}</div><div class="modal-actions">${s.host===ui.cloud.session.user.id ? button("Add bot","add-room-bot",s.members.length>=8?"disabled":"","button secondary")+button("Fill with bots","fill-room-bots",s.members.length>=8?"disabled":"","button secondary") : ""}${button("Leave room", "leave-room", "", "button secondary")}${button("Toggle ready", "ready-room", "", "button secondary")}${s.host === ui.cloud.session.user.id ? button("Start round", "start-room", s.members.length < 2 || s.members.some((m) => !m.ready) ? "disabled" : "", "button yellow") : ""}</div><p class="small-note">Six minutes per hole. Scores and hole changes are shared automatically.</p></section>`
         : `<div class="multiplayer-grid"><section class="panel"><h2>Host a round</h2>${modeTabs(ui)}<label>Course<select id="room-course">${list(
             ui,
           )
@@ -576,14 +576,14 @@ export function installExpansion(ui) {
         ui.toast("Signed out. Your account progress is saved.");
         return;
       }
-      if (["create-room", "join-room", "ready-room", "start-room", "leave-room"].includes(action)) {
+      if (["create-room", "join-room", "ready-room", "start-room", "leave-room", "add-room-bot", "fill-room-bots", "remove-room-bot"].includes(action)) {
         const payload =
           action === "create-room"
             ? { mode: ui.mode, course: Number(document.querySelector("#room-course").value) }
             : action === "join-room"
               ? { code: document.querySelector("#room-code").value }
-              : { roomId: ui.cloud.room.id };
-        const r = await ui.cloud.call(action.replace("-", "_"), payload);
+              : { roomId: ui.cloud.room.id, botId:data.id };
+        const r = await ui.cloud.call(action.replaceAll("-", "_"), payload);
         ui.cloud.room = action === "leave-room" ? null : r.room;
         ui.render();
         if (ui.cloud.room) ui.syncRoom(ui.cloud.room);

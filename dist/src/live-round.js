@@ -1,3 +1,4 @@
+import {botPresentation} from './bots.js';
 import { SUPABASE_URL, PUBLISHABLE_KEY } from './cloud.js';
 import { liveScope, liveHole, cleanLiveState } from './live-state.js';
 import { LiveTransport } from './live-transport.js';
@@ -26,7 +27,7 @@ export function installLiveRound(ui){
       clear();key=nextKey;scope=next;
       if(next){
         for(const m of next.members)if(m.id!==id)peers.set(m.id,new LiveOpponent(world,m,layer));
-        if(ui.cloud.session?.access_token)transport=new LiveTransport({url:SUPABASE_URL,key:PUBLISHABLE_KEY,token:ui.cloud.session.access_token,user:id,scope:next,receive});
+        if(next.members.some(m=>m.id!==id&&!m.bot)&&ui.cloud.session?.access_token)transport=new LiveTransport({url:SUPABASE_URL,key:PUBLISHABLE_KEY,token:ui.cloud.session.access_token,user:id,scope:{...next,members:next.members.filter(m=>!m.bot)},receive});
       }
     }
     const now=performance.now();
@@ -34,8 +35,14 @@ export function installLiveRound(ui){
       const moving=game.physics.active||game.pendingSwing||world.emotePose;
       const interval=moving?(peers.size>3?334:167):1000;
       const flags=`${liveHole(game)}:${!!game.physics.active}:${!!game.physics.sunk}:${swing?.id}:${emote?.id}`;
-      if(now-lastSend>=interval||flags!==lastFlags){const state=capture();if(state&&transport?.publish(state)){lastSend=now;lastFlags=flags;}}
+      if(transport&&(now-lastSend>=interval||flags!==lastFlags)){const state=capture();if(state&&transport.publish(state)){lastSend=now;lastFlags=flags;}}
       if(now-lastRefresh>30000){lastRefresh=now;ui.cloud.refresh?.().then(()=>transport?.updateToken(ui.cloud.session?.access_token)).catch(()=>{});}
+      for(const p of peers.values())if(p.member.bot&&now-(p.botSampleAt||0)>=100){
+        p.botSampleAt=now;
+        const packet=botPresentation(p.member,ui,Date.now()+(ui.cloud.serverOffset||0));
+        if(packet?.ball)p.buffer.push(packet,now);
+        else if(packet){const last=p.buffer.samples.at(-1)?.state;if(last)p.buffer.push({...last,hole:packet.hole,at:Date.now(),seq:Date.now()},now);else {p.group.visible=false;p.label.hidden=ui.progress.data.settings.showOpponents===false;p.label.classList.add('is-away');p.status.textContent='Bot · On hole '+(Number(packet.hole)+1);}}
+      }
       for(const p of peers.values())p.update(dt,now,liveHole(game),ui.progress.data.settings.showOpponents!==false,peers.size>3?370:200);
     }
     update(dt,...args);

@@ -156,6 +156,7 @@ export class GolfCloud {
     });
     const result = await response.json();
     if (!response.ok || result.error) throw Error(result.error || "Could not connect. Please try again.");
+    if(Number.isFinite(result.serverNow ?? result.server_now))this.serverOffset=(result.serverNow ?? result.server_now)-Date.now();
     if (result.state && actor && actor===this.session?.user.id) this.accept(result.state);
     return result;
   }

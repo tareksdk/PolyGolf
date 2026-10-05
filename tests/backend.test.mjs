@@ -50,6 +50,8 @@ let competitive=await readFile(new URL('../backend/competitive.ts',import.meta.u
 source=source.replace("'./competitive.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(competitive)).toString('base64')));
 let trading=await readFile(new URL('../backend/trading.ts',import.meta.url),'utf8');trading=trading.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./trading.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(trading)).toString('base64')));
+let rooms=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');rooms=rooms.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
+source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(rooms)).toString('base64')));
 await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
 async function call(action,data={},id='a'){const response=await handler(new Request('http://game.local',{method:'POST',headers:{'Content-Type':'application/json',...(id?{Authorization:'Bearer '+id}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})}));const result=await response.json();if(!response.ok)throw Error(result.error);return result;}
 
@@ -213,3 +215,4 @@ test('verified final-hole crate grant is atomic and retries return the same comp
  assert.ok(result.bonus.locker);assert.equal(player.state.lockers[result.bonus.locker],1);const coins=player.state.coins;
  const retry=await call('submit_hole',payload);assert.equal(retry.duplicate,true);assert.deepEqual(retry.bonus,result.bonus);assert.equal(player.state.coins,coins);assert.equal(player.state.lockers[result.bonus.locker],1);
 });
+
