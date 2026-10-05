@@ -1,5 +1,7 @@
 # PolyGolf · October 4, 2026
 
+Social UI: corrected multiplayer player-count and sent-request badge contrast in both themes. Added padding around Friends avatars, consistent 48px icons, and stacked row actions on small screens. Desktop and 390px phone layouts verified.
+
 Follow-up: compact Caddie setup and collection controls, larger gift-code entry, custom Developer/Staff/Halloween insignias, and three shiny code-only studio nameplates. Room310 uses a door badge, OneShotStudios a target, and the combined plate has the brightest prismatic finish. The same vector badges appear in item artwork and live nameplates.
 
 The home message now has a Supabase-editable rotation in degrees. Remaining public Little Links branding has been replaced with PolyGolf. Ranked matchmaking's database version guard now accepts the current replay version; its previous guard rejected current clients.
