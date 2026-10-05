@@ -111,6 +111,7 @@ export class GameManager {
     this.charging = false;
     this.shotPhase = 'aim';
     this.accuracy = 0;
+    this.displayedAccuracy = 0;
   }
   beginPower() {
     if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging) return;
@@ -126,6 +127,7 @@ export class GameManager {
     this.shotPhase = 'direction';
     this.directionTime = 0;
     this.accuracy = 0;
+    this.displayedAccuracy = 0;
   }
   shoot() {
     if (!this.charging || this.shotPhase !== 'direction') return;
@@ -138,8 +140,7 @@ export class GameManager {
       return;
     this.charging = false;
     this.shotPhase = 'aim';
-    this.shotPhase = 'aim';
-    const shot = { dir: shotDirection(this.direction, this.accuracy, this.club === 'putter' || this.mode === 'mini'), power: this.power, options: this.shotOptions() };
+    const shot = { dir: shotDirection(this.direction, this.displayedAccuracy ?? this.accuracy, this.club === 'putter' || this.mode === 'mini'), power: this.power, options: this.shotOptions() };
     if (this.mode === "golf") {
       this.pendingSwing = { ...shot, remaining: this.club === "putter" ? 0.36 : 0.56 };
       this.world.beginSwing?.(this.physics.ball, shot.dir, this.club);
@@ -394,7 +395,7 @@ export class GameManager {
         this.power = chargePower(this.chargeTime);
       } else if (this.charging && this.shotPhase === 'direction') {
         this.directionTime += dt;
-        this.accuracy = Math.sin(this.directionTime * Math.PI * 1.25);
+        this.accuracy = directionAccuracy(this.directionTime);
       }
       this.accumulator = Math.min(this.accumulator + dt, 0.1);
       while (this.accumulator >= FIXED_STEP && this.state === "playing") {
@@ -480,6 +481,10 @@ export function chargeAccuracy(seconds) {
   // Centre at full power; reversing the meter never makes a straight full shot impossible.
   const t = (Math.max(0, seconds) / 1.65 + .5) % 2;
   return 1 - 2 * Math.abs(t - 1);
+}
+// 2.2 seconds per full sweep, starting at centre. Gentle reversals at both ends.
+export function directionAccuracy(seconds) {
+  return Math.sin(Math.max(0, seconds) * Math.PI / 1.1);
 }
 export function shotDirection(dir, accuracy = 0, putting = false) {
   // A generous central sweet spot; the meter adds a small, visible angular miss.

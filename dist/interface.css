@@ -63,6 +63,25 @@
 @media(max-width:900px){.clubhouse-menu .garage-page{padding:16px}.clubhouse-menu .topbar .nav{order:3}.clubhouse-menu .garage-title{padding:18px}.clubhouse-menu .garage-equipped{padding:18px}}
 .clubhouse-menu .competitive-page{background:#12362df0;color:#e8ebd7}.clubhouse-menu .competitive-header{background:#143c30;color:#f2efd8;border-color:#8bb18833}.clubhouse-menu .competitive-header strong,.clubhouse-menu .competitive-header span{color:#f2efd8}.clubhouse-menu .ranked-identity>h1{font-size:36px;line-height:1.25}.clubhouse-menu :is(.ranked-identity>p,.ranked-rules,.ranked-fairplay,.competitive-ladder>p){color:#bed1b6}.clubhouse-menu .ranked-course-strip>div{background:#204c3a;border-color:#789c7244;color:#f4edd3}.clubhouse-menu .ranked-queue-card{border-radius:4px;background:#1b4637}.clubhouse-menu .competitive-ladder{border-color:#a1b78633}.clubhouse-menu .competitive-ladder article{background:#174032;color:#f1ecd4;border-color:#87aa7933;border-radius:3px}.clubhouse-menu .competitive-ladder article.is-current{background:#2b543b;border-color:var(--rank-color)}.clubhouse-menu .competitive-ladder small{color:#bed1b4}
 .ph-power .accuracy-label{color:#4b634e}.ph-power .accuracy-track{border-color:#567b4833}
+/* Meters move on the compositor at the game frame rate, without layout or CSS lag. */
+.ph-power #power-fill{width:100%;transform-origin:left;transition:none;will-change:transform}
+.ph-power #accuracy-marker{left:0;width:100%;background:none;box-shadow:none;transform:translateX(50%);will-change:transform;pointer-events:none}
+.ph-power #accuracy-marker::before{content:'';position:absolute;left:0;top:0;height:18px;width:4px;background:#fff;border-radius:1px;transform:translateX(-50%);box-shadow:0 1px 3px #0008}
+.garage-items .pg-card{content-visibility:auto;contain-intrinsic-size:auto 310px}
+.caddie-toolbar{display:flex;align-items:center;gap:10px;margin:12px 0;flex-wrap:wrap}
+.caddie-search{display:flex;align-items:center;gap:8px;max-width:290px;flex:1;min-width:140px;padding:0 11px;border:1px solid var(--ui-border);border-radius:4px;background:var(--ui-raised);color:var(--ui-text)}
+.caddie-search svg{width:16px;height:16px;flex-shrink:0}
+.clubhouse-menu .caddie-search input{width:100%;min-width:0;background:transparent!important;border:0!important;color:var(--ui-text)!important;padding:10px 0!important;height:38px;font-size:13px;box-shadow:none}
+.caddie-search:focus-within{outline:2px solid var(--ui-accent,#dfc475);outline-offset:2px}
+.caddie-search input:focus-visible{outline:0}
+.caddie-toolbar .caddie-filter-toggle{min-height:38px;padding:8px 12px;font-size:12px}
+#caddie-result-count{margin-left:auto;color:var(--ui-muted);font-size:12px;white-space:nowrap}
+.caddie-filters{display:grid;gap:12px;padding:14px;background:var(--ui-raised);border:1px solid var(--ui-border);border-radius:4px;margin:0 0 12px}
+.caddie-filters>div{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.caddie-filters>div>span{font-size:11px;text-transform:uppercase;letter-spacing:1px;min-width:45px;color:var(--ui-muted)}
+.caddie-filter-chip{padding:7px 9px;border:1px solid var(--ui-border);background:transparent;color:var(--ui-text);border-radius:3px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer}
+.caddie-filter-chip[aria-pressed=true]{background:#e5c66a;color:#203e32;border-color:#e5c66a}
+.caddie-filter-chip:hover{border-color:#b9a35f}
 .clubhouse-menu .studio-panel{background:#194438;color:#eaeed7}.clubhouse-menu .pe-tool{color:#d3ddc4;border-radius:3px}.clubhouse-menu .pe-tool.active,.clubhouse-menu .studio-tab.active{background:#e1c56b;color:#14372a}.clubhouse-menu .studio-tab{color:#c1d3b7}.clubhouse-menu .studio-hint{background:#15382c;color:#b8cbab}.clubhouse-menu .feature-row,.clubhouse-menu .palette-item,.clubhouse-menu .saved-row{background:#214c38;color:#e1e7cd;border-color:#8cb17c44}.clubhouse-menu .feature-name{color:#e1e7cd}.clubhouse-menu .studio-subhead{color:#ead692}
 .clubhouse-menu .garage-preview{overflow:auto;min-height:0}.clubhouse-menu .garage-preview>*{flex-shrink:0}.clubhouse-menu .topbar .nav{scrollbar-width:thin;scrollbar-color:#698873 #143b2f}
 .public-profile .profile-equipment img{mix-blend-mode:normal}.public-profile .social-stats{padding:0}.public-profile .profile-equipment small{display:block;padding:5px 10px 0}.public-profile-head>div>.golfer-nameplate{color:#fff}.public-profile-head>div>span:not(.golfer-nameplate){display:block;margin-top:8px;color:#bed0b4}.public-profile .golfer-nameplate strong{font-family:inherit;text-shadow:0 1px 1px #163326;font-size:15px}.public-profile .profile-cover{display:flex;justify-content:space-between;gap:10px}
@@ -86,3 +105,33 @@
 .clubhouse-menu .achievement-reward small{color:#b8ccac}
 
 .emote-panel h2{font-family:inherit;font-size:25px;font-weight:800}
+
+/* Offers stay visible while browsing each player's collection. */
+.trade-panel{min-width:0;padding:14px;background:var(--ui-field);border:1px solid var(--ui-border);border-radius:5px}
+.trade-panel>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.trade-panel>header h3{margin:0;font-size:16px;color:var(--ui-text)}
+.trade-panel>header>span,.trade-coins-field small{font-size:11px;color:var(--ui-muted)}
+.trade-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;min-height:76px}
+.trade-slot{min-width:0;position:relative;aspect-ratio:1;background:var(--ui-raised);border:1px solid var(--ui-border);border-radius:3px;color:var(--ui-text);overflow:hidden;padding:0}
+.trade-slot.empty{display:grid;place-items:center;border-style:dashed;opacity:.65}.trade-slot.empty>span{font-size:24px;font-weight:300}
+.trade-slot.filled{cursor:pointer;border-bottom:3px solid var(--rarity)}.trade-slot.filled img{width:100%;height:100%;object-fit:cover}
+.trade-slot.filled>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.trade-slot>i,.trade-pick>i{position:absolute;right:3px;top:3px;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#153d30;color:#fff4c4;font-style:normal;font-size:14px}
+.trade-slot.filled:hover{outline:2px solid var(--ui-accent);outline-offset:1px}
+.trade-coins-field{display:grid;gap:5px;margin:16px 0}.trade-coins-field>label{font-size:12px;font-weight:600;color:var(--ui-text)}
+.trade-coins-field>div{display:flex;align-items:center;gap:8px}.trade-coins-field .coin-icon{flex-shrink:0}
+.trade-coins-field input{width:100%;min-width:0;padding:10px!important;height:40px;font-size:16px}
+.trade-inventory-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--ui-border);padding-top:12px;margin-bottom:10px}
+.trade-inventory-heading>strong{font-size:12px;color:var(--ui-text);white-space:nowrap}
+.trade-search{display:flex;align-items:center;gap:6px;flex:1;min-width:100px;color:var(--ui-muted)}.trade-search svg{width:14px;height:14px;flex-shrink:0}
+.trade-search input{min-width:0;width:100%;height:32px;font-size:12px;padding:6px!important}
+.trade-inventory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(140px,max-content);align-content:start;gap:8px;height:260px;overflow:auto;overscroll-behavior:contain;padding:3px;scrollbar-width:thin}
+.trade-pick{position:relative;min-width:0;min-height:140px;padding:0 0 8px;overflow:hidden;background:var(--ui-surface);border:1px solid var(--ui-border);border-top:3px solid var(--rarity);border-radius:3px;color:var(--ui-text);cursor:pointer;text-align:left;align-self:start;content-visibility:auto;contain-intrinsic-size:auto 145px}
+.trade-pick img{display:block;width:100%;height:auto;aspect-ratio:1.44;object-fit:cover}
+.trade-pick>span{display:block;padding:6px 6px 2px;font-size:11px;line-height:1.3;font-weight:600;overflow-wrap:anywhere}.trade-pick>small{display:block;padding:0 6px;font-size:10px;color:var(--ui-muted)}
+.trade-pick.selected{outline:2px solid var(--ui-accent);outline-offset:0}.trade-pick:disabled{opacity:.4;cursor:default}.trade-pick:not(:disabled):hover{background:var(--ui-raised)}
+.trade-empty{grid-column:1/-1;font-size:12px;color:var(--ui-muted)}
+.trade-coin-offer{display:flex;align-items:center;gap:8px;background:var(--ui-raised);border:1px solid var(--ui-border);border-radius:3px;padding:10px;margin-top:10px;color:var(--ui-text)}
+.trade-coin-offer .money{font-size:18px!important;color:var(--ui-text)!important}.trade-coin-offer>small{font-size:12px;color:var(--ui-muted)}
+.trade-validation{color:var(--ui-accent);font-size:12px;min-height:16px}
+@media(max-width:600px){.trade-compose .trade-sides{grid-template-columns:1fr}.trade-inventory{height:210px;grid-template-columns:repeat(3,minmax(0,1fr))}.trade-slots{min-height:52px}.trade-compose h2{font-size:23px}.trade-panel{padding:10px}}

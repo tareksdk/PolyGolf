@@ -1,4 +1,5 @@
 import * as THREE from "../vendor/three.module.js";
+import { artCanvas } from './art-canvas.js';
 
 // Shared decorative meshes. These never participate in collision or shot calculations.
 export function ballFinish(w, item, parent, r = 1) {
@@ -9,7 +10,7 @@ export function ballFinish(w, item, parent, r = 1) {
     d = item.design || 0;
   if (["skull", "pumpkin", "ghost"].includes(item.motif)) {
     // A conforming surface decal: no floating plates or intersecting decorations.
-    const canvas = document.createElement('canvas'); canvas.width=256;canvas.height=256;
+    const canvas = artCanvas(256, 256);
     const c=canvas.getContext('2d');c.fillStyle='#273b42';
     if(item.motif==='pumpkin') {
       c.fillStyle=item.pattern||'#273b32';

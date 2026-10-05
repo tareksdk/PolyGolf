@@ -30,7 +30,7 @@ import {
 } from "./equipment.js";
 import { MapEditor } from "./editor.js";
 import { GolfCloud } from "./cloud.js";
-import { installGhosts } from "./online-world.js";
+import { welcomeToClub } from './club-welcome.js';
 import { header, page, button, coins, esc, minutes } from "./views.js";
 import { holeDialog } from "./dialogs.js";
 import { icon } from "./icons.js";
@@ -177,7 +177,7 @@ export function installExpansion(ui) {
   ui.golfEditor = new GolfMapEditor(ui);
   ui.editor = ui.golfEditor;
   ui.cloud = new GolfCloud(ui);
-  installGhosts(ui.world);
+  ui.world.setGhosts = () => {}; // Older round cleanup callers remain compatible.
   installGolfPresentation(ui.world);
   keepMiniSceneryClear(ui.world);
   installCoursePreviews(ui.world);
@@ -407,15 +407,8 @@ export function installExpansion(ui) {
   ui.tick = () => {
     const g = ui.game,
       h = ui.hud;
-    document.body.classList.toggle('ball-moving', g.state === 'playing' && (!!g.pendingSwing || g.physics.active) || !!g.holeReveal);
+    ui.tickMeters();
     if (h?.fill?.isConnected) {
-      h.fill.style.width = g.power * 100 + "%";
-      h.fill.style.background = g.power >= 0.88 ? "#4dac69" : g.power > 0.5 ? "#a8b96a" : "#e1c782";
-      const marker = document.querySelector('#accuracy-marker'), label = document.querySelector('#accuracy-text');
-      const accuracy = g.charging ? g.accuracy : 0;
-      if(marker) marker.style.left = ((accuracy + 1) * 50) + '%';
-      if(label) label.textContent = Math.abs(accuracy) <= .16 ? 'DIRECTION · CENTRE' : 'DIRECTION · ' + (accuracy < 0 ? 'LEFT' : 'RIGHT');
-      h.power.textContent = (g.power * 100).toFixed(1) + "%";
       h.status.textContent =
         g.state === "complete"
           ? "HOLED OUT"
@@ -471,6 +464,7 @@ export function installExpansion(ui) {
     if (connection) connection.textContent = ui.cloud.status;
   };
   ui.action = async (action, data = {}) => {
+    if(action==='club-welcome-done'){ui.closeModal();ui.navigate('club-pass');return;}
     try {
       if (ui.launching) return;
       if (action.startsWith("community-") || action === "return-community") {
@@ -607,6 +601,7 @@ export function installExpansion(ui) {
           action === "join-club" ? "Welcome to the Country Club." : "Rewards added to your collection.",
         );
         ui.render();
+        if (action === "join-club") welcomeToClub(ui);
         return;
       }
       if (action === "item-detail" || action === "buy") {

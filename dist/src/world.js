@@ -555,8 +555,17 @@ export class World {
     this.garageStage.visible = false;
   }
   equip(equipment, items) {
-    items = items.map(item => finishItem(item, equipment));
-    const ball = items.find((i) => i.id === equipment.ball);
+    this.equipment = equipment;
+    this.items = items;
+    const trail = items.find(i => i.id === equipment.trail);
+    this.trailColor = equipment.trail === 'trail-none' ? null : trail?.color;
+    this.trailAccent = trail?.pattern || this.trailColor;
+    this.holeColor = items.find(i => i.id === equipment.hole)?.color || '#f2cb63';
+    const ball = finishItem(items.find(i => i.id === equipment.ball), equipment);
+    const ballKey = (ball?.id || '') + ':' + (ball?.seed ?? '');
+    // Changing a tab, nameplate or trail must not rebuild the equipped ball.
+    if (this.ballAppearanceKey === ballKey) return;
+    this.ballAppearanceKey = ballKey;
     if (this.ballMesh.userData.finishMaterial) { this.ballMesh.material.dispose(); this.ballMesh.userData.finishMaterial = false; }
     this.ballMesh.material = this.mat(ball?.color || "#faf9ec", {
       roughness: 0.7,
@@ -573,18 +582,13 @@ export class World {
     }
     applyFinish(this.ballMesh, ball);
     this.ballFinish = ballFinish(this, ball || {}, this.ball, 0.24);
-    this.equipment = equipment;
-    this.items = items;
-    this.trailColor =
-      equipment.trail === "trail-none" ? null : items.find((i) => i.id === equipment.trail)?.color;
-    this.holeColor = items.find((i) => i.id === equipment.hole)?.color || "#f2cb63";
   }
   showClubModel(id) {
     const key = id + ':' + (this.equipment?.patterns?.[id] ?? '');
     if (this.clubModelId === key) return;
     this.clubModelId = key;
     this.clubMount.clear();
-    const item = this.items?.find((i) => i.id === id) || { id: "club-default", category: "club", color: "#7a8477" };
+    const item = finishItem(this.items?.find((i) => i.id === id) || { id: "club-default", category: "club", color: "#7a8477" }, this.equipment);
     if (!this.clubModels.has(key)) {
       const holder = new THREE.Group();
       buildClub(this, item, holder);
@@ -801,10 +805,12 @@ export class World {
         this.particles.splice(i, 1);
       }
     }
+    const stage = this.mode === 'garage' && this.caddieViewport?.isConnected ? this.caddieViewport.getBoundingClientRect() : null;
+    const aspect = stage?.height > 0 ? stage.width / stage.height : innerWidth / innerHeight;
     let target, position;
     if (this.mode === "menu" && this.hole.mode === "golf") {
       target = new THREE.Vector3(0, 0, -this.hole.length * 0.25);
-      const drift = this.settings?.reducedMotion ? 0 : this.clock * .008;
+      const drift = this.settings?.reducedMotion ? 0 : this.clock * .0112;
       position = new THREE.Vector3(95 + Math.sin(drift) * 10, 85 + Math.sin(drift * .7) * 2, 30 + Math.cos(drift) * 5);
     } else if (this.mode === "play" && ball) {
       ball = this.cameraHold || ball;
@@ -820,10 +826,11 @@ export class World {
         ball.z + Math.cos(this.orbit) * zoom,
       );
     } else if (this.mode === "garage") {
-      target = new THREE.Vector3(-1, 2.5, 8);
-      position = new THREE.Vector3(3, 6, 17);
+      target = new THREE.Vector3(-.3, 2.5, 8);
+      const fit = Math.max(1, 1.05 / aspect);
+      position = new THREE.Vector3(4 * fit, 2.5 + 4 * fit, 8 + 10 * fit);
     } else {
-      const t = this.clock * 0.025;
+      const t = this.clock * 0.035;
       target = new THREE.Vector3(-7, 0, 2);
       position = new THREE.Vector3(30 + Math.sin(t) * 1.7, 30, 40 + Math.cos(t) * 1.5);
     }
@@ -838,8 +845,6 @@ export class World {
     // Full-screen overlays (such as the locker stage) suspend the 3D view to save power.
     if (this.suspended) return;
     this.updateRibbon?.(dt, ball, physics);
-    const stage = this.mode === 'garage' && this.caddieViewport?.isConnected ? this.caddieViewport.getBoundingClientRect() : null;
-    const aspect = stage?.height > 0 ? stage.width / stage.height : innerWidth / innerHeight;
     if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
     if (stage?.height > 0) {
       // Render the live island into its UI window, including when the mobile page scrolls.

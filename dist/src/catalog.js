@@ -415,9 +415,15 @@ export function shopRotation(now = new Date()) {
     nextWeek: ((week + 1) * 7 - 3) * 86400000,
   };
 }
+let availableDay, availableIds;
 export function shopAvailable(id, now = new Date()) {
-  const r = shopRotation(now);
-  return [...r.featured, ...r.daily, ...r.weekly, ...r.permanent].some((i) => i.id === id);
+  const day = dayNumber(now);
+  if (day !== availableDay || !availableIds) {
+    const r = shopRotation(now);
+    availableDay = day;
+    availableIds = new Set([...r.featured, ...r.daily, ...r.weekly, ...r.permanent].map(i => i.id));
+  }
+  return availableIds.has(id);
 }
 export function itemSource(item) {
   return (

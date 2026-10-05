@@ -1,5 +1,6 @@
 import * as THREE from "../vendor/three.module.js";
 import { buildClub, mountClub, trimClubCache } from "./club-models.js";
+import { finishItem } from './finishes.js';
 
 // Local -Z faces the ball. The target line runs along local -X.
 export function createGolfer(w) {
@@ -50,7 +51,7 @@ export function createGolfer(w) {
           kind === "iron"
             ? { id: "iron", category: "driver", shape: "iron", color: "#5f7466" }
             : w.items?.find((i) => i.id === id) || { id: key, category: kind === "putter" ? "club" : "driver", color: "#435c52" };
-      buildClub(w, item, holder, { lie: -0.42, gameplay: true });
+      buildClub(w, finishItem(item, w.equipment), holder, { lie: -0.42, gameplay: true });
       clubModels.set(key, holder);
       trimClubCache(clubModels);
     }
@@ -90,7 +91,7 @@ export function createGolfer(w) {
     root.visible =
       !!ball &&
       w.mode === "play" &&
-      w.hole.mode === "golf" &&
+      (w.hole.mode === "golf" || w.remote) &&
       (!physics?.active || !!w.swingPose) &&
       !physics?.sunk;
     if (!root.visible) return;
@@ -145,6 +146,10 @@ export function createGolfer(w) {
     }
     const active = pose?.club || w.activeClub;
     showClub(putt ? "putter" : ["driver", "3w", "5w"].includes(active) ? "driver" : "iron");
+  };
+  w.disposeGolfer = () => {
+    for (const model of clubModels.values()) model.traverse(mesh => { if (mesh.userData.finishMaterial) mesh.material.dispose(); });
+    clubModels.clear();root.removeFromParent();
   };
   return root;
 }

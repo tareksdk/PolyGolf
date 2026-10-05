@@ -7,7 +7,7 @@ import { RANKS, rankFor, COMPETITIVE_LEVEL, suddenHole } from "./competitive-rul
 
 const active = (m) => m && m.phase !== "finished";
 const sum = (rows) => (rows || []).reduce((n, h) => n + h.strokes, 0);
-function matchCard(ui) {
+export function matchCard(ui) {
   const m = ui.ranked?.match;
   if (!m) return "";
   const me = ui.cloud.session?.user.id,
@@ -59,7 +59,7 @@ export function installCompetitive(ui) {
   };
   const waiting = () => {
     ui.modal(
-      `<h2>${ui.game.round?.sudden ? "Shot recorded." : "Round complete."}</h2><p>Waiting for your opponent. Keep this page open to stay in the match.</p>${matchCard(ui)}${button("Forfeit match", "ranked-forfeit", "", "text-button")}`,
+      `<h2>${ui.game.round?.sudden ? "Shot recorded." : "Round complete."}</h2><p>Waiting for your opponent. Keep this page open to stay in the match.</p>${matchCard(ui)}${button("Watch opponent", "ranked-watch", "", "button secondary")}${button("Forfeit match", "ranked-forfeit", "", "text-button")}`,
       { close: false },
     );
   };
@@ -194,6 +194,7 @@ export function installCompetitive(ui) {
   };
   ui.action = async (name, data = {}) => {
     try {
+      if(name==='ranked-watch'){ui.closeModal();return;}
       if (name === "competitive") {
         if (ui.cloud.room) throw Error("Leave your private room before entering competitive.");
         ui.navigate("competitive");

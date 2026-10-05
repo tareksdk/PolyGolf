@@ -4,10 +4,10 @@ import { ITEM_BY_ID, CATEGORIES, RARITY } from "./catalog.js";
 import { button, esc, coins, rarityClass } from "./views.js";
 import { icon } from "./icons.js";
 import { patternLabel, finishItem } from './finishes.js';
+import { lockerMotion } from './locker-motion.js';
 
 const priceFor = (ui, b) =>
   Math.ceil((b.price * b.items.filter((i) => !ui.progress.data.owned.includes(i.id)).length) / b.items.length);
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
 const STEP = 164; // reel card width + gap, in CSS pixels
 const WINNER = 44;
@@ -104,8 +104,12 @@ async function runOpening(ui, pack) {
   ui.root.inert = true;
   setTimeout(() => stage.isConnected && (ui.world.suspended = true), 320);
   stage.querySelector(".crate-skip").focus();
-  let skipped = false;
-  stage.skip = () => (skipped = true);
+  const motion = lockerMotion();
+  const artLoading = new AbortController();
+  stage.skip = () => {motion.skip(); artLoading.abort();};
+  // Reuse a small weighted set of reel art while the server unlocks the item.
+  const fillers = Array.from({length:12}, () => filler(pack));
+  const prepared = reduce ? Promise.resolve() : ui.world.prepareItemThumbnails?.(fillers, {signal:artLoading.signal});
 
   // Server (or local guest) decides the result before any animation plays.
   ui.pendingLocker ??= { id: pack.id, requestId: crypto.randomUUID() };
@@ -119,9 +123,10 @@ async function runOpening(ui, pack) {
         : Promise.resolve().then(() =>
             openLocker(ui.progress, request.id, request.requestId, () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296),
           ),
-      wait(reduce ? 0 : 1100),
+      motion.wait(reduce ? 0 : 1100),
     ]);
   } catch (e) {
+    artLoading.abort();
     if (!/timeout|network|fetch|connect/i.test(e.message)) ui.pendingLocker = null;
     stage.dataset.phase = "error";
     const message = /unknown locker/i.test(e.message) ? "This locker isn’t available on the server yet. Please try again later." : e.message;
@@ -137,14 +142,10 @@ async function runOpening(ui, pack) {
   ui.render();
   const item = finishItem({ ...(ITEM_BY_ID[result.item] || { id: result.item, name: "New item", rarity: "Rare", category: "ball", color: "#dddddd" }), ...(result.seed===undefined?{}:{seed:result.seed}) });
 
-  // Build the reel and warm every thumbnail before motion starts.
-  const cards = Array.from({ length: WINNER + 8 }, (_, i) => (i === WINNER ? item : filler(pack)));
+  const cards = Array.from({ length: WINNER + 8 }, (_, i) => (i === WINNER ? item : fillers[Math.floor(Math.random()*fillers.length)]));
   stage.querySelector(".crate-status").textContent = "Spinning up…";
-  for (let i = 0; i < cards.length; i += 6) {
-    cards.slice(i, i + 6).forEach((c) => ui.world.itemThumbnail(c));
-    await frame();
-  }
-  if (!skipped && !reduce) {
+  if (!motion.skipped && !reduce) await motion.race(Promise.all([prepared, ui.world.prepareItemThumbnails?.([item], {signal:artLoading.signal})]));
+  if (!motion.skipped && !reduce) {
     stage.dataset.phase = "reel";
     const reel = stage.querySelector(".locker-reel"),
       strip = stage.querySelector(".reel-strip");
@@ -160,7 +161,7 @@ async function runOpening(ui, pack) {
         easing: "cubic-bezier(0.08, 0.72, 0.1, 1)",
         fill: "forwards",
       });
-    stage.skip = () => anim.finish();
+    motion.animate(anim);
     let last = -1;
     const marker = stage.querySelector(".reel-marker");
     const tick = () => {
@@ -177,10 +178,11 @@ async function runOpening(ui, pack) {
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-    await anim.finished.catch(() => {});
+    await motion.race(anim.finished.catch(() => {}));
     strip.children[WINNER]?.classList.add("is-winner");
-    await wait(skipped ? 0 : 450);
+    await motion.wait(450);
   }
+  artLoading.abort();
   reveal(ui, stage, pack, item, result);
 }
 

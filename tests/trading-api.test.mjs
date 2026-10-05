@@ -51,3 +51,22 @@ test('expired, declined, unfriended and stale inventory offers cannot execute',a
   f.setExisting(f.t);await assert.rejects(tradingAction('trade_accept',f.b,{tradeId:ID},f.db));assert.equal(f.calls.length,0);
  }
 });
+
+test('coin-only and mixed offers persist exact amounts and debit verified balances',async()=>{
+ const f=fixture();f.a.state.coins=5000;f.b.state.coins=9000;
+ const payload={userId:B,requestId:ID,offered:[],requested:f.t.requested,offeredCoins:2500,requestedCoins:700};
+ const {trade}=await tradingAction('trade_create',f.a,payload,f.db);
+ assert.equal(trade.offered_coins,2500);assert.equal(trade.requested_coins,700);assert.deepEqual(trade.offered,[]);
+ const result=await tradingAction('trade_accept',f.b,{tradeId:ID,tradeVersion:2,offeredCoins:1,state:{coins:1e9}},f.db);
+ assert.equal(result.state.coins,10800);assert.equal(f.calls[0].params.p_sender_state.coins,3200);
+ assert.equal(f.a.state.coins,5000);assert.equal(f.b.state.coins,9000);
+ assert.equal((await tradingAction('trade_inventory',f.a,{userId:B},f.db)).yourCoins,5000);
+});
+
+test('coin trades require an updated review and recheck balances before acceptance',async()=>{
+ const f=fixture();f.a.state.coins=5000;f.b.state.coins=5000;f.t.offered_coins=2000;f.t.requested_coins=1000;f.setExisting(f.t);
+ await assert.rejects(tradingAction('trade_accept',f.b,{tradeId:ID},f.db),/Reload/);
+ f.a.state.coins=1999;await assert.rejects(tradingAction('trade_accept',f.b,{tradeId:ID,tradeVersion:2},f.db),/enough coins/);
+ f.a.state.coins=5000;f.b.state.coins=999;await assert.rejects(tradingAction('trade_accept',f.b,{tradeId:ID,tradeVersion:2},f.db),/enough coins/);
+ assert.equal(f.calls.length,0);
+});

@@ -16,18 +16,30 @@ export function installTrails(world) {
   });
   const mesh = new THREE.Mesh(geometry,material); mesh.frustumCulled=false; mesh.renderOrder=2;
   world.scene.add(mesh);
+  world.disposeRibbon = () => { mesh.removeFromParent();geometry.dispose();material.dispose(); };
   const points = [], tangent = new THREE.Vector3(), facing = new THREE.Vector3(), side = new THREE.Vector3();
+  const previewPoints = Array.from({length:48}, () => ({position:new THREE.Vector3(), age:0}));
   let hole, mode, lastColor;
   world.updateRibbon = (dt, ball, physics) => {
     if(hole!==world.hole || mode!==world.mode){points.length=0;hole=world.hole;mode=world.mode;}
-    const enabled=world.mode==='play' && world.trailColor && world.settings?.particles!==false;
+    const preview = world.mode === 'garage';
+    const enabled=world.trailColor && (preview || (world.mode==='play' && world.settings?.particles!==false));
     mesh.visible=!!enabled;
     if(!enabled){points.length=0;return;}
     if(lastColor!==world.trailColor){material.uniforms.tint.value.set(world.trailColor);lastColor=world.trailColor;}
-    for(const p of points)p.age+=dt;
-    const lifetime=world.hole.mode==='golf'?0.8:0.5;
+    const lifetime=preview ? 1.3 : world.hole.mode==='golf'?0.8:0.5;
+    if (preview) {
+      points.length = 0;
+      const ball = world.ball.position, phase = world.settings?.reducedMotion ? 0 : world.clock * 1.2;
+      for (let i = 0; i < previewPoints.length; i++) {
+        const p = previewPoints[i], t = 1 - i / (previewPoints.length - 1);
+        p.position.set(ball.x + t * 3.7, ball.y + Math.sin(t * 3.5 + phase) * t * .3 + t * .4, ball.z - t * 1.4);
+        p.age = t * lifetime * .94;
+        points.push(p);
+      }
+    } else for(const p of points)p.age+=dt;
     while(points.length && points[0].age>lifetime)points.shift();
-    if(ball && physics?.active && !physics.sunk && Math.hypot(ball.vx,ball.vz)>0.25){
+    if(!preview && ball && physics?.active && !physics.sunk && Math.hypot(ball.vx,ball.vz)>0.25){
       const p=world.ball.position;
       if(points.length && points.at(-1).position.distanceToSquared(p)>1600)points.length=0;
       if(!points.length || points.at(-1).position.distanceToSquared(p)>0.0004)points.push({position:p.clone(),age:0});
@@ -37,7 +49,7 @@ export function installTrails(world) {
       const p=points[i],a=points[Math.max(0,i-1)].position,b=points[Math.min(points.length-1,i+1)].position;
       tangent.subVectors(b,a).normalize();facing.subVectors(world.camera.position,p.position).normalize();
       side.crossVectors(tangent,facing).normalize();
-      const alpha=Math.max(0,1-p.age/lifetime),width=(world.hole.mode==='golf'?Math.max(0.045,(world.visualBallRadius||0.065)*0.75):0.16)*alpha*Math.min(1,(i+1)/4);
+      const alpha=Math.max(0,1-p.age/lifetime),width=(preview ? .26 : world.hole.mode==='golf'?Math.max(0.045,(world.visualBallRadius||0.065)*0.75):0.16)*alpha*Math.min(1,(i+1)/4);
       for(let edge=0;edge<2;edge++){
         const at=(i*2+edge)*3,sign=edge?1:-1;
         positions[at]=p.position.x+side.x*width*sign;positions[at+1]=p.position.y+side.y*width*sign;positions[at+2]=p.position.z+side.z*width*sign;

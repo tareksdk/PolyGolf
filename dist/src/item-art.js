@@ -4,6 +4,7 @@ import { applyFinish } from './finish-material.js';
 import { buildClub } from "./club-models.js";
 import { RARITY } from "./catalog.js";
 import { badgeFor, drawBadge } from './nameplate-badges.js';
+import { artCanvas } from './art-canvas.js';
 
 // Studio renders for every collectible: rarity-tinted backdrop, soft contact shadow,
 // key and rim light, and a dedicated low-poly model per category.
@@ -15,7 +16,7 @@ let shadowTexture;
 function backdrop(rarity) {
   const key = rarity || "none";
   if (backdrops.has(key)) return backdrops.get(key);
-  const c = document.createElement("canvas");
+  const c = artCanvas(360, 250);
   c.width = 360;
   c.height = 250;
   const g = c.getContext("2d"),
@@ -55,7 +56,7 @@ function backdrop(rarity) {
 
 function contactShadow(w, parent, y, sx, sz, opacity = 0.28) {
   if (!shadowTexture) {
-    const c = document.createElement("canvas");
+    const c = artCanvas(128, 128);
     c.width = c.height = 128;
     const g = c.getContext("2d"),
       r = g.createRadialGradient(64, 64, 4, 64, 64, 62);
@@ -144,7 +145,7 @@ function symbolFor(item) {
   return ["heart", "star", "flag", "spark"][(item.design || 0) % 4];
 }
 
-export function renderItemArt(w, item) {
+export function renderItemArt(w, item, {blob = false} = {}) {
   const scene = new THREE.Scene(),
     g = new THREE.Group(),
     rarity = item.rarity || (item.category === "locker" ? item.tier : null);
@@ -259,7 +260,7 @@ export function renderItemArt(w, item) {
     const badge = badgeFor(item);
     if (badge) {
       m('round', item.color, -0.85, 0.02, 0.19, 0.47, 0.47, 0.065, holder);
-      const canvas = document.createElement('canvas');
+      const canvas = artCanvas(256, 256);
       canvas.width = canvas.height = 256;
       drawBadge(canvas.getContext('2d'), badge, accent);
       const texture = new THREE.CanvasTexture(canvas);
@@ -339,7 +340,9 @@ export function renderItemArt(w, item) {
   camera.lookAt(look);
   const r = studio();
   r.render(scene, camera);
-  const url = r.domElement.toDataURL("image/webp", 0.96);
+  const url = blob
+    ? r.domElement.convertToBlob ? r.domElement.convertToBlob({type:'image/webp', quality:.94}) : new Promise((resolve, reject) => r.domElement.toBlob(value => value ? resolve(value) : reject(Error('Could not encode item art')), 'image/webp', 0.94))
+    : r.domElement.toDataURL("image/webp", 0.96);
   g.traverse((o) => {
     if (o.userData.ownedMaterial) { if (o.material.map !== shadowTexture) o.material.map?.dispose(); o.material.dispose(); }
     if (o.geometry && !Object.values(w.geometries).includes(o.geometry)) o.geometry.dispose();
@@ -351,7 +354,7 @@ export function renderItemArt(w, item) {
 let artRenderer;
 function studio() {
   if (!artRenderer) {
-    artRenderer = new THREE.WebGLRenderer({ canvas: document.createElement("canvas"), antialias: true, preserveDrawingBuffer: true });
+    artRenderer = new THREE.WebGLRenderer({ canvas: artCanvas(W, H), antialias: true, preserveDrawingBuffer: true });
     artRenderer.setPixelRatio(1);
     artRenderer.setSize(W, H, false);
     artRenderer.outputColorSpace = THREE.SRGBColorSpace;

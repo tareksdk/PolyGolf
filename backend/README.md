@@ -70,3 +70,11 @@ The final verified hole performs a 10% locker roll using a server-secret HMAC of
 ## October 4 launch
 
 After the complete Edge Function bundle, apply `launch-2026.sql`. It adds the editable home splash columns and permanent first-100 OG eligibility. The live rollback verification is `tests/launch-db.sql`. Shared `season.js` ends new Halloween rewards at midnight New York time on November 1 while preserving owned inventory. Always use `scripts/package-backend.mjs` to include every relative dependency, rather than the historical manual list above. No player balances are reset.
+
+## October 5 performance, trading and live opponents
+
+Apply `trading-coins.sql` to existing installations and `live-opponents.sql`, then publish the complete function bundle before the frontend. Coin amounts are reviewed explicitly, checked against current balances, and transferred inside the existing ordered-lock transaction. Older clients cannot accept a coin trade without the version-2 review screen.
+
+Multiplayer movement uses private Supabase Realtime Broadcast channels, not `golf_presence` writes. The channel is `polygolf:room:<room-id>:<player-id>` or `polygolf:ranked:<match-id>:<player-id>`. RLS allows current participants to read and only that player to send. Payloads are bounded and cosmetic; authoritative score replay is unchanged. Clients send 6 moving snapshots/second in small matches, 3/second in larger rooms, and 1/second at rest, with interpolation, heartbeats and capped reconnect backoff. Each opponent has one ribbon mesh and shares golfer geometry. Disabling Show opponents skips remote presentation while continuing to broadcast your own player.
+
+This project had no `realtime.messages` partitions. `realtime-bootstrap.sql` repaired yesterday through three days ahead using Supabase's daily names and ownership. Supabase Realtime owns subsequent partition maintenance. If an installation reports `MissingPartition`, inspect its Realtime service before retrying joins; do not add rapid database polling. Rollback-only validation: `tests/live-opponents-db.sql` and `tests/trading-coins-db.sql`.

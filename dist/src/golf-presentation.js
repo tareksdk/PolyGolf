@@ -1,6 +1,7 @@
 import { createGolfer } from "./golfer.js";
 import * as THREE from "../vendor/three.module.js";
-import { GolfPhysics, GOLF_RADIUS } from "./golf-physics.js";
+import { GOLF_RADIUS } from "./golf-physics.js";
+import { ShotPreview } from './shot-preview.js';
 import { terrainAt, terrainHeight } from "./golf-courses.js";
 import { nearestPoint, heightAt } from "./courses.js";
 
@@ -71,6 +72,8 @@ export function installGolfPresentation(world) {
       depthWrite: false,
     });
   const line = new THREE.Line(lineGeo, lineMat);
+  const linePositions = new THREE.BufferAttribute(new Float32Array(526 * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  lineGeo.setAttribute('position', linePositions); lineGeo.setDrawRange(0, 0);
   line.frustumCulled = false;
   guide.add(line);
   const stroke = new THREE.Mesh(
@@ -99,12 +102,22 @@ export function installGolfPresentation(world) {
   landing.rotation.x = -Math.PI / 2;
   guide.add(landing);
   let cached = "",
-    lastPreview = 0,
-    ghost = new GolfPhysics();
+    lastPreview = -1;
   const dummy = new THREE.Object3D();
+  const preview = new ShotPreview((samples, job) => {
+    if (world.hole !== job.hole || !guide.visible) return;
+    const putt = job.options.club === 'putter', points = [];
+    for (let i = 0; i < samples.length; i += 3) {
+      const [x, y, z] = samples.subarray(i, i + 3);
+      points.push(new THREE.Vector3(x, Math.max(y - GOLF_RADIUS, world.renderGround(x, z)) + .07, z));
+    }
+    drawGuide(points, putt);
+  });
   world.load = (h) => {
     oldLoad(h);
     cached = "";
+    lastPreview = -1;
+    preview.reset();
     world.swingPose = null;
     world.cupMoment = null;
     celebration.visible = false;
@@ -119,7 +132,10 @@ export function installGolfPresentation(world) {
     }
     world.aim.visible = world.arrow.visible = false;
     guide.visible = visible;
-    if (!visible) return;
+    if (!visible) {
+      if (cached) {cached = ''; preview.reset();}
+      return;
+    }
     world.aimDirection = { ...dir };
     const opts = world.shotOptions || { club: world.activeClub },
       key = [
@@ -137,37 +153,28 @@ export function installGolfPresentation(world) {
     if (key === cached || world.clock - lastPreview < 0.12) return;
     lastPreview = world.clock;
     cached = key;
-    ghost.load(world.hole);
-    ghost.ball = { ...ball };
-    ghost.shoot(dir.x, dir.z, power, opts);
-    const putt = opts.club === "putter",
-      points = [],
-      interval = putt ? 8 : 12;
-    for (let tick = 0; tick < 4200 && ghost.active; tick++) {
-      ghost.update(1 / 120);
-      if (tick % interval === 0) {
-        const b = ghost.ball;
-        points.push(
-          new THREE.Vector3(b.x, Math.max(b.y - GOLF_RADIUS, world.renderGround(b.x, b.z)) + 0.07, b.z),
-        );
-      }
-      if (ghost.events.includes("water") || ghost.sunk) break;
-    }
+    preview.request(world.hole, ball, dir, power, opts);
+  };
+  function drawGuide(points, putt) {
     if (points.length < 2) return;
     const end = points.at(-1);
-    lineGeo.setFromPoints(points);
+    points.forEach((p,i) => linePositions.setXYZ(i,p.x,p.y,p.z));
+    linePositions.needsUpdate = true;
+    lineGeo.setDrawRange(0, points.length);
     lineMat.color.set(putt ? "#c9f1c6" : "#fff4c8");
     lineMat.opacity = putt ? 0.8 : 0.48;
     stroke.visible = !putt;
     const curve = new THREE.CatmullRomCurve3(points);
-    stroke.geometry.dispose();
-    stroke.geometry = new THREE.TubeGeometry(
+    if (!putt) {
+      stroke.geometry.dispose();
+      stroke.geometry = new THREE.TubeGeometry(
       curve,
       Math.min(160, points.length),
       putt ? 0.048 : 0.065,
       5,
       false,
-    );
+      );
+    }
     stroke.material.opacity = putt ? 0.98 : 0.82;
     const length = curve.getLength(),
       count = Math.min(64, Math.max(8, Math.ceil(length / (putt ? 0.65 : 5))));
@@ -183,7 +190,7 @@ export function installGolfPresentation(world) {
     landing.position.set(end.x, world.renderGround(end.x, end.z) + 0.035, end.z);
     landing.scale.setScalar(putt ? 0.24 : 1.25);
     landing.material.color.set(putt ? "#fff5c9" : "#f7cc66");
-  };
+  }
   world.update = (dt, ball, physics) => {
     const golf = world.mode === "play" && world.hole.mode === "golf" && ball;
     world.updateGolfer(dt, ball, physics);

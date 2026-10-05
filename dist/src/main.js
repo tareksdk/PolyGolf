@@ -1,4 +1,6 @@
 import { installInterface } from './interface.js';
+import { installItemThumbnails } from './item-thumbnails.js';
+import { installLiveRound } from './live-round.js';
 import { installSeason } from './season.js';
 import { installRelease } from "./release.js";
 import { loadCourseAssets } from "./course-assets.js";
@@ -25,6 +27,7 @@ try {
   });
   const audio = new AudioManager(progress.data.settings);
   const world = new World(document.querySelector("#world"));
+  installItemThumbnails(world);
   world.settingsChanged(progress.data.settings);
   world.equip(progress.data.equipment, ITEMS);
   const game = new GameManager(world, {
@@ -53,6 +56,7 @@ try {
   installRelease(ui);
   installInterface(ui);
   installSeason(ui);
+  installLiveRound(ui);
   ui.render();
   registerTools(ui);
   document.querySelector("#loading").remove();
@@ -77,7 +81,8 @@ try {
     if (game.state === "playing") progress.data.stats.playTime += dt;
     saveTimer += dt;
     hudTimer += dt;
-    if (hudTimer > 0.045) {
+    ui.tickMeters();
+    if (hudTimer > 0.1) {
       ui.tick();
       hudTimer = 0;
     }

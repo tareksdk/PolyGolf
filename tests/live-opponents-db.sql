@@ -1,0 +1,35 @@
+begin;
+do $$
+declare a uuid:=gen_random_uuid();b uuid:=gen_random_uuid();outsider uuid:=gen_random_uuid();r uuid:=gen_random_uuid();m uuid:=gen_random_uuid();topic text;blocked boolean;
+begin
+ insert into auth.users(id) values(a),(b);
+ insert into public.golf_players(id,username,state) values(a,'qa_'||left(replace(a::text,'-',''),15),'{}'),(b,'qa_'||left(replace(b::text,'-',''),15),'{}');
+ insert into public.golf_rooms(id,code,state) values(r,left(replace(r::text,'-',''),12),jsonb_build_object('phase','playing','members',jsonb_build_array(jsonb_build_object('id',a),jsonb_build_object('id',b))));
+ insert into public.golf_ranked_matches(id,a_id,b_id,course) values(m,a,b,0);
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ topic:='polygolf:room:'||r||':'||b;
+ assert golf_private.golf_can_view_presence(topic),'Room members can see one another';
+ assert not golf_private.golf_can_view_presence('polygolf:room:'||r||':'||outsider),'Nonmember topic rejected';
+ assert not golf_private.golf_can_view_presence('polygolf:room:bad-uuid:also-bad');
+ assert not golf_private.golf_can_view_presence('arbitrary:room:'||r||':'||b);
+ assert golf_private.golf_can_view_presence('polygolf:ranked:'||m||':'||b),'Ranked peers allowed';
+ perform set_config('realtime.topic','polygolf:room:'||r||':'||a,true);
+ set local role authenticated;
+ insert into realtime.messages(topic,extension,event,payload,private,skip_broadcast) values('polygolf:room:'||r||':'||a,'broadcast','state','{}',true,true);
+ perform set_config('realtime.topic',topic,true);
+ blocked:=false;begin insert into realtime.messages(topic,extension,event,payload,private,skip_broadcast) values(topic,'broadcast','state','{}',true,true);exception when insufficient_privilege then blocked:=true;end;
+ assert blocked,'A player cannot broadcast as their opponent';
+ reset role;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',outsider,'role','authenticated')::text,true);
+ assert not golf_private.golf_can_view_presence(topic),'Outsider blocked';
+ assert not golf_private.golf_can_view_presence('polygolf:ranked:'||m||':'||a);
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ update public.golf_ranked_matches set phase='finished' where id=m;
+ assert not golf_private.golf_can_view_presence('polygolf:ranked:'||m||':'||b),'Finished match blocked';
+ update public.golf_rooms set state=state||'{"phase":"finished"}' where id=r;
+ assert not golf_private.golf_can_view_presence(topic),'Finished room blocked';
+ assert not has_function_privilege('anon','golf_private.golf_can_view_presence(text)','execute');
+ assert exists(select 1 from pg_policies where schemaname='realtime' and policyname='polygolf_live_write' and with_check like '%auth.uid()%');
+end $$;
+select 'PASS: room and ranked membership, malformed/outsider topics, completed scopes and authenticated-only access' as verification;
+rollback;

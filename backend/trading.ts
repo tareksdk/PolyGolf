@@ -13,7 +13,7 @@ export async function tradingAction(action:string,p:any,b:any,db:any) {
  }
  if(action==='trade_inventory') {
   const other=await friend(b.userId);
-  return {profile:publicProfile(other),yours:tradeInventory(p.state),theirs:tradeInventory(other.state)};
+  return {profile:publicProfile(other),yours:tradeInventory(p.state),theirs:tradeInventory(other.state),yourCoins:p.state.coins||0};
  }
  if(action==='trades') {
   const rows=await table('trades','or=(sender_id.eq.'+p.id+',receiver_id.eq.'+p.id+')&order=created_at.desc&limit=60');
@@ -26,11 +26,12 @@ export async function tradingAction(action:string,p:any,b:any,db:any) {
   if(!uuid(b.requestId))throw Error('Invalid trade request.');
   const existing=(await table('trades','id=eq.'+b.requestId))[0];
   if(existing){if(existing.sender_id!==p.id)throw Error('Invalid trade request.');return{trade:existing};}
-  const other=await friend(b.userId),offered=validateOffer(b.offered,p.state),requested=validateOffer(b.requested,other.state);
-  exchangeItems(p.state,other.state,offered,requested);
+  const other=await friend(b.userId),offeredCoins=b.offeredCoins??0,requestedCoins=b.requestedCoins??0;
+  const offered=validateOffer(b.offered,p.state,offeredCoins),requested=validateOffer(b.requested,other.state,requestedCoins);
+  exchangeItems(p.state,other.state,offered,requested,offeredCoins,requestedCoins);
   const pending=await table('trades','sender_id=eq.'+p.id+'&status=eq.pending&expires_at=gt.'+new Date().toISOString()+'&select=id&limit=20');
   if(pending.length>=20)throw Error('Finish or cancel an existing offer first.');
-  return{trade:(await insert('trades',{id:b.requestId,sender_id:p.id,receiver_id:other.id,offered,requested}))[0]};
+  return{trade:(await insert('trades',{id:b.requestId,sender_id:p.id,receiver_id:other.id,offered,requested,offered_coins:offeredCoins,requested_coins:requestedCoins}))[0]};
  }
  if(!uuid(b.tradeId))throw Error('Choose a trade first.');
  const t=(await table('trades','id=eq.'+b.tradeId))[0];
@@ -39,8 +40,9 @@ export async function tradingAction(action:string,p:any,b:any,db:any) {
   if(t.receiver_id!==p.id)throw Error('Only the recipient can accept an offer.');
   if(t.status==='accepted')return{state:p.state,duplicate:true};
   if(t.status!=='pending'||Date.parse(t.expires_at)<Date.now())throw Error('This offer is no longer available.');
+  if((t.offered_coins||t.requested_coins)&&b.tradeVersion!==2)throw Error('Reload PolyGolf to review the coins in this offer before accepting.');
   const sender=await friend(t.sender_id);
-  const states=exchangeItems(sender.state,p.state,t.offered,t.requested);
+  const states=exchangeItems(sender.state,p.state,t.offered,t.requested,t.offered_coins||0,t.requested_coins||0);
   const outcome=await rpc('trade_accept',{p_user:p.id,p_trade:t.id,p_sender_revision:sender.revision,p_receiver_revision:p.revision,p_sender_state:states.sender,p_receiver_state:states.receiver});
   return{state:outcome.state,duplicate:outcome.duplicate};
  }

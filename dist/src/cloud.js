@@ -214,25 +214,7 @@ export class GolfCloud {
         this.room = room;
         this.ui.syncRoom(room);
       }
-      if (this.room.state.phase === "playing" && this.ui.game.physics.ball) {
-        const g = this.ui.game,
-          b = g.physics.ball;
-        await this.rest("golf_presence?on_conflict=room_id,user_id", {
-          room_id: this.room.id,
-          user_id: this.session.user.id,
-          x: b.x,
-          y: b.y,
-          z: b.z,
-          hole: g.index,
-          updated_at: new Date().toISOString(),
-        });
-        const positions = await this.rest("golf_presence?room_id=eq." + this.room.id + "&hole=eq." + g.index);
-        this.ui.world.setGhosts(
-          positions.filter(
-            (p) => p.user_id !== this.session.user.id && Date.now() - Date.parse(p.updated_at) < 5000,
-          ),
-        );
-      }
+      // Position, gear and animation updates use private Realtime broadcasts.
       this.status = "Account synced";
     } catch (e) {
       this.status = "Reconnecting…";

@@ -1,4 +1,17 @@
-# PolyGolf · October 4, 2026
+# PolyGolf · October 5, 2026
+
+- Caddie category changes update only the collection. Item artwork loads asynchronously in a worker and is cached on disk. Added search, rarity filters, sorting, and a continuous equipped trail in the floating island preview.
+- Direction timing is slower and updates every frame. A click locks the last displayed direction. Shot prediction runs off the main thread, with a chunked fallback for older browsers.
+- Locker Skip cancels the opening, spinning reel and reveal delay. It always reveals the already awarded result and never purchases twice.
+- Trading uses visual inventory panels and removable item slots, with coins on either side. The backend rechecks ownership, balances and revisions, then commits both players atomically.
+- Private Realtime channels show opponents in casual and ranked games: golfers, ball positions, equipped clubs and ball patterns, ribbon trails, emotes and goal celebrations. Interpolation smooths network updates. The default-on setting can hide opponents; it does not hide you from other players. Other-hole markers avoid drawing opponents on the wrong ranked hole. Visual packets never determine scores or Elo.
+- Country Club purchases now reveal a large animated membership seal, confetti and perk cards. Ranked results use readable colours in both themes. Buttons lift subtly on hover. The home camera moves 40% faster while keeping its small drift.
+
+Validation: 135 automated tests passed. Live rollback-only database tests cover atomic coin transfers, private room/ranked authorization, matchmaking, Elo settlement, sudden death and disconnects. Broadcasts as another player and unauthenticated private joins are rejected. Browser checks use offline fixtures and do not spend player coins. No physical Chromebook or two-account live match was available for the final visual checks.
+
+Measured on the desktop test browser: caddie category HTML updates take roughly 20–47 ms versus 5–8 seconds before this update. First-time artwork loads separately; warm artwork is cached. This is a UI timing measurement, not a Chromebook frame-rate guarantee.
+
+## October 4 release
 
 Social UI: corrected multiplayer player-count and sent-request badge contrast in both themes. Added padding around Friends avatars, consistent 48px icons, and stacked row actions on small screens. Desktop and 390px phone layouts verified.
 

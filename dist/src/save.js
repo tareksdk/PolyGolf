@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS = {
   cameraSensitivity: 1,
   zoomSensitivity: 1,
   aimGuide: true,
+  showOpponents: true,
 };
 export function defaultSave() {
   return {

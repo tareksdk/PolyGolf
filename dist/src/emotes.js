@@ -24,6 +24,7 @@ export function installEmotes(ui) {
     if (performance.now()-lastUse < 1000) return;
     lastUse = performance.now();
     ui.world.emotePose = {kind:emoteKind(item),time:0};
+    ui.liveRound?.emote(id);
     bubble?.remove(); bubble=document.createElement('div');bubble.className='emote-bubble';bubble.setAttribute('role','status');
     bubble.style.setProperty('--emote',item.color);
     bubble.innerHTML = `${icon(emoteKind(item)==='love'?'heart':emoteKind(item)==='cheer'?'trophy':'star')}<span>${esc(item.name)}</span>`;

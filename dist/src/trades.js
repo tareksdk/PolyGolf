@@ -14,8 +14,15 @@ export function tradeInventory(state) {
     return item.finish ? (state.patterns?.[id] || []).filter(validSeed).map(seed=>({id,seed})) : [{id}];
   });
 }
-export function validateOffer(entries, state) {
-  if (!Array.isArray(entries) || entries.length < 1 || entries.length > 5) throw Error('Choose 1–5 items on each side.');
+export const MAX_TRADE_COINS = 1_000_000_000;
+export function validateCoins(coins, state) {
+  if (!Number.isSafeInteger(coins) || coins < 0 || coins > MAX_TRADE_COINS) throw Error('Enter a whole coin amount between 0 and 1,000,000,000.');
+  if (coins > (state.coins || 0)) throw Error('A golfer no longer has enough coins for this offer.');
+  return coins;
+}
+export function validateOffer(entries, state, coins = 0) {
+  validateCoins(coins, state);
+  if (!Array.isArray(entries) || entries.length > 5 || (!entries.length && !coins)) throw Error('Choose up to five items or add coins on each side.');
   const owned = new Set(tradeInventory(state).map(tradeKey)), keys = new Set();
   return entries.map(entry => {
     if (!entry || typeof entry.id !== 'string') throw Error('Invalid trade item.');
@@ -26,9 +33,13 @@ export function validateOffer(entries, state) {
     keys.add(key); return clean;
   }).sort((a,b)=>tradeKey(a).localeCompare(tradeKey(b)));
 }
-export function exchangeItems(sender, receiver, offered, requested) {
+export function exchangeItems(sender, receiver, offered, requested, offeredCoins = 0, requestedCoins = 0) {
   const a = structuredClone(sender), b = structuredClone(receiver);
-  const give = validateOffer(offered,a), take = validateOffer(requested,b);
+  const give = validateOffer(offered,a,offeredCoins), take = validateOffer(requested,b,requestedCoins);
+  // Validate the original balances. Incoming coins cannot fund the same offer.
+  a.coins = (a.coins || 0) - offeredCoins + requestedCoins;
+  b.coins = (b.coins || 0) - requestedCoins + offeredCoins;
+  if (!Number.isSafeInteger(a.coins) || !Number.isSafeInteger(b.coins)) throw Error('This exchange would exceed the coin balance limit.');
   if (give.some(x=>take.some(y=>tradeKey(x)===tradeKey(y)))) throw Error('Choose different items for each side.');
   function remove(s, entries) {
     for (const e of entries) {

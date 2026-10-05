@@ -8,6 +8,8 @@ import {
   coursesView,
   shopView,
   garageView,
+  updateCaddieGrid,
+  updateCaddieCategory,
   profileView,
   leaderboardView,
   hudView,
@@ -47,6 +49,10 @@ export class UIManager {
       if (e.target.dataset.setting) this.changeSetting(e.target);
     });
     document.addEventListener("input", (e) => {
+      if (e.target.id === 'caddie-search') {
+        this.caddieQuery = e.target.value;
+        updateCaddieGrid(this);
+      }
       if (e.target.type === "range" && e.target.dataset.setting) this.changeSetting(e.target);
     });
     document.addEventListener("keydown", (e) => {
@@ -103,10 +109,30 @@ export class UIManager {
     this.hud = {
       fill: document.querySelector("#power-fill"),
       power: document.querySelector("#power-text"),
+      marker: document.querySelector('#accuracy-marker'),
+      accuracy: document.querySelector('#accuracy-text'),
       status: document.querySelector("#shot-status"),
       plate: document.querySelector("#ball-nameplate"),
       surface: document.querySelector("#surface-label"),
     };
+    this.tickMeters();
+  }
+  tickMeters() {
+    const g = this.game, h = this.hud;
+    const moving = (g.state === 'playing' && (!!g.pendingSwing || g.physics.active)) || !!g.holeReveal;
+    if (moving !== this.movingHud) {
+      document.body.classList.toggle('ball-moving', moving);
+      this.movingHud = moving;
+    }
+    if (!h?.fill?.isConnected || moving) return;
+    h.fill.style.transform = `scaleX(${g.power})`;
+    h.fill.style.background = g.power >= .88 ? '#4dac69' : g.power > .5 ? '#a8b96a' : '#e1c782';
+    h.power.textContent = (g.power * 100).toFixed(1) + '%';
+    const accuracy = g.charging ? g.accuracy : 0;
+    if (h.marker) h.marker.style.transform = `translateX(${(accuracy + 1) * 50}%)`;
+    if (h.accuracy) h.accuracy.textContent = Math.abs(accuracy) <= .16 ? 'DIRECTION · CENTRE' : 'DIRECTION · ' + (accuracy < 0 ? 'LEFT' : 'RIGHT');
+    // Input locks exactly the value last drawn, never an unseen timer sample.
+    g.displayedAccuracy = accuracy;
   }
   async loadRankings() {
     const rows = await this.leaderboards.list(this.rankingMetric, this.rankingCourse, this.progress.data),
@@ -301,8 +327,25 @@ export class UIManager {
         break;
       case "garage-category":
         this.garageCategory = id;
+        this.world.previewCategory = id;
         this.previewId = null;
         this.world.equip(this.progress.data.equipment, ITEMS);
+        updateCaddieCategory(this);
+        break;
+      case 'caddie-filters':
+        this.caddieFiltersOpen = !this.caddieFiltersOpen;
+        this.render();
+        break;
+      case 'caddie-sort':
+        this.caddieSort = id;
+        this.render();
+        break;
+      case 'caddie-rarity':
+        this.caddieRarity = id;
+        this.render();
+        break;
+      case 'caddie-clear':
+        this.caddieQuery = ''; this.caddieRarity = 'all'; this.favoritesOnly = false;
         this.render();
         break;
       case "favorites":
@@ -317,9 +360,10 @@ export class UIManager {
         const item = ITEM_BY_ID[id];
         if (!item || !this.progress.data.owned.includes(id)) break;
         this.previewId = id;
+        this.world.previewCategory = item.category;
         this.world.equip({ ...this.progress.data.equipment, [item.category]: id }, ITEMS);
         this.render();
-        if (["hole", "trail", "effect"].includes(item.category)) this.world.burst(-1, 3.5, 8, item.color, 25);
+        if (item.category === 'hole') this.world.burst(-1, 3.5, 8, item.color, 25);
         break;
       }
       case "equip-preview":

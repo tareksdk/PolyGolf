@@ -28,7 +28,7 @@ test('mouse power release never shoots; second click selects direction, locks po
 });
 test('both stages bounce and interruption or a held key cannot release an unintended shot',()=>{
  const {g,keys}=game('golf'),e={code:'Space',preventDefault(){}};keys.keydown(e);g.update(1.65);assert.equal(g.power,1);g.update(.5);assert.ok(g.power<1);
- keys.keyup(e);g.update(.4);assert.ok(Math.abs(g.accuracy-1)<.0001);g.update(.4);assert.ok(Math.abs(g.accuracy)<.0001);g.update(.4);assert.ok(Math.abs(g.accuracy+1)<.0001);
+ keys.keyup(e);g.update(.55);assert.ok(Math.abs(g.accuracy-1)<.0001);g.update(.55);assert.ok(Math.abs(g.accuracy)<.0001);g.update(.55);assert.ok(Math.abs(g.accuracy+1)<.0001);
  keys.keydown({...e,repeat:true});assert.equal(g.pendingSwing,null);g.pause();keys.keyup(e);g.pause();assert.equal(g.shotPhase,'aim');assert.equal(g.charging,false);assert.equal(g.strokes,0);
  keys.keydown({code:'Enter',preventDefault(){}});assert.equal(g.pendingSwing,null);
 });

@@ -44,3 +44,9 @@ In Supabase → Table Editor → `golf_site_settings` → `activity`, edit `home
 Halloween availability is shared by browser and backend in `dist/src/season.js`. It ends at `2026-11-01T00:00:00-04:00`. Decorations, new locker purchases, new random Halloween drops and new pumpkin discoveries end automatically. Owned items remain equippable and tradable under the normal rules; already-owned Halloween lockers can still be opened. Do not delete seasonal catalogue entries.
 
 Public support is room310support@gmail.com. Room310 Discord: https://discord.gg/VCEvxCfF6m.
+# October 5 update
+
+For existing Supabase installs, apply `backend/trading-coins.sql` and `backend/live-opponents.sql`, then deploy the function bundle from `node scripts/package-backend.mjs`. Publish `dist/` after the backend. The connected production project has both migrations and function version 19. `backend/realtime-bootstrap.sql` records the one-time repair of its missing Realtime message partitions; ongoing daily partitions are managed by Supabase.
+
+The frontend uses authenticated private Broadcast channels for player visuals in both room and ranked matches. No extra position polling or per-frame database writes are needed. Keep Realtime enabled. The visibility preference is local and defaults to on. Physics/replay version remains `polygolf-v7` because networking changes only presentation.
+
