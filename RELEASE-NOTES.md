@@ -1,5 +1,9 @@
 # PolyGolf · October 5, 2026
 
+Rendering update: clear colour and depth with write masks enabled and the full viewport before each game frame. Restore the caddie scissor window even if a render fails. The sky no longer tests against object depth, and full-golf cameras use a 0.5 m near plane to improve distant depth precision. No additional rendering pass or asset downloads.
+
+Rendering validation: 143 automated checks pass, one opt-in gift-code test is skipped. Browser fixtures cover starter inventory, visible opponents, low/high settings, all three golf courses and caddie transitions. The exact reported sky-coloured breakup was not reproduced on the test browser; these changes harden the relevant depth and frame-state paths.
+
 Bot update: ranked matchmaking first checks for a human, then fills with a labelled bot after 60 seconds of continuous queue time for Rookie, Bronze and Silver (under 1300 Elo). Gold and higher remain human-only. Bot round totals are +1 (30%), par (40%), -1 (26%), -2 (3%) or -3 (1%). Plans are saved on the server; retries cannot reroll them. Bot wins, losses, forfeits and sudden death settle Elo once. Bots do not create fake accounts or leaderboard entries.
 
 Private-room hosts can add or remove bots and fill remaining slots, up to eight golfers total. A joining human replaces a bot in a full waiting lobby. Bot golfers, balls, swings and trails use the existing opponent display setting. Their shots are animated along the course route from a server-owned score plan. Competitive and Editor have exchanged places on Home.

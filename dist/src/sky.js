@@ -2,7 +2,7 @@ import * as THREE from '../vendor/three.module.js';
 // A smooth atmosphere with broad cloud banks, rendered once as a background dome.
 // No film grain, noise texture, per-frame geometry or transparent cloud sorting.
 export function buildSky(w,h) {
-  const material=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{zenith:{value:new THREE.Color(h.courseIndex===1?'#4586ae':'#699bb8')},horizon:{value:new THREE.Color(h.courseIndex===1?'#a9cdd8':'#b6d1d4')}},vertexShader:`varying vec3 vSky; void main(){vSky=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`
+  const material=new THREE.ShaderMaterial({side:THREE.BackSide,depthTest:false,depthWrite:false,fog:false,uniforms:{zenith:{value:new THREE.Color(h.courseIndex===1?'#4586ae':'#699bb8')},horizon:{value:new THREE.Color(h.courseIndex===1?'#a9cdd8':'#b6d1d4')}},vertexShader:`varying vec3 vSky; void main(){vSky=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`
     uniform vec3 zenith; uniform vec3 horizon; varying vec3 vSky;
     void main(){vec3 d=normalize(vSky);float y=max(d.y,0.0);vec3 col=mix(horizon,zenith,smoothstep(0.0,.78,y));
       float a=atan(d.z,d.x);float banks=sin(a*4.0+.4)*.018+sin(a*9.0)*.012;

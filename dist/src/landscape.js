@@ -64,6 +64,8 @@ export function buildGolf(world, h) {
   world.scene.background = new THREE.Color(c.sky);
   buildSky(world,h);
   world.scene.fog = new THREE.Fog(c.sky, 750, 2400);
+  // Golf cameras stay metres away. Preserve depth precision across the forest.
+  world.camera.near = 0.5;
   world.camera.far = 3000;
   world.camera.updateProjectionMatrix();
   world.renderer.toneMappingExposure = 1.05;

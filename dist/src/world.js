@@ -1,4 +1,5 @@
 import { renderScale } from './render-quality.js';
+import { renderFrame } from './render-frame.js';
 import { halloweenActive } from './season.js';
 import { ballFinish } from "./item-designs.js";
 import { buildClub, trimClubCache } from "./club-models.js";
@@ -21,6 +22,7 @@ export class World {
       preserveDrawingBuffer: false,
     });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+    this.renderer.autoClear = false;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.shadowMap.autoUpdate = false;
@@ -99,6 +101,7 @@ export class World {
   }
   load(h) {
     if (h.mode === "golf") return buildGolf(this, h);
+    this.camera.near = 0.1;
     this.camera.far = 250;
     this.camera.updateProjectionMatrix();
     this.renderer.toneMappingExposure = 1.24;
@@ -846,15 +849,7 @@ export class World {
     if (this.suspended) return;
     this.updateRibbon?.(dt, ball, physics);
     if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
-    if (stage?.height > 0) {
-      // Render the live island into its UI window, including when the mobile page scrolls.
-      this.renderer.setClearColor(this.scene.background); this.renderer.clear();
-      this.renderer.setViewport(stage.left, innerHeight-stage.bottom, stage.width, stage.height);
-      this.renderer.setScissor(Math.max(0,stage.left), Math.max(0,innerHeight-stage.bottom), Math.max(0,Math.min(innerWidth,stage.right)-Math.max(0,stage.left)), Math.max(0,Math.min(innerHeight,stage.bottom)-Math.max(0,stage.top)));
-      this.renderer.setScissorTest(true);
-    }
-    this.renderer.render(this.scene, this.camera);
-    if (stage) { this.renderer.setScissorTest(false); this.renderer.setViewport(0,0,innerWidth,innerHeight); }
+    renderFrame(this.renderer, this.scene, this.camera, innerWidth, innerHeight, stage);
     this.drawCalls = this.renderer.info.render.calls;
   }
   updateFlight(dt, ball, physics) {
