@@ -1,5 +1,11 @@
 # PolyGolf · October 4, 2026
 
+Follow-up: compact Caddie setup and collection controls, larger gift-code entry, custom Developer/Staff/Halloween insignias, and three shiny code-only studio nameplates. Room310 uses a door badge, OneShotStudios a target, and the combined plate has the brightest prismatic finish. The same vector badges appear in item artwork and live nameplates.
+
+The home message now has a Supabase-editable rotation in degrees. Remaining public Little Links branding has been replaced with PolyGolf. Ranked matchmaking's database version guard now accepts the current replay version; its previous guard rejected current clients.
+
+Follow-up validation: 120 automated checks; deployed ranked SQL transaction checks for level gating, pairing, current replay rules, Elo, retries, sudden death, forfeits, disconnects and permissions. All database fixtures rolled back. Gift entry and Caddie were inspected at desktop and phone sizes in both themes.
+
 - Sharper analytical grass stripes, clean fairway borders, repaired Saltwind cliff seams and a smaller stepped waterfall rock formation. Blender kit v8 includes seasonal pumpkins.
 - Separate power and direction inputs, bouncing meters, hidden HUD during motion and cup celebrations, and a collapsible shot panel on every screen size.
 - Consistent foreground/background colours in both themes, balanced page gutters, corrected top navigation and multiplayer icon, unframed Caddie island, direct Community rewards links and scrollable credits without the visible scrollbar.

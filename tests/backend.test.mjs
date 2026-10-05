@@ -53,13 +53,14 @@ source=source.replace("'./trading.ts'",JSON.stringify('data:text/javascript;base
 await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
 async function call(action,data={},id='a'){const response=await handler(new Request('http://game.local',{method:'POST',headers:{'Content-Type':'application/json',...(id?{Authorization:'Bearer '+id}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})}));const result=await response.json();if(!response.ok)throw Error(result.error);return result;}
 
-test('staff codes award only their exact cosmetic nameplate once and reject altered codes and unsigned requests',async()=>{
+test('staff and studio codes award their cosmetic nameplates once and reject altered codes and unsigned requests',async()=>{
  const p=players.get('a');p.state=defaultSave();p.revision=0;
- for(const [code,item] of [['4hjxh80f2jefndarn201mXa6','nameplate-developer'],['98fh2pbfesfvyqdnsanf2m10','nameplate-staff']]){
+ for(const [code,item] of [['4hjxh80f2jefndarn201mXa6','nameplate-developer'],['98fh2pbfesfvyqdnsanf2m10','nameplate-staff'],['uenbp2ugbh2efiushfo289c','nameplate-room310'],['b9u1ffusaho7d1nmoaspxc917','nameplate-oneshotstudios'],['fn19hfaodjm1n9cbznmald1908h4ekad','nameplate-studio-collab']]){
   await assert.rejects(call('redeem_code',{code:code.toUpperCase()}),/not active/);
   await assert.rejects(call('redeem_code',{code},null),/Sign in/);
   const coins=p.state.coins,replies=await Promise.allSettled([call('redeem_code',{code}),call('redeem_code',{code})]);
   assert.equal(replies.filter(r=>r.status==='fulfilled').length,1);assert.equal(p.state.owned.filter(id=>id===item).length,1);assert.equal(p.state.coins,coins);
+  assert.deepEqual(replies.find(r=>r.status==='fulfilled').value.unlocked,[item]);
  }
  assert.equal(p.state.owned.includes('nameplate-og'),false);
 });

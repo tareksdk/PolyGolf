@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {RULES_VERSION} from '../dist/src/golf-courses.js';
 import {verifySudden,suddenHole,eloChange,rankFor,RANKS} from '../dist/src/competitive-rules.js';
 import {GolfPhysics,CUP_RADIUS,GOLF_RADIUS} from '../dist/src/golf-physics.js';
 import {getGolfHole,terrainAt} from '../dist/src/golf-courses.js';
@@ -9,6 +11,15 @@ import {PASS_TIERS,claimTier,golfGear} from '../dist/src/equipment.js';
 import {recommendClub,clubYards} from '../dist/src/club-distances.js';
 import {openLocker} from '../dist/src/pro-shop.js';
 import {GameManager} from '../dist/src/game.js';
+
+test('database matchmaking and its integration fixture target the current replay version',()=>{
+ for(const path of ['../backend/competitive-schema.sql','../backend/competitive-version.sql']){
+  const sql=readFileSync(new URL(path,import.meta.url),'utf8');
+  assert.ok(sql.includes(`p_version is distinct from '${RULES_VERSION}'`),`${path} must be updated when replay rules change`);
+ }
+ const fixture=readFileSync(new URL('./competitive-db.sql',import.meta.url),'utf8');
+ assert.ok(fixture.includes(`rules_version='${RULES_VERSION}'`));
+});
 
 test('rank ladder ends at Elite and Elo rewards upsets more than expected wins',()=>{assert.equal(RANKS.at(-1).name,'Elite');assert.equal(rankFor(1900).name,'Elite');assert.equal(eloChange(1000,1000),16);assert.ok(eloChange(800,1500)>eloChange(1500,800));assert.ok(eloChange(3000,0)>=1);});
 test('sudden death verifies one real shot and rejects reset, double-shot, forged power and premature distance',()=>{const h=suddenHole(),p=new GolfPhysics(),d=defaultSave(),c={kind:'shot',tick:0,dx:0,dz:-1,power:.8,club:'pw',shape:0,spin:0};p.load(h);p.shoot(0,-1,.8,{club:'pw',gear:golfGear(d.equipment)});let ticks=0;while(p.active&&ticks<24000){p.update(1/120);ticks++;}const r=verifySudden(d.equipment,[c],ticks);assert.equal(r.distance,Math.round(Math.hypot(p.ball.x-h.cup.x,p.ball.z-h.cup.z)*1000)/1000);assert.throws(()=>verifySudden(d.equipment,[c,c],ticks),/one shot/);assert.throws(()=>verifySudden(d.equipment,[{kind:'reset'}],ticks));assert.throws(()=>verifySudden(d.equipment,[{...c,power:8}],ticks));assert.throws(()=>verifySudden(d.equipment,[c],10),/finish/);});

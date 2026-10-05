@@ -26,4 +26,7 @@ export const SPECIAL_PLATES = [
   {id:'nameplate-og',name:'OG',source:'founder',color:'#283d38',pattern:'#e2c276',flavor:'One of the first 100 PolyGolf accounts.'},
   {id:'nameplate-developer',name:'Developer',source:'code',color:'#273d55',pattern:'#aacbe4',flavor:'An exclusive developer gift-code nameplate.'},
   {id:'nameplate-staff',name:'Staff',source:'code',color:'#354a38',pattern:'#c7d6a2',flavor:'An exclusive staff gift-code nameplate.'},
+  {id:'nameplate-room310',name:'Room310',source:'code',color:'#342b19',pattern:'#f0cf80',badge:'door',shine:'gold',flavor:'The door is open. A polished gold studio nameplate, unlocked by its own gift code.'},
+  {id:'nameplate-oneshotstudios',name:'OneShotStudios',source:'code',color:'#203649',pattern:'#a9e5ef',badge:'target',shine:'silver',flavor:'Make it count. A polished silver studio nameplate, unlocked by its own gift code.'},
+  {id:'nameplate-studio-collab',name:'Room310 X OneShotStudios',source:'code',color:'#302741',pattern:'#f8db94',badge:'studios',shine:'prismatic',flavor:'Two studios, one fairway. Our brightest studio nameplate, with a prismatic finish and a combined door and target badge.'},
 ].map(i=>({...i,category:'nameplate',rarity:'Legendary',design:0,exclusive:true,price:0}));

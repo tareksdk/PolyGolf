@@ -1,6 +1,6 @@
 # PolyGolf
 
-A low-poly browser golf game by **Room310 × OneShotStudios**, hosted at [littlelinks.study](https://littlelinks.study) and [polygolf.lol](https://polygolf.lol).
+A low-poly browser golf game by **Room310 × OneShotStudios**, playable at [polygolf.lol](https://polygolf.lol).
 
 Play three detailed holes each at Willow Park, Saltwind Links and Autumn Pines, or 45 mini-golf holes. Create and share courses, collect equipment, complete achievements, play friends and enter competitive matchmaking at level 15. Map editors unlock at level 10.
 

@@ -127,13 +127,16 @@ Deno.serve(async req=>{
    await limited('gift:'+p.id,8,600);
    const digest=typeof b.code==='string'?await hash(b.code.trim()):'';
    const rewards:any={
+    '1c4e54ee5d38af18f31e3d3053be138dcb77d65e25a415607ea9918939f20a57':{id:'room310-plate-2026',tokens:0,items:['nameplate-room310'],message:'Room310 nameplate unlocked.'},
+    '3beeb4070bd955ee402745e021e359e7c9bd0e1d04942feff08a616223b5f793':{id:'oneshotstudios-plate-2026',tokens:0,items:['nameplate-oneshotstudios'],message:'OneShotStudios nameplate unlocked.'},
+    '82b2706cdf507848ef25f499d99d7a23d03f671301cdd15604fcedf1cb290a32':{id:'studio-collab-plate-2026',tokens:0,items:['nameplate-studio-collab'],message:'Room310 X OneShotStudios nameplate unlocked.'},
     'bb8044c95c4fda5669c9bdfcce024a57601ae648a00c61ddf6dc3cc326228d65':{id:'developer-plate-2026',tokens:0,items:['nameplate-developer'],message:'Developer nameplate unlocked.'},
     '63b37ef73ba78fbaa2cdd1fb34e4ecb49cf1983f119cfd8f909d857fe4c33e14':{id:'staff-plate-2026',tokens:0,items:['nameplate-staff'],message:'Staff nameplate unlocked.'},
     '16d1551686f4cb08f88335d39d505708f5618bd8762c62fba9f9d1d3f3bdb850':{id:'100k-coins-2026',tokens:100000,items:[],message:'100,000 coins added.'},
     'c9d2b73882b29dd383e4fad19b9475907530ae174ef5ba7a1443069e694e2bcb':{id:'levi-forge-2026',tokens:0,items:[],lockers:{forge:20},message:'20 Forge Lockers added. Open them in Shop → Lockers. Thanks, Levi!'},
     '55e035849acb335467736ccd1b9f0fc5bf605d2a361ead01d2b505d2834bd382':{id:'million-links-2026',tokens:1000000,items:[],message:'1,000,000 tokens added.'},
     '109735c93d69a8c8ba909ecdc84cfc0d2fdacad225890aad720a25989bc11902':{id:'alpha-set-2026',tokens:0,items:ALPHA_ITEMS,message:'The complete Alpha Set is yours.'},
-    '5b4e7aae7d6603c272aa47feb8dcbae3fb5cfb9e8f8cfba1869ee4afa83ea273':{id:'all-items-2026',tokens:0,items:ITEMS.filter(i=>!['membership','code','founder'].includes(i.source)&&(halloweenActive()||(!i.id.includes('halloween')&&!i.id.includes('pumpkin')))).map(i=>i.id),message:'Collection items added. Country Club, OG, Developer and Staff nameplates retain their exclusive unlocks.'}
+    '5b4e7aae7d6603c272aa47feb8dcbae3fb5cfb9e8f8cfba1869ee4afa83ea273':{id:'all-items-2026',tokens:0,items:ITEMS.filter(i=>!['membership','code','founder'].includes(i.source)&&(halloweenActive()||(!i.id.includes('halloween')&&!i.id.includes('pumpkin')))).map(i=>i.id),message:'Collection items added. Country Club, OG and code-only nameplates retain their exclusive unlocks.'}
    };
    const reward=rewards[digest];if(!reward)throw Error('That gift code is not active. Codes are case-sensitive.');
    const pm=progress(p);pm.data.giftClaims??=[];if(pm.data.giftClaims.includes(reward.id))throw Error('You have already redeemed this gift code.');

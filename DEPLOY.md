@@ -6,6 +6,8 @@ Run the checks in README.md before release. No frontend compilation is required:
 
 The existing project is `khbmuaitysznyxxefhou`, function `little-links`. Run `node scripts/package-backend.mjs` to assemble `artifacts/backend-deploy.json`, including all relative imports. Send that payload to Supabase's Edge Function deployment API/tool. Gateway JWT verification remains disabled because login and signup are public; protected operations independently validate the bearer token with Supabase Auth. Never put service-role credentials in the client or Git.
 
+Apply `backend/competitive-version.sql` to existing installations to align ranked matchmaking with `polygolf-v7`. Fresh projects use the updated guard in `competitive-schema.sql`. When changing `RULES_VERSION`, update both SQL guards and the transactional competitive fixture; the regression test checks this agreement.
+
 The October 2 interface/trading update requires `backend/trading.sql` before deploying the Edge Function. It adds service-only trade transactions and public read-only activity settings. It was applied to the connected project as `trading_and_activity_settings`. Replay version remains `polygolf-v6`; existing course scores are compatible. Preserve the previous Edge Function and Netlify deploy IDs before release.
 
 The later `patterns-1` content update retains replay version `polygolf-v6`. Deploy its backend first to add the Forge/Workshop lockers, seed-aware equipment, community visit rewards and Levi code. Pattern inventories use the existing JSON state; no SQL migration is needed. The home page is unchanged. Do not include any `qa-*` preview files in `dist/`.
@@ -37,7 +39,7 @@ New release repository: `tareksdk/PolyGolf` (private). Previous repository: `tar
 
 Replay version is `polygolf-v7`; older active rounds need a fresh start after reloading. Deploy the Edge Function first, then apply `backend/launch-2026.sql`, then publish the frontend. The migration awards the first 100 accounts their OG plate and creates permanent reserved seats, including after an account is deleted. It is safe to reapply and preserves existing activity settings. Run `tests/launch-db.sql` as a rollback-only verification.
 
-In Supabase → Table Editor → `golf_site_settings` → `activity`, edit `home_message`, `home_message_color` (six-digit hex, for example `#F1D982`) and `home_message_size` (12–40). Blank text hides the message. Clients refresh within a minute.
+In Supabase → Table Editor → `golf_site_settings` → `activity`, edit `home_message`, `home_message_color` (six-digit hex, for example `#F1D982`), `home_message_size` (12–40), and `home_message_rotation` (-180 to 180 degrees). `0` is straight, negative angles tilt left, and positive angles tilt right. Blank text hides the message. Clients refresh within a minute. Apply `backend/home-message-rotation.sql` after `backend/launch-2026.sql` when setting up a new project.
 
 Halloween availability is shared by browser and backend in `dist/src/season.js`. It ends at `2026-11-01T00:00:00-04:00`. Decorations, new locker purchases, new random Halloween drops and new pumpkin discoveries end automatically. Owned items remain equippable and tradable under the normal rules; already-owned Halloween lockers can still be opened. Do not delete seasonal catalogue entries.
 
