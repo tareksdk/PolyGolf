@@ -1,0 +1,103 @@
+/* Classic cream and white. Layout, item rarity and scenery stay unchanged. */
+html[data-theme=light] .clubhouse-menu .mode-tabs{background:#e5ecda}
+html[data-theme=light] .clubhouse-menu .ranking-table .your-ranking{background:#e2ebd0;color:#234b3c}
+html[data-theme=light] .clubhouse-menu .ranking-table .your-ranking .profile-link{color:#315834}
+html[data-theme=light] .clubhouse-menu .ranking-table td:first-child{color:#5f7752}
+html[data-theme=light] .clubhouse-menu[data-screen=garage]{background:transparent}
+html[data-theme=light] .clubhouse-menu[data-screen=garage] .garage-preview{background:transparent}
+html[data-theme=light] .clubhouse-menu[data-screen=garage] :is(.garage-title,.garage-equipped){background:#fffdf4}
+html[data-theme=light] .emote-panel{background:#fffdf4f5;color:#234b3c}
+html[data-theme=light] :is(.emote-panel p,.emote-center){color:#617451}
+html[data-theme=light] :is(.emote-slot,.emote-panel .button.secondary){background:#e1ead1;color:#234b3c}
+html[data-theme=light] .emote-slot:hover{background:#c9dcba}
+[data-card]{cursor:pointer;transition:box-shadow .16s,transform .16s}
+[data-card]:hover{box-shadow:0 0 0 2px #92b99a88}
+[data-card]:has(:focus-visible){outline:3px solid #d8b953;outline-offset:3px}
+html[data-theme=light]{--ink:#234b3c;--muted:#627666;--paper:#fffdf4;--soft:#eaf0e5;--line:#b9c8b6;color:#234b3c}
+html[data-theme=light] .clubhouse-menu{--ink:#234b3c;--muted:#627666;--cream:#f4f5e9;--line:#b9c8b6;background:#f4f5e9;color:#234b3c}
+html[data-theme=light] :is(.clubhouse-menu .panel-backdrop,.arcade-page,.competitive-page){background:#f1f4eaf5;color:#234b3c}
+html[data-theme=light] .arcade-home{background:#e7f0de8c;color:#244b3a}
+html[data-theme=light] .home-center h1{text-shadow:0 3px 0 #ffffe8,0 6px 18px #274e3e22}
+html[data-theme=light] .home-center h1 .brand-mark{filter:drop-shadow(0 3px 0 #ffffe8)}
+html[data-theme=light] :is(.home-tile,.home-account button,.home-secondary button,.home-footer button,.home-community){background:#fffdf4eb;color:#244b3a;border-color:#c6d2be;border-bottom-color:#9aaf93}
+html[data-theme=light] :is(.home-tile,.home-account button,.home-secondary button,.home-footer button,.home-community):hover{background:#e5eddb;box-shadow:none}
+html[data-theme=light] .home-tile.home-play{background:#edce78;border-color:#ceaf60;color:#233e32}
+html[data-theme=light] :is(.home-footer a,.home-activity){color:#244b3a}
+html[data-theme=light] .home-activity i{background:#427953}
+html[data-theme=light] :is(.clubhouse-menu .topbar,.clubhouse-menu .competitive-header){background:#fffdf4f5;color:#234b3c;border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu :is(.logo,.wordmark,.wordmark span,.nav button,.player-button,.player-button strong,.header-settings,h1,h2,h3,.competitive-header strong,.competitive-header span){color:#234b3c}
+html[data-theme=light] .clubhouse-menu .topbar .nav{background:#e9efdf;border-color:#c5d1bf;scrollbar-color:#829b80 #e9efdf}
+html[data-theme=light] .clubhouse-menu .nav :is(button.active,button:hover){background:#d9e7cc;color:#224b35}
+html[data-theme=light] .clubhouse-menu :is(.topbar .player-button,.topbar .wallet,.shop-wallet,.header-settings){background:#edf2e3;border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu :is(.panel,.friend-row,.request-panel,.shop-section,.locker-card,.bundle-card,.ranked-card,.competitive-panel,.shop-hero,.promo-card,.pg-card,.crate-card,.coin-pack,.membership-offer,.ranked-hub,.ranked-feature,.ranked-side,.studio-inspector,.studio-sidebar,.studio-topbar,.studio-toolbar,.studio-library,.studio-footer,.ranked-hero,.competitive-hero,.multiplayer-hero){background:#fffdf4;color:#234b3c;border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu :is(.small-note,.muted,.empty-list,.eyebrow,.overline,.section-heading p,.panel p,.friend-row small,.player-button small,.page-heading p,.hero-copy p,.hero-tags,.promo-card p,.crate-body p,.crate-best,.shelf-caption,.rail-head span,.sort-select,.garage-title p,.garage-equipped p,.ranked-identity>p,.ranked-rules,.ranked-fairplay,.competitive-ladder>p,.competitive-ladder small,.profile-stats span,.challenge-details small){color:#627666}
+html[data-theme=light] .clubhouse-menu :is(.button,.soft-button,.category-tab,.filter-button,.chip){background:#e6eedc;color:#264c3a;border-color:#b9cbb0;border-bottom-color:#96ac8b}
+html[data-theme=light] .clubhouse-menu :is(.button,.soft-button,.category-tab,.filter-button,.chip):hover{background:#d9e7cc}
+html[data-theme=light] .clubhouse-menu :is(.button.yellow,.button.primary,.chip.active,.category-tab.active){background:#edce78;color:#233e32;border-color:#bfa252}
+html[data-theme=light] :is(.clubhouse-menu .text-button,.clubhouse-menu .profile-link){color:#3a633b}
+html[data-theme=light] .clubhouse-menu :is(input,select,textarea){background:#fffef8;color:#234b3c;border-color:#a6b9a0}
+html[data-theme=light] .clubhouse-menu input::placeholder{color:#71856f}
+html[data-theme=light] .clubhouse-menu :is(.garage-sidebar,.garage-toolbar,.editor-toolbar,.editor-sidebar,.map-editor-panel,.golf-editor-panel,.item-info,.item-copy,.item-card-footer,.shop-card-copy,.item-card,.pg-card .pg-body,.pg-card .pg-foot,.hero-copy,.hero-art,.promo-card>div){background:#fffdf4;color:#234b3c;border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu :is(.item-card h3,.item-card strong,.pg-card h3,.pg-card .money){color:#234b3c}
+html[data-theme=light] .clubhouse-menu :is(.item-card p,.item-card small,.pg-card .pg-meta,.pg-card .pg-category){color:#627666}
+html[data-theme=light] .clubhouse-menu :is(.shop-tabs,.collection-tabs,.garage-tabs,.mode-tabs){border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu :is(.shop-tabs,.collection-tabs,.garage-tabs,.mode-tabs) button{color:#4e6b4c}
+html[data-theme=light] .clubhouse-menu :is(.shop-tabs,.collection-tabs,.garage-tabs,.mode-tabs) button.active{background:#edce78;color:#234b3c}
+html[data-theme=light] .clubhouse-menu table{color:#234b3c}
+html[data-theme=light] .clubhouse-menu th{color:#4e6b4c;background:#e8efdd}
+html[data-theme=light] .clubhouse-menu td{border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu .garage-preview{background:#e4ecda;border-color:#b4c6ab}
+html[data-theme=light] .clubhouse-menu .garage-inventory{background:#fffdf4}
+html[data-theme=light] .clubhouse-menu .garage-bottom{border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu .garage-equipped .badge{background:#d7e5c9;color:#365634;border-color:#b5c7a4}
+html[data-theme=light] .clubhouse-menu :is(.studio-tabs,.studio-tools,.studio-status,.studio-section,.studio-mode,.studio-heading,.studio-shell,.studio-panel,.tool-group){background:#f6f8ed;color:#234b3c;border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu :is(.studio-shell p,.studio-shell small,.studio-tab,.pe-tool:not(.active),.studio-hint){color:#5a7354}
+html[data-theme=light] .clubhouse-menu .studio-hint{background:#e5eddc}
+html[data-theme=light] .clubhouse-menu :is(.feature-row,.palette-item,.saved-row){background:#e8efdf;color:#234b3c;border-color:#bfd0b5}
+html[data-theme=light] .clubhouse-menu :is(.feature-name,.studio-subhead){color:#375b37}
+html[data-theme=light] .clubhouse-menu :is(.ranked-course-strip>div,.ranked-queue-card,.competitive-ladder article,.pass-summary,.pass-column,.tier-item,.lobby-members>div){background:#f7f8ec;color:#234b3c;border-color:#c5d1bf}
+html[data-theme=light] .clubhouse-menu .competitive-ladder article.is-current{background:#e2ebd5;border-color:var(--rank-color)}
+html[data-theme=light] .clubhouse-menu .pass-free{background:#f3f6e9}
+html[data-theme=light] .clubhouse-menu .pass-premium{background:#e6edda}
+html[data-theme=light] .clubhouse-menu :is(.pass-summary h2,.pass-summary p,.pass-summary small,.pass-summary .eyebrow,.pass-column .track-label,.pass-column small,.pass-navigation,.lobby-members>div>span:last-child,.profile-stats strong){color:#3b5c39}
+html[data-theme=light] .clubhouse-menu .member-collection>div{background:#f8f9ee}
+html[data-theme=light] .clubhouse-menu .challenge-icon{background:#e2ebd4;color:#60743d}
+html[data-theme=light] :is(.arcade-course,.community-link){background:#fffdf4;color:#234b3c;border-color:#c5d1bf;border-bottom-color:#98b18e}
+html[data-theme=light] :is(.arcade-course-copy>span,.arcade-course p,.arcade-course-record,.arcade-course-footer small,.community-menu-content>p,.community-link small,.community-menu-content>.community-terms){color:#5f755a}
+html[data-theme=light] .community-link b{color:#7b6125}
+html[data-theme=light] :is(.arcade-button,.community-link:hover){background:#e6eedc;color:#234b3c;border-color:#b9cbb0;border-bottom-color:#96ac8b}
+html[data-theme=light] .arcade-button:hover{background:#d9e7cc}
+html[data-theme=light] :is(.arcade-primary,.arcade-switch [aria-pressed=true]){background:#edce78;color:#233e32;border-color:#bfa252}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal{background:#fffdf4;color:#234b3c;border-color:#b9c9b1;box-shadow:0 20px 70px #1a352750}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal :is(h2,h3,h4){color:#234b3c}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal :is(p,.small-note,.pattern-copy>small){color:#61745c}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal :is(input,select,textarea){background:#fffef8;color:#234b3c;border-color:#a6b9a0}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal .text-button{color:#46683a}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal :is(.odds-item,.setting-row,.help-grid>div,.pattern-hero){border-color:#c5d1bf}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal .odds-item{background:#edf2e1;color:#234b3c}
+html[data-theme=light] :is(#modal-root,#modal-exit) :is(.modal-close,.modal .button.secondary){background:#e4edda;color:#234b3c;border-color:#bdcfb2}
+html[data-theme=light] :is(.menu-kicker,.controls-meters small,.controls-keys span){color:#526e47}
+html[data-theme=light] .controls-keys>div{border-color:#c5d1bf}
+html[data-theme=light] .controls-keys kbd{background:#e9efdf;color:#315732;border-color:#a7bba0}
+html[data-theme=light] .demo-power{background:#d8e4ca}
+html[data-theme=light] .public-profile .profile-cover{background:linear-gradient(155deg,transparent 50%,#92b58255 50% 70%,transparent 70%),#e0eacb;color:#486337}
+html[data-theme=light] .public-profile .golfer-avatar.large{border-color:#fffdf4}
+html[data-theme=light] .public-profile :is(.social-stats>div,.profile-equipment>div){background:#eaf0de;color:#234b3c;border-color:#bdcdb3}
+html[data-theme=light] .public-profile .social-stats strong{color:#355738}
+html[data-theme=light] :is(.public-profile .social-stats span,.public-profile .profile-equipment small,.public-profile-head>div>span:not(.golfer-nameplate)){color:#5b7352}
+html[data-theme=light] :is(.trade-toolbar>span,.trade-offer>header small,.trade-sides h3,.trade-item small,.trade-offer>footer small){color:#5f7753}
+html[data-theme=light] .trade-item{background:#edf2e3;color:#234b3c;border-top-color:#c5d1bf;border-right-color:#c5d1bf;border-bottom-color:#c5d1bf}
+html[data-theme=light] .trade-status{color:#4b6c43;border-color:#aabd9c}
+html[data-theme=light] .trade-status.pending{color:#795a1c;border-color:#b59d54}
+html[data-theme=light] :is(button,a):focus-visible{outline-color:#51763e}
+@media(prefers-reduced-motion:reduce){[data-card]{transition:none}}
+/* Native controls need their own checked colour, not the text-field surface. */
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal input.toggle{background:#c5d1b8;border:1px solid #a7b89a;border-radius:20px}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal input.toggle:checked{background:#4f7748}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal input.toggle::after{top:2px;left:2px;background:#fffdf4}
+
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal .scorecard :is(td,th){color:#234b3c;border-color:#b9c9b1}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal .scorecard :is(td,th):last-child{background:#dfe9d0;color:#284c30}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal .scorecard .under-par{color:#477a36}
+html[data-theme=light] :is(#modal-root,#modal-exit) .modal .result-score span{color:#5d7353}
+html[data-theme=light] .clubhouse-menu .achievement-reward small{color:#5d7353}

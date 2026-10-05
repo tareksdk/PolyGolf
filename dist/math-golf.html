@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="A little math. A lovely round. Solve equations, send satisfying shots across nine miniature golf holes, and upgrade your kit.">
+  <title>Parabola · A little math. A lovely round.</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23173f35'/%3E%3Cpath d='M19 45Q32 4 45 45' fill='none' stroke='%23ddf583' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='45' cy='45' r='5' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/math/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/math-golf.html" aria-label="Parabola home"><svg viewBox="0 0 38 38" aria-hidden="true"><path d="M6 30Q19-12 32 30"/><circle cx="32" cy="30" r="3.5"/></svg>parabola<span class="brand-dot">.</span></a>
+      <span class="brand-note">A LITTLE MATH. A LOVELY ROUND.</span>
+      <div class="top-actions"><div class="wallet" aria-label="Your coins"><span class="coin-icon">✦</span><span id="wallet">0</span></div><button class="icon-button" id="sound" aria-label="Turn sound on" title="Turn sound on"></button><button class="icon-button" id="help" aria-label="How to play" title="How to play">?</button></div>
+    </header>
+    <main>
+      <div class="course-heading"><div><div class="eyebrow">YOUR EVERYDAY GREEN ESCAPE</div><h1>The Meadow <span class="course-tag">9 HOLES</span></h1></div><button class="shop-button" id="shop-open"><span id="shop-icon"></span> Upgrade your kit <span aria-hidden="true">↗</span></button></div>
+      <div class="play-layout">
+        <section class="course-panel" aria-label="Golf course">
+          <div id="scene" tabindex="0" role="application" aria-label="Golf course. Click the green to aim, or use the aim buttons next to the shot controls."><div id="scene-error" hidden>3D isn’t available in this browser. Try a browser with WebGL enabled.</div></div>
+          <div class="course-hud"><div class="hole-badge"><span class="mini-label">HOLE</span><strong id="hole-number">01</strong><div class="hud-rule"></div><div><span class="mini-label" id="hole-title">First light</span><span class="par-label" id="par-label">PAR 3</span></div></div><div class="distance-pill"><span class="flag-icon"></span><strong id="distance">160</strong><span>m to pin</span></div></div>
+          <div class="course-bottom"><span class="aim-tip"><span aria-hidden="true">⌖</span> Click the green to aim</span><button class="recenter-button" id="aim-flag" title="Aim directly at the flag">Aim at flag <span aria-hidden="true">↗</span></button></div>
+          <div id="shot-toast" role="status" aria-live="polite"></div>
+          <div class="course-watermark" aria-hidden="true">TAKE YOUR TIME. FIND YOUR LINE.</div>
+        </section>
+        <aside class="shot-panel" aria-label="Shot controls">
+          <div class="shot-panel-header"><div><div class="eyebrow">LET’S MAKE IT COUNT</div><h2>Your next shot<span>.</span></h2></div><span class="stroke-pill" id="stroke">SHOT 1</span></div>
+          <div class="step-label"><span>01</span> Choose your club</div>
+          <div class="clubs" id="clubs"></div>
+          <div class="power-heading"><label for="power">Shot distance</label><span><strong id="power-value">100</strong> m</span></div>
+          <input id="power" type="range" min="2" max="110" value="100" aria-label="Shot distance in metres">
+          <div class="range-labels"><span>Soft touch</span><span>Full swing</span></div>
+          <div class="aim-controls"><span>Aim</span><button id="aim-left" aria-label="Aim five degrees left">↶</button><span id="aim-angle">At the pin</span><button id="aim-right" aria-label="Aim five degrees right">↷</button></div>
+          <div class="panel-divider"></div>
+          <div class="step-label"><span>02</span> Solve it. Send it.</div>
+          <form id="shot-form" autocomplete="off">
+            <div class="equation-card"><span class="equation-kicker">FIND THE MISSING NUMBER</span><div class="equation" id="equation">x + 7 = 19</div><div class="answer-row"><label for="answer">x =</label><input id="answer" type="text" inputmode="numeric" placeholder="?" aria-label="Answer for x" aria-describedby="equation feedback" spellcheck="false" maxlength="8"><span class="answer-spark" aria-hidden="true">✧</span></div></div>
+            <div class="answer-feedback" id="feedback" role="status" aria-live="polite">A correct answer makes a perfect swing.</div>
+            <button class="swing-button" type="submit" id="swing">Take the shot <span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="panel-footnote"><span class="keycap">↵</span> Press enter to swing <span class="foot-dot">·</span> No timer. No rush.</div>
+        </aside>
+      </div>
+      <section class="round-bar" aria-label="Your round scorecard"><div class="round-title"><span id="round-icon"></span><div><strong>A round in the meadow</strong><span>One good shot at a time.</span></div></div><div class="scorecard" id="scorecard"></div><div class="round-score"><span>TO PAR</span><strong id="total-score">E</strong></div></section>
+      <footer><span><span class="save-dot"></span>Progress saved on this device</span><button id="difficulty">Classic equations <span aria-hidden="true">⌄</span></button></footer>
+    </main>
+  </div>
+  <dialog id="dialog" aria-label="Game menu"></dialog>
+  <noscript>Please enable JavaScript to play Parabola.</noscript>
+  <script type="module" src="/math/game.js"></script>
+</body>
+</html>

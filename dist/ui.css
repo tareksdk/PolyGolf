@@ -1,0 +1,678 @@
+@import url("/components.css");
+.hud-title {
+  background: #f8faefdf;
+  border: 1px solid #ffffffa0;
+  border-radius: 15px;
+  padding: 12px 20px;
+  backdrop-filter: blur(12px);
+}
+.controls-hint {
+  background: #f6f8edd9;
+  border-radius: 20px;
+  padding: 5px 8px;
+  opacity: 1;
+  display: inline-block;
+  font-size: 9px;
+}
+@media (min-width: 1800px) {
+  .page {
+    inset: 125px 70px 40px;
+  }
+  .items-grid .item-image {
+    height: 210px;
+  }
+  .featured .item-image {
+    height: 280px;
+  }
+  .items-grid.six .item-image {
+    height: 180px;
+  }
+  .garage-page {
+    inset: 130px 65px 40px;
+  }
+  .garage-items .item-image {
+    height: 180px;
+  }
+  .course-image {
+    height: 270px;
+  }
+  .home-actions {
+    margin-top: 32px;
+  }
+  .equipped-label {
+    margin-top: 25px;
+  }
+}
+@media (max-height: 820px) and (min-width: 761px) {
+  .home-main {
+    top: 135px;
+  }
+  .home-main h1 {
+    font-size: 57px;
+  }
+  .home-main .eyebrow {
+    margin-bottom: 15px;
+  }
+  .home-main .intro {
+    font-size: 13px;
+    margin-top: 17px;
+  }
+  .home-main .play-button {
+    margin-top: 24px;
+    padding: 16px;
+  }
+  .home-actions {
+    margin-top: 22px;
+  }
+  .equipped-label {
+    display: none;
+  }
+  .mini-course {
+    height: 108px;
+  }
+  .bottom-home {
+    bottom: 18px;
+  }
+  .home-main .play-meta {
+    margin-top: 14px;
+  }
+  .world-label {
+    bottom: 230px;
+  }
+}
+@media (max-height: 700px) and (min-width: 761px) {
+  .home-main {
+    top: 115px;
+  }
+  .home-main h1 {
+    font-size: 48px;
+  }
+  .home-main .intro {
+    margin-top: 12px;
+  }
+  .home-main .play-button {
+    margin-top: 15px;
+    padding: 12px;
+    width: 240px;
+  }
+  .home-actions {
+    margin-top: 15px;
+  }
+  .home-actions .soft-button {
+    padding: 9px 12px;
+  }
+  .mini-course {
+    height: 86px;
+  }
+  .world-label {
+    bottom: 175px;
+  }
+  .topbar {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+}
+@media (max-width: 1150px) {
+  .items-grid.six {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .items-grid.six .item-image {
+    height: 170px;
+  }
+  .garage-page {
+    inset: 90px 22px 25px;
+    grid-template-columns: 38% 62%;
+  }
+  .garage-inventory {
+    padding: 18px;
+  }
+  .garage-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .garage-title {
+    padding: 20px 10px;
+  }
+  .garage-equipped {
+    left: 10px;
+  }
+  .garage-equipped .row {
+    flex-wrap: wrap;
+  }
+  .garage-title h1 {
+    font-size: 43px;
+  }
+  .garage-equipped h2 {
+    font-size: 26px;
+  }
+  .profile-layout {
+    grid-template-columns: 300px 1fr;
+  }
+  .achievement-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .course-grid {
+    gap: 16px;
+  }
+  .course-image {
+    height: 160px;
+  }
+  .course-body {
+    padding: 18px;
+  }
+  .course-body h2 {
+    font-size: 23px;
+  }
+  .course-facts {
+    gap: 14px;
+  }
+  .nav button {
+    padding: 10px 13px;
+  }
+  .topbar {
+    gap: 12px;
+  }
+  .header-settings {
+    width: 32px;
+  }
+  .player-button div {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .header-settings {
+    display: grid;
+    width: 30px;
+    height: 30px;
+  }
+  .home-main {
+    top: 112px;
+  }
+  .home-main h1 {
+    font-size: 47px;
+  }
+  .home-main .intro {
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 16px;
+  }
+  .home-main .play-button {
+    margin-top: 22px;
+  }
+  .home-main .play-meta {
+    font-size: 10px;
+    margin-left: 7px;
+  }
+  .equipped-label {
+    display: none;
+  }
+  .home-actions {
+    display: none;
+  }
+  .course-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .course-body {
+    padding: 15px;
+  }
+  .course-body h2 {
+    font-size: 20px;
+  }
+  .course-body .button {
+    font-size: 11px;
+    padding: 11px;
+  }
+  .course-image {
+    height: 145px;
+  }
+  .course-facts {
+    flex-wrap: wrap;
+    font-size: 10px;
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .course-facts span {
+    font-size: 10px;
+  }
+  .course-body > p {
+    font-size: 11px;
+  }
+  .course-number {
+    font-size: 8px;
+  }
+  .page-heading {
+    gap: 15px;
+    align-items: start;
+  }
+  .page-heading h1 {
+    font-size: 28px;
+  }
+  .page-heading > button {
+    font-size: 11px;
+    padding: 10px;
+    white-space: nowrap;
+  }
+  .rotation-pill {
+    font-size: 10px;
+    white-space: normal;
+    padding: 10px;
+    max-width: 150px;
+  }
+  .category-tabs {
+    gap: 5px;
+  }
+  .category-tab {
+    font-size: 11px;
+    padding: 9px 12px;
+  }
+  .items-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+  }
+  .items-grid.six {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .item-image,
+  .featured .item-image {
+    height: 145px;
+  }
+  .items-grid.six .item-image {
+    height: 115px;
+  }
+  .item-info {
+    padding: 13px;
+  }
+  .item-info h3 {
+    font-size: 16px;
+  }
+  .items-grid.six .item-info {
+    padding: 10px;
+  }
+  .items-grid.six .item-info h3 {
+    font-size: 14px;
+  }
+  .items-grid.six .item-info .rarity {
+    font-size: 8px;
+  }
+  .items-grid.six .row {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .section-heading h2 {
+    font-size: 20px;
+  }
+  .section-heading > span {
+    font-size: 8px;
+  }
+  .garage-page {
+    inset: 80px 15px 70px;
+    grid-template-columns: 35% 65%;
+    gap: 5px;
+  }
+  .garage-title {
+    padding: 20px 0;
+  }
+  .garage-title .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .garage-title h1 {
+    font-size: 33px;
+  }
+  .garage-title p {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .garage-inventory {
+    padding: 15px;
+  }
+  .garage-inventory > div > h2 {
+    font-size: 18px;
+  }
+  .garage-equipped {
+    left: 0;
+    bottom: 10px;
+  }
+  .garage-equipped h2 {
+    font-size: 23px;
+  }
+  .garage-equipped p {
+    font-size: 10px;
+    line-height: 1.6;
+    padding-right: 12px;
+  }
+  .garage-equipped .button {
+    font-size: 10px;
+    padding: 10px;
+  }
+  .garage-items {
+    gap: 9px;
+  }
+  .garage-items .item-image {
+    height: 95px;
+  }
+  .garage-items .item-info {
+    padding: 9px;
+  }
+  .garage-items h3 {
+    font-size: 13px;
+  }
+  .garage-items .row {
+    gap: 2px;
+  }
+  .garage-items .rarity {
+    font-size: 8px;
+  }
+  .garage-items .item-button {
+    font-size: 9px;
+    padding: 6px 8px;
+  }
+  .garage-inventory .category-tabs {
+    gap: 5px;
+  }
+  .garage-inventory .category-tab {
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+  .garage-bottom {
+    gap: 13px;
+    flex-wrap: wrap;
+  }
+  .garage-bottom .text-button {
+    font-size: 10px;
+  }
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .profile-card {
+    display: block;
+  }
+  .profile-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .profile-card > .row,
+  .profile-card > .xp-track,
+  .profile-card > .input-label {
+    max-width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .profile-card .input-label {
+    margin-bottom: 8px;
+  }
+  .achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .ranking-filters {
+    flex-wrap: wrap;
+  }
+  .ranking-table th {
+    font-size: 9px;
+  }
+  .ranking-table td {
+    font-size: 12px;
+    padding: 13px 7px;
+  }
+  .ranking-avatar {
+    height: 27px;
+    width: 27px;
+    margin-right: 7px;
+  }
+  .demo-tag {
+    font-size: 7px;
+  }
+  .ranking-panel {
+    padding: 15px;
+  }
+  .help-grid {
+    gap: 12px;
+  }
+  .help-grid > div {
+    font-size: 10px;
+    gap: 8px;
+  }
+  .setting-row input[type="range"] {
+    width: 110px;
+  }
+  .setting-row > span {
+    min-width: 120px;
+  }
+  .hud-tools {
+    gap: 6px;
+    max-width: 190px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .hud-tools .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+  .login-grid {
+    gap: 5px;
+  }
+  .login-day {
+    padding: 10px 3px;
+  }
+  .login-day strong {
+    font-size: 9px;
+  }
+  .login-day > span {
+    font-size: 8px;
+  }
+  .modal .reward-line {
+    font-size: 12px;
+  }
+  .scorecard th,
+  .scorecard td {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+  .course-grid .small-note {
+    font-size: 11px;
+  }
+}
+@media (max-width: 760px) and (max-height: 700px) {
+  .home-main {
+    top: 93px;
+  }
+  .home-main h1 {
+    font-size: 39px;
+    letter-spacing: -1.8px;
+  }
+  .home-main .eyebrow {
+    font-size: 8px;
+    margin-bottom: 12px;
+  }
+  .home-main .intro {
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .home-main .play-button {
+    width: 205px;
+    padding: 12px;
+    font-size: 15px;
+    margin-top: 17px;
+  }
+  .home-main .play-meta {
+    margin-top: 10px;
+  }
+  .world-label {
+    bottom: 227px;
+  }
+  .world-label h3 {
+    font-size: 17px;
+  }
+  .world-label .overline {
+    font-size: 8px;
+  }
+  .bottom-home {
+    bottom: 69px;
+  }
+  .mini-course {
+    height: 88px;
+  }
+  .rail-heading {
+    margin-bottom: 7px;
+  }
+  .rail-heading strong {
+    font-size: 9px;
+  }
+  .rail-heading button {
+    font-size: 10px;
+  }
+}
+@media (max-width: 440px) {
+  .home-main {
+    width: 245px;
+  }
+  .home-main .intro {
+    max-width: 240px;
+  }
+  .world-label {
+    display: none;
+  }
+  .home-shade {
+    background: linear-gradient(90deg, #d6e9decf, transparent);
+  }
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+  .course-image {
+    height: 180px;
+  }
+  .items-grid.six {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .garage-page {
+    display: block;
+    overflow-y: auto;
+    pointer-events: auto;
+  }
+  .garage-preview {
+    height: 280px;
+  }
+  .garage-title {
+    padding-top: 5px;
+  }
+  .garage-equipped {
+    bottom: 15px;
+  }
+  .garage-equipped p {
+    display: none;
+  }
+  .garage-equipped h2 {
+    font-size: 20px;
+  }
+  .garage-equipped .row {
+    margin-top: 12px;
+  }
+  .garage-inventory {
+    overflow: visible;
+  }
+  .garage-items {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .garage-items .item-image {
+    height: 140px;
+  }
+  .nav button {
+    padding: 10px 9px;
+    font-size: 10px;
+  }
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .challenge {
+    gap: 10px;
+  }
+  .challenge-icon {
+    display: none;
+  }
+  .challenge-details h3 {
+    font-size: 15px;
+  }
+  .challenge-details p {
+    font-size: 11px;
+  }
+  .achievement {
+    padding: 17px;
+  }
+  .achievement h3 {
+    font-size: 16px;
+  }
+  .help-grid {
+    grid-template-columns: 1fr;
+  }
+  .surface-guide {
+    grid-template-columns: 1fr;
+  }
+  .setting-row {
+    font-size: 11px;
+    gap: 7px;
+  }
+  .setting-row > span {
+    min-width: 105px;
+  }
+  .setting-row input[type="range"] {
+    width: 93px;
+  }
+  .login-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .login-day:last-child {
+    grid-column: 2/4;
+  }
+  .hud-title h3 {
+    font-size: 13px;
+  }
+  .hud-title p {
+    font-size: 8px;
+  }
+  .hud-small {
+    font-size: 8px;
+  }
+  .hud-top {
+    padding: 12px;
+    gap: 10px;
+  }
+  .hud-card {
+    padding: 10px 12px;
+  }
+  .hud-hole .number {
+    font-size: 22px;
+  }
+  .hud-hole .hole-count {
+    font-size: 11px;
+  }
+  .hud-score {
+    min-width: 65px;
+  }
+  .hud-score strong {
+    font-size: 22px;
+  }
+  .hud-total {
+    font-size: 9px;
+  }
+  .hud-total strong {
+    font-size: 18px;
+  }
+  .ball-nameplate {
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .item-card,
+  .course-card,
+  .item-image img,
+  .xp-track > i {
+    transition: none;
+  }
+  .modal-overlay,
+  .toast {
+    animation: none;
+  }
+}

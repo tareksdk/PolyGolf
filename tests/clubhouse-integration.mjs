@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import {writeFile,mkdir} from 'node:fs/promises';
+import {SUPABASE_URL,PUBLISHABLE_KEY} from '../dist/src/cloud.js';
+import {RULES_VERSION} from '../dist/src/golf-courses.js';
+import {shopRotation,ALPHA_ITEMS,ITEMS} from '../dist/src/catalog.js';
+const endpoint=SUPABASE_URL+'/functions/v1/little-links';
+async function call(action,data={},session){const r=await fetch(endpoint,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json',...(session?{Authorization:'Bearer '+session.access_token}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})});const value=await r.json();if(value.error)throw Error(value.error);return value;}
+await mkdir('.sites-runtime',{recursive:true});
+const suffix=String(Date.now()).slice(-9),password='GolfQA_'+crypto.randomUUID();
+const a=await call('signup',{username:'qa_a_'+suffix,password});
+await writeFile('.sites-runtime/golf-qa.json',JSON.stringify({a,password}));
+const b=await call('signup',{username:'qa_b_'+suffix,password});
+await writeFile('.sites-runtime/golf-qa.json',JSON.stringify({a,b,password}));
+console.log('Created two isolated QA golfers.');
+await assert.rejects(call('login',{username:a.username,password:'wrongpassword'}));
+const logged=await call('login',{username:a.username,password});assert.equal(logged.session.user.id,a.session.user.id);
+const rotation=shopRotation(),item=[...rotation.daily,...rotation.weekly,...rotation.featured].filter(i=>i.price<=750).sort((x,y)=>x.price-y.price)[0];assert.ok(item);
+const purchases=await Promise.allSettled([call('buy',{id:item.id},a.session),call('buy',{id:item.id},a.session)]);assert.equal(purchases.filter(r=>r.status==='fulfilled').length,1);let me=await call('me',{},a.session);const balance=750-item.price;assert.equal(me.state.coins,balance);console.log('Login, rotating shop and concurrent purchase protection passed.');
+const headers={apikey:PUBLISHABLE_KEY,Authorization:'Bearer '+a.session.access_token,'Content-Type':'application/json'};
+for(const [url,body] of[['/rest/v1/golf_players?id=eq.'+a.session.user.id,{state:{coins:999999}}],['/rest/v1/rpc/golf_commit',{p_user:a.session.user.id,p_revision:0,p_state:{coins:99999}}],['/rest/v1/rpc/golf_friend_action',{p_user:b.session.user.id,p_target:a.session.user.id,p_action:'accept'}]]){const r=await fetch(SUPABASE_URL+url,{method:url.includes('/rpc/')?'POST':'PATCH',headers,body:JSON.stringify(body)});assert.ok(!r.ok);}
+console.log('Direct economy writes and privileged RPC access denied.');
+const profile=await call('update_profile',{bio:'QA golfer · testing clean fairways.',avatar:''},a.session);assert.equal(profile.profile.bio,'QA golfer · testing clean fairways.');assert.equal(profile.profile.coins,undefined);assert.equal(profile.profile.state,undefined);
+const found=await call('search_players',{query:a.username},b.session);assert.ok(found.profiles.some(p=>p.id===a.session.user.id));
+await assert.rejects(call('friend_action',{userId:a.session.user.id,operation:'request'},a.session));
+await call('friend_action',{userId:b.session.user.id,operation:'request'},a.session);
+await assert.rejects(call('friend_action',{userId:b.session.user.id,operation:'accept'},a.session));
+let friends=await call('friends',{},b.session);assert.equal(friends.incoming[0].id,a.session.user.id);
+await call('friend_action',{userId:a.session.user.id,operation:'accept'},b.session);
+friends=await call('friends',{},a.session);assert.equal(friends.friends[0].id,b.session.user.id);
+const publicView=await call('profile',{userId:a.session.user.id},b.session);assert.equal(publicView.relationship.status,'accepted');assert.equal(publicView.profile.bio,profile.profile.bio);
+await call('friend_action',{userId:b.session.user.id,operation:'remove'},a.session);assert.equal((await call('friends',{},b.session)).friends.length,0);
+await call('friend_action',{userId:b.session.user.id,operation:'request'},a.session);
+await call('friend_action',{userId:a.session.user.id,operation:'accept'},b.session);
+console.log('Profiles, search, request/accept/remove, self-accept rejection and private-field filtering passed.');
+await assert.rejects(call('redeem_code',{code:'8hw2m7xp51vzx'},b.session));
+const alpha=await call('redeem_code',{code:'8HW2M7XP51VZX'},b.session);assert.ok(ALPHA_ITEMS.every(id=>alpha.state.owned.includes(id)));
+const all=await call('redeem_code',{code:'4137275028'},b.session);assert.equal(all.state.owned.length,ITEMS.length);
+await assert.rejects(call('redeem_code',{code:'4137275028'},b.session));
+const coinsBefore=all.state.coins,million=await call('redeem_code',{code:'XI9L4GHAEQ93kNMCD07A'},b.session);assert.equal(million.state.coins-coinsBefore,1000000);
+await assert.rejects(call('redeem_code',{code:'XI9L4GHAEQ93kNMCD07A'},b.session));
+console.log('Alpha set, all 240 items, million-token code and repeat-redemption denial passed.');
+const r=await call('start_round',{mode:'mini',course:0},a.session);await assert.rejects(call('submit_hole',{roundId:r.roundId,index:0,transcript:[{kind:'shot',tick:0,dx:0,dz:-1,power:1,shape:0,spin:0,club:'putter'}],endTick:1},a.session));
+for(let i=0;i<9;i++){const result=await call('submit_hole',{roundId:r.roundId,index:i,transcript:[{kind:'skip',tick:0}],endTick:0},a.session);assert.equal(result.result.strokes,result.result.par+6);}
+const duplicate=await call('submit_hole',{roundId:r.roundId,index:8,transcript:[{kind:'skip',tick:0}],endTick:0},a.session);assert.equal(duplicate.duplicate,true);assert.equal(duplicate.finished,true);me=await call('me',{},a.session);assert.equal(me.state.coins,balance);
+const records=await(await fetch(SUPABASE_URL+'/rest/v1/golf_records?user_id=eq.'+a.session.user.id,{headers:{apikey:PUBLISHABLE_KEY}})).json();assert.equal(records.length,0);
+console.log('Forged replays rejected; skipped rounds excluded from rewards and rankings.');
+const created=await call('create_room',{mode:'golf',course:0},a.session),roomId=created.room.id;
+await writeFile('.sites-runtime/golf-qa.json',JSON.stringify({a,b,password,roomIds:[roomId]}));
+await call('join_room',{code:created.room.code},b.session);await call('ready_room',{roomId},b.session);
+await Promise.allSettled([call('start_room',{roomId},a.session),call('room',{roomId},b.session)]);let room=(await call('room',{roomId},a.session)).room;assert.equal(room.state.phase,'playing');assert.equal(room.state.members.length,2);
+const ar=room.state.members.find(m=>m.id===a.session.user.id).roundId,br=room.state.members.find(m=>m.id===b.session.user.id).roundId;
+for(let index=0;index<3;index++){await call('submit_hole',{roundId:ar,index,transcript:[{kind:'skip',tick:0}],endTick:0},a.session);if(index<2)await assert.rejects(call('submit_hole',{roundId:ar,index:index+1,transcript:[{kind:'skip',tick:0}],endTick:0},a.session));await call('submit_hole',{roundId:br,index,transcript:[{kind:'skip',tick:0}],endTick:0},b.session);room=(await call('room',{roomId},a.session)).room;assert.equal(room.state.hole,index+1);}
+assert.equal(room.state.phase,'finished');await call('leave_room',{roomId},b.session);await call('leave_room',{roomId},a.session);
+console.log('Two-player room start, synchronized three-hole advancement and finish passed.');
+await writeFile('.sites-runtime/golf-qa.json',JSON.stringify({a,b,password,roomIds:[roomId],complete:true}));
+console.log('Cloud integration checks passed.');

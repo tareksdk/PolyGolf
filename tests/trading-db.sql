@@ -1,0 +1,31 @@
+begin;
+do $$
+declare a uuid:=gen_random_uuid();b uuid:=gen_random_uuid();c uuid:=gen_random_uuid();t uuid:=gen_random_uuid();r jsonb;blocked boolean;
+begin
+ insert into auth.users(id) values(a),(b),(c);
+ insert into public.golf_players(id,username,state) values(a,'qa_'||left(replace(a::text,'-',''),15),'{"owned":["one"]}'),(b,'qa_'||left(replace(b::text,'-',''),15),'{"owned":["two"]}'),(c,'qa_'||left(replace(c::text,'-',''),15),'{}');
+ insert into public.golf_friends(user_low,user_high,requested_by,status) values(least(a,b),greatest(a,b),a,'accepted');
+ insert into public.golf_trades(id,sender_id,receiver_id,offered,requested) values(t,a,b,'[{"id":"one"}]','[{"id":"two"}]');
+ blocked:=false;begin perform public.golf_trade_accept(c,t,0,0,'{}','{}');exception when sqlstate 'PT403' then blocked:=true;end;assert blocked,'Non-recipient must be rejected';
+ blocked:=false;begin perform public.golf_trade_accept(b,t,1,0,'{}','{}');exception when sqlstate 'PT409' then blocked:=true;end;assert blocked,'Stale revision must be rejected';
+ assert (select state->'owned' from public.golf_players where id=a)='["one"]'::jsonb,'Conflict cannot lose sender inventory';
+ assert (select status from public.golf_trades where id=t)='pending';
+ r:=public.golf_trade_accept(b,t,0,0,'{"owned":["two"]}','{"owned":["one"]}');assert not (r->>'duplicate')::boolean;
+ assert (select revision from public.golf_players where id=a)=1;assert (select revision from public.golf_players where id=b)=1;
+ r:=public.golf_trade_accept(b,t,0,0,'{}','{}');assert (r->>'duplicate')::boolean,'Retry must not transfer again';
+ assert r->'state'->'owned'='["one"]'::jsonb;
+ assert public.golf_trade_close(a,t)='accepted','Cancellation cannot undo acceptance';
+ t:=gen_random_uuid();insert into public.golf_trades(id,sender_id,receiver_id,offered,requested) values(t,a,b,'[{"id":"two"}]','[{"id":"one"}]');
+ assert public.golf_trade_close(a,t)='cancelled';
+ blocked:=false;begin perform public.golf_trade_accept(b,t,1,1,'{}','{}');exception when sqlstate 'PT409' then blocked:=true;end;assert blocked,'Cancelled trade must stay closed';
+ t:=gen_random_uuid();insert into public.golf_trades(id,sender_id,receiver_id,offered,requested,expires_at) values(t,a,b,'[{"id":"two"}]','[{"id":"one"}]',now()-interval '1 second');
+ blocked:=false;begin perform public.golf_trade_accept(b,t,1,1,'{}','{}');exception when sqlstate 'PT409' then blocked:=true;end;assert blocked,'Expired trade must stay closed';
+ assert not has_table_privilege('authenticated','public.golf_trades','select');
+ assert not has_table_privilege('anon','public.golf_trades','insert');
+ assert not has_table_privilege('authenticated','public.golf_site_settings','update');
+ assert has_table_privilege('anon','public.golf_site_settings','select');
+ assert not has_function_privilege('authenticated','public.golf_trade_accept(uuid,uuid,integer,integer,jsonb,jsonb)','execute');
+ assert (select bool_and(relrowsecurity) from pg_class where oid in('public.golf_trades'::regclass,'public.golf_site_settings'::regclass));
+end $$;
+select 'PASS: atomic transfer, stale revision, idempotency, authorization, cancellation, expiry, RLS and grants' as trading_verification;
+rollback;

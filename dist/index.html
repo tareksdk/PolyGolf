@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#d6e9de" />
+    <meta
+      name="description"
+      content="PolyGolf is a friendly low-poly golf game. Play nine detailed golf holes and 45 mini-golf holes, build and share maps, collect equipment, and compete with friends."
+    />
+    <title>PolyGolf · Golf &amp; Clubhouse</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/ui.css" />
+    <link rel="stylesheet" href="/expansion.css" />
+    <link rel="stylesheet" href="/clubhouse.css" />
+    <link rel="stylesheet" href="/links.css" />
+    <link rel="stylesheet" href="/polish.css" />
+    <link rel="stylesheet" href="/release.css" />
+    <link rel="stylesheet" href="/patterns.css" />
+    <link rel="stylesheet" href="/interface.css" />
+    <link rel="stylesheet" href="/light.css" />
+    <link rel="stylesheet" href="/launch.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;650;700&amp;family=Outfit:wght@400;500;600;650;700;750;800&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+  </head>
+  <body>
+    <canvas id="world" aria-label="Interactive 3D golf course" tabindex="0"></canvas>
+    <div id="app"></div>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="modal-root"></div>
+    <div id="loading">
+      <span class="loading-ball"></span>
+      <p>Growing the greens…</p>
+    </div>
+    <noscript>PolyGolf needs JavaScript to play. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/contact.html">Contact</a></noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
