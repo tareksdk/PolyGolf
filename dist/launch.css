@@ -73,3 +73,10 @@ html[data-theme=light] .home-studio{display:inline-block;opacity:1;background:#c
 .settings-choice legend,.settings-group h3{font-size:12px;font-weight:700;line-height:1.4}
 :is(#modal-root,#modal-exit) .modal{scrollbar-width:thin;scrollbar-color:var(--ui-border) transparent}
 :is(#modal-root,#modal-exit) .modal:has(.credits-panel){scrollbar-width:none}
+.settings-custom{grid-template-columns:minmax(0,1fr)}
+.settings-custom .settings-group{min-width:0}
+.settings-custom .setting-row>span{min-width:0}
+.settings-custom input[type=range]{margin-inline:0}
+@media(max-width:480px){:is(#modal-root,#modal-exit) .modal:has(.settings-custom){padding-inline:20px}.settings-custom .setting-slider{grid-template-columns:minmax(0,1fr) 38px}}
+@media(max-width:380px){.settings-choice:not(:has([data-setting=theme])) .setting-segments{flex-direction:column}.settings-choice:not(:has([data-setting=theme])) .setting-option>span{min-height:48px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:8px;padding-block:10px}.settings-choice:not(:has([data-setting=theme])) .choice-check{top:16px}}
+@media(max-width:480px){.modal:has(.settings-custom) .modal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.modal:has(.settings-custom) .modal-actions .button{min-width:0;padding:10px 8px;font-size:12px;gap:5px}.modal:has(.settings-custom) .modal-actions svg{width:15px;height:15px}.modal:has(.settings-custom) .modal-actions .button:last-child{grid-column:1/-1}}
