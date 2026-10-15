@@ -1,5 +1,5 @@
 import * as THREE from "../vendor/three.module.js";
-import { terrainHeight, terrainAt, pathDistance } from "./golf-courses.js";
+import { terrainHeight, terrainAt, pathDistance, golfHoleCount } from "./golf-courses.js";
 
 export function golfTrees(w, h) {
   const dummy = new THREE.Object3D(),
@@ -232,7 +232,7 @@ export function signatureDetails(w, h) {
   ctx.fillText(`HOLE ${h.index + 1}  /  PAR ${h.par}  /  ${h.length} M`, 28, 172);
   ctx.fillRect(28, 194, 456, 2);
   ctx.font = "18px sans-serif";
-  ctx.fillText("POLYGOLF   •   THREE-HOLE COLLECTION", 28, 229);
+  ctx.fillText(`POLYGOLF   •   ${golfHoleCount(h.courseIndex)}-HOLE COLLECTION`, 28, 229);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   const sign = new THREE.Mesh(

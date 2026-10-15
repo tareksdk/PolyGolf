@@ -1,5 +1,5 @@
 import * as THREE from "../vendor/three.module.js";
-import { terrainHeight, terrainAt, pathDistance, fairwayWidth } from "./golf-courses.js";
+import { terrainHeight, terrainAt, pathDistance, fairwayWidth, ovalBoundary } from "./golf-courses.js";
 import { nearbyTrees } from "./forest.js";
 import { registerOccluders } from "./occlusion.js";
 import { pirateShipFor, pumpkinFor } from "./course-features.js";
@@ -97,7 +97,9 @@ export function courseAssets(w, h) {
   const home = [-26, 24],
     toTee = facing(...home, 0, 0),
     front = (d, side = 0) => [home[0] + Math.sin(toTee) * d + Math.cos(toTee) * side, home[1] + Math.cos(toTee) * d - Math.sin(toTee) * side];
-  add("clubhouse", ...home, 1, toTee);
+  const teeBuilding = !h.backdrop || h.backdrop === "lake" ? "clubhouse" :
+    ["garden", "wetland"].includes(h.backdrop) ? "gazebo" : "starter-hut";
+  add(teeBuilding, ...home, 1, toTee);
   claim(...home, 8.5);
   for (const [name, d, side, r, angle] of [
     ["flagpole", 9.5, -6.5, 0.6, toTee],
@@ -170,7 +172,10 @@ export function courseAssets(w, h) {
   }
 
   // ---- Bunkers get a rake resting on the lip.
-  for (const b of h.bunkers) add("rake", b.x + b.rx * 0.95, b.z + b.rz * 0.18, 1, Math.PI / 2 + 0.2);
+  for (const b of h.bunkers) {
+    const p = b.angle || b.scallop ? ovalBoundary(b, 0.18, 1.02) : { x: b.x + b.rx * 0.95, z: b.z + b.rz * 0.18 };
+    add("rake", p.x, p.z, 1, Math.PI / 2 + 0.2 + (b.angle || 0));
+  }
 
   // ---- Water: reeds and stones on the shore; lily pads (inland) or tide rocks (coast).
   for (const p of h.water)
@@ -202,8 +207,8 @@ export function courseAssets(w, h) {
     return spots.sort((a, b) => b[2] - a[2]).map(([x, z]) => [x, z]);
   };
   const lake = h.water[0],
-    key = h.custom ? -1 : h.courseIndex * 3 + h.index;
-  if (lake && key === 0) {
+    landmark = h.custom ? "community" : h.landmark;
+  if (lake && landmark === "boathouse") {
     const spot = firstClear(shore(lake), 3.4, { water: true, canopy: 1.6 });
     if (spot) {
       const angle = facing(...spot, lake.x, lake.z),
@@ -214,7 +219,7 @@ export function courseAssets(w, h) {
       claim(...spot, 5);
     }
   }
-  if (key === 1) {
+  if (landmark === "garden" || landmark === "lily-reach") {
     for (const p of h.water) {
       const spot = firstClear(shore(p), 2.5, { water: true, canopy: 1.6 });
       if (spot) {
@@ -247,23 +252,23 @@ export function courseAssets(w, h) {
     }
   }
   if (h.courseIndex === 1 && !h.custom) {
-    const spots = [...(key === 4 && lake ? shore(lake) : []), [14, 9], [-14, 6], [12, 13], [-12, 12]];
+    const spots = [...(landmark === "tide" && lake ? shore(lake) : []), [14, 9], [-14, 6], [12, 13], [-12, 12]];
     let placed = 0;
     for (const spot of spots)
-      if (placed < (key === 4 ? 2 : 1) && clear(...spot, 2, { play: true, canopy: 1.6, water: true })) {
+      if (placed < (landmark === "tide" ? 2 : 1) && clear(...spot, 2, { play: true, canopy: 1.6, water: true })) {
         add("beach-hut", ...spot, 1, facing(...spot, 0, -h.length / 2));
         claim(...spot, 2.6);
         placed++;
       }
   }
-  if (key === 6 && lake) {
+  if (landmark === "arch" && lake) {
     const spot = firstClear(shore(lake), 3.6, { water: true, canopy: 1.8 });
     if (spot) {
       add("stone-arch", ...spot, 1, facing(...spot, lake.x, lake.z) + Math.PI / 2);
       claim(...spot, 4);
     }
   }
-  if (key === 7 && lake) {
+  if (landmark === "spring" && lake) {
     const spot = firstClear(shore(lake), 1.6, { water: true, canopy: 1.4 });
     if (spot) {
       add("spring-well", ...spot, 1, facing(...spot, 0, 0));
@@ -276,6 +281,14 @@ export function courseAssets(w, h) {
       add("fallen-log", ...spot, 1, 1.1);
       claim(...spot, 2);
     }
+  }
+
+  // New parkland landmarks reuse the same merged, instanced Blender meshes.
+  for (const p of h.scenery || []) {
+    if (pathDistance(h, p.x, p.z) < fairwayWidth(h, -p.z / h.length) / 2 + p.radius + 3) continue;
+    if (!clear(p.x, p.z, p.radius, { canopy: 2 })) continue;
+    add(p.name, p.x, p.z, p.scale ?? 1, p.angle ?? 0);
+    claim(p.x, p.z, p.radius);
   }
 
   // ---- The rough just beyond the fairway: soft, low planting only.

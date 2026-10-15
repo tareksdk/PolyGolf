@@ -1,5 +1,5 @@
 import {levelInfo} from './shared/save.js';
-import {GOLF_COURSES,getGolfHole,GOLF_HOLE_COUNT,RULES_VERSION} from './shared/golf-courses.js';
+import {GOLF_COURSES,getGolfHole,golfHoleCount,RULES_VERSION} from './shared/golf-courses.js';
 import {COURSES,getHole} from './shared/courses.js';
 import {makeBot,botHoleDuration,BOT_NAMES} from './shared/bots.js';
 export async function roomAction(action:string,p:any,b:any,api:any){
@@ -15,7 +15,7 @@ export async function roomAction(action:string,p:any,b:any,api:any){
    if(s.host!==p.id||s.phase!=='waiting')throw Error('Only the host can change bots before the round starts.');
    if(action==='remove_room_bot'){if(!s.members.some((m:any)=>m.bot&&m.id===b.botId))throw Error('Bot not found.');s.members=s.members.filter((m:any)=>m.id!==b.botId);}
    else {if(s.members.length>=8)throw Error('This room is full.');const count=action==='fill_room_bots'?8-s.members.length:1;
-    const pars=Array.from({length:s.mode==='golf'?GOLF_HOLE_COUNT:9},(_,i)=>(s.mode==='golf'?getGolfHole(s.course,i):getHole(s.course,i)).par);
+    const pars=Array.from({length:s.mode==='golf'?golfHoleCount(s.course):9},(_,i)=>(s.mode==='golf'?getGolfHole(s.course,i):getHole(s.course,i)).par);
     for(let i=0;i<count;i++){const used=new Set(s.members.map((m:any)=>m.name));const nameIndex=BOT_NAMES.findIndex(n=>!used.has(n));s.members.push(makeBot(pars,Math.max(0,nameIndex)));}
    }
   }
@@ -23,12 +23,12 @@ export async function roomAction(action:string,p:any,b:any,api:any){
   if(action==='start_room'){
    if(s.host!==p.id||s.phase!=='waiting'||s.members.length<2||s.members.some((m:any)=>!m.ready))throw Error('The host can start when at least two golfers are ready.');
    s.phase='starting';try{await rpc('room_cas',{p_id:r.id,p_revision:r.revision,p_state:s});}catch(e){if(attempt<3)continue;throw e;}
-   try{const players=await table('players','id=in.('+s.members.filter((m:any)=>!m.bot).map((m:any)=>m.id).join(',')+')');const rounds=await insert('rounds',players.map((pl:any)=>({user_id:pl.id,room_id:r.id,mode:s.mode,course:s.course,equipment:pl.state.equipment,rules_version:RULES_VERSION,hole_count:s.mode==='golf'?GOLF_HOLE_COUNT:9})));s.members.filter((m:any)=>!m.bot).forEach((m:any)=>m.roundId=rounds.find((rr:any)=>rr.user_id===m.id).id);s.phase='playing';s.botHoleStartedAt=Date.now();s.deadline=Date.now()+360000;await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s});return{serverNow:Date.now(),room:{...r,state:s,revision:r.revision+2}};}catch(e){s.phase='waiting';await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s}).catch(()=>{});throw e;}
+   try{const players=await table('players','id=in.('+s.members.filter((m:any)=>!m.bot).map((m:any)=>m.id).join(',')+')');const rounds=await insert('rounds',players.map((pl:any)=>({user_id:pl.id,room_id:r.id,mode:s.mode,course:s.course,equipment:pl.state.equipment,rules_version:RULES_VERSION,hole_count:s.mode==='golf'?golfHoleCount(s.course):9})));s.members.filter((m:any)=>!m.bot).forEach((m:any)=>m.roundId=rounds.find((rr:any)=>rr.user_id===m.id).id);s.phase='playing';s.botHoleStartedAt=Date.now();s.deadline=Date.now()+360000;await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s});return{serverNow:Date.now(),room:{...r,state:s,revision:r.revision+2}};}catch(e){s.phase='waiting';await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s}).catch(()=>{});throw e;}
   }
   if(s.phase==='playing'){
    let rounds=await table('rounds','room_id=eq.'+r.id);if(Date.now()>s.deadline){for(const rr of rounds.filter((rr:any)=>rr.next_hole<=s.hole&&s.members.some((m:any)=>m.id===rr.user_id))){const pl=await player(rr.user_id);await submit(pl,{roundId:rr.id,index:rr.next_hole,transcript:[{kind:'skip',tick:0}],endTick:0});}rounds=await table('rounds','room_id=eq.'+r.id);}
    s.members.forEach((m:any)=>{if(m.bot){if(Date.now()-s.botHoleStartedAt>=botHoleDuration(m.plan[s.hole].strokes)+(m.delay||0)*1000&&m.nextHole===s.hole){m.scores.push(m.plan[s.hole].strokes);m.nextHole++;}return;}const rr=rounds.find((rr:any)=>rr.user_id===m.id);m.scores=rr?.holes.map((h:any)=>h.strokes)||[];m.nextHole=rr?.next_hole||0;});
-   if(s.members.every((m:any)=>m.nextHole>s.hole)){s.hole++;s.botHoleStartedAt=Date.now();s.deadline=Date.now()+360000;if(s.hole>=(s.mode==='golf'?GOLF_HOLE_COUNT:9))s.phase='finished';}
+   if(s.members.every((m:any)=>m.nextHole>s.hole)){s.hole++;s.botHoleStartedAt=Date.now();s.deadline=Date.now()+360000;if(s.hole>=(s.mode==='golf'?golfHoleCount(s.course):9))s.phase='finished';}
   }
   if(s.host&&!s.members.some((m:any)=>m.id===s.host&&Date.now()-m.seen<120000))s.host=p.id;
   try{const rev=await rpc('room_cas',{p_id:r.id,p_revision:r.revision,p_state:s});return{serverNow:Date.now(),room:{...r,state:s,revision:rev}};}catch(e){if(attempt===3)throw e;}

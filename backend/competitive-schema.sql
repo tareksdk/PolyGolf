@@ -81,7 +81,7 @@ create or replace function public.golf_ranked_join(p_user uuid,p_equipment jsonb
 language plpgsql security invoker set search_path='' as $$
 declare opponent public.golf_match_queue;m uuid;ar uuid;br uuid;c integer;v_status jsonb;
 begin
- if p_version is distinct from 'polygolf-v7' then raise exception 'Reload PolyGolf before matchmaking';end if;
+ if p_version is distinct from 'polygolf-v8' then raise exception 'Reload PolyGolf before matchmaking';end if;
  if not exists(select 1 from public.golf_players p where p.id=p_user and (p.state->>'xp')::numeric>=18375) then raise exception 'Competitive unlocks at level 15';end if;
  perform pg_advisory_xact_lock(310415);
  v_status:=public.golf_ranked_status(p_user);
@@ -92,9 +92,9 @@ begin
  select * into opponent from public.golf_match_queue q where q.user_id<>p_user and q.expires_at>now() and not exists(select 1 from public.golf_ranked_matches m where (m.a_id=q.user_id or m.b_id=q.user_id) and m.phase<>'finished') order by random() limit 1 for update;
  if found then
   c:=floor(random()*3)::integer;
-  insert into public.golf_ranked_matches(a_id,b_id,course) values(opponent.user_id,p_user,c) returning id into m;
-  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(opponent.user_id,'golf',c,opponent.equipment,p_version,3,m) returning id into ar;
-  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(p_user,'golf',c,p_equipment,p_version,3,m) returning id into br;
+  insert into public.golf_ranked_matches(a_id,b_id,course,deadline) values(opponent.user_id,p_user,c,now()+make_interval(mins=>case when c=0 then 54 else 18 end)) returning id into m;
+  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(opponent.user_id,'golf',c,opponent.equipment,p_version,case when c=0 then 9 else 3 end,m) returning id into ar;
+  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(p_user,'golf',c,p_equipment,p_version,case when c=0 then 9 else 3 end,m) returning id into br;
   update public.golf_ranked_matches set a_round=ar,b_round=br where id=m;
   delete from public.golf_match_queue where user_id in(p_user,opponent.user_id);
  end if;

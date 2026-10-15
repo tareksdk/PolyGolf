@@ -9,7 +9,7 @@ import { keepMiniSceneryClear } from "./course-detail.js";
 import { installGolfPresentation } from "./golf-presentation.js";
 import { installCoursePreviews } from "./course-previews.js";
 import { installOcclusion } from "./occlusion.js";
-import { GOLF_COURSES, courseRecordKey, getGolfHole, terrainAt, GOLF_HOLE_COUNT } from "./golf-courses.js";
+import { GOLF_COURSES, courseRecordKey, getGolfHole, terrainAt, golfHoleCount } from "./golf-courses.js";
 import { COURSES, getHole, nearestPoint, surfaceAt, relative } from "./courses.js";
 import { CLUBS } from "./golf-physics.js";
 import { ITEMS, ITEM_BY_ID, DEFAULT_EQUIPMENT } from "./catalog.js";
@@ -46,13 +46,13 @@ function courses(ui) {
     ui,
     "Choose your next round.",
     ui.mode === "golf"
-      ? "Three courses. Nine carefully built holes. A full bag of clubs."
+      ? "Three courses. Fifteen carefully built holes. A full bag of clubs."
       : "Five mini-golf worlds, plus the courses you create.",
     modeTabs(ui) +
       `<div class="course-grid">${list(ui)
         .map((c, i) => {
           const unlocked = ui.progress.level.level >= c.level,
-            n = ui.mode === "golf" ? GOLF_HOLE_COUNT : 9,
+            n = ui.mode === "golf" ? golfHoleCount(i) : 9,
             par = Array.from({ length: n }, (_, j) => hole(ui.mode, i, j).par).reduce((a, b) => a + b, 0),
             best = ui.progress.data.bests[courseRecordKey(ui.mode, i)];
           return `<article class="course-card panel"><div class="course-image"><img data-course-preview="${ui.mode}:${i}" src="${ui.world.thumbnail(i, ui.mode)}" alt="${c.name} course map"><span class="badge">${c.difficulty}</span></div><div class="course-body"><div class="course-number">${n} HOLES · PAR ${par}</div><h2>${c.name}</h2><p>${c.subtitle}</p><div class="course-facts"><span>${unlocked ? "Unlocked" : "Unlocks at level " + c.level}</span><span>Best ${best ? relative(best.score) : "-"}</span></div>${button(unlocked ? "Play course" : "Play practice", unlocked ? "start" : "practice", `data-course="${i}"`, "button yellow wide")}</div></article>`;

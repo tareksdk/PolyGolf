@@ -37,13 +37,13 @@ replay.js
 save.js
 ```
 
-PolyGolf release note: this version changes `catalog.js` (13 appended items), `pro-shop.js` (five new lockers) and `equipment.js` (mini-golf effects for the new putters). Redeploy the function with these copies **before** the frontend; see `../DEPLOY.md`. No SQL changes are needed. The function keeps its `little-links` name so existing clients and sessions continue to work.
+PolyGolf release note: this version changes `catalog.js` (13 appended items), `pro-shop.js` (five new lockers) and `equipment.js` (mini-golf effects for the new putters). Redeploy the function with these copies **before** the frontend; see `../DEPLOY.md`. For the Willow nine-hole update, reapply `ranked-bots.sql` as described below. The function keeps its `little-links` name so existing clients and sessions continue to work.
 
 Supabase supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to the function runtime. Disable gateway JWT verification for this function because signup/login use the same endpoint. The handler independently verifies every protected request through Supabase Auth; never remove that verification. Username-only accounts use synthetic addresses under `players.littlelinks.invalid`, so there is no email recovery.
 
 When using another Supabase project or frontend origin, update the public URL/key in `dist/src/cloud.js` and the CORS origin allowlist in `index.ts`. The deployed allowlist includes `https://littlelinks.study`, `https://www.littlelinks.study`, `https://little-links-golf.netlify.app`, the original Sites address, and localhost. Keep secret keys out of the frontend. Deploy matching shared course/physics modules before deploying the static frontend. Old in-progress rounds are rejected with a reload message when their rules version differs.
 
-The normal golf collection is three holes per course. Historical 18-hole rounds and records remain stored as `legacy-v1`; new records use `links-v4`; prior `clubhouse-v2` records remain stored separately. The public leaderboard filters on version and hole count.
+Willow Park has nine full-golf holes; Saltwind Links and Autumn Pines retain three each. New rounds use `polygolf-v8`. Redeploy the matching shared modules and reapply `ranked-bots.sql` before publishing this frontend. Historical 18-hole rounds and records remain stored as `legacy-v1`; new records use `links-v4`; prior `clubhouse-v2` records remain stored separately. The public leaderboard filters on version and hole count.
 
 Live QA scripts create temporary golfers and write credentials to ignored `.sites-runtime/`. They are deliberately separate from the offline unit tests. Remove only the generated test IDs after QA, including their room rows and rate-limit entries. Never run test cleanup against ordinary player accounts.
 

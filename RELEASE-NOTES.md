@@ -1,3 +1,19 @@
+# PolyGolf · v0.3 · October 14, 2026
+
+Rebuilt Willow Park holes 4–9 around different shot decisions and landscapes. Willow Bend cuts around a bunker-guarded hillside; Lily Reach plays downhill through a sunken garden; Foxglove Rise climbs three shelves to an elevated green; Twin Ponds narrows between two shores; The Lookout drops from a high tee across a dry hollow; Lakeside Home finishes beside open water, islands and boats.
+
+Rotated, scalloped bunkers share their exact outlines with sand lies and terrain depressions. Hand-authored elevation profiles, side mounds, rock outcrops, garden walls, lodges and glades replace the repeated forest corridor. Each new hole has its own mountain arrangement and sky palette. Existing Blender models remain shared and instanced. Original holes 1–3, the other courses and UI layouts remain unchanged.
+
+Validation: 150 automated checks pass. All 15 full-golf holes finish through the real physics and server replay verifier, including fairway lay-ups. Browser review covers the six new landscapes, approaches, low/high graphics and phone layout.
+
+# PolyGolf · v0.2 · October 14, 2026
+
+Willow Park expands from three to nine holes, par 36. The original Boathouse, Heron Pond and Orchard stay intact. Willow Bend, Lily Reach, Foxglove Rise, Twin Ponds, The Lookout and Lakeside Home add doglegs, a lily-pond carry, rolling fairways and a long lakeside finish using the existing low-poly Blender kit. Saltwind Links, Autumn Pines and mini-golf layouts are unchanged.
+
+Course cards, scorecards, personal bests, multiplayer round lengths and ranked bot plans use each course’s hole count. Three-hole Willow records remain saved separately from the new nine-hole record. The existing studio credit and clubhouse wordmark show v0.2. No new asset downloads or menu layouts.
+
+Validation: 148 automated checks pass. The shot planner completes all 15 full-golf holes with the shipped physics. Local PostgreSQL checks cover nine-hole ranked bot plans, score settlement and sudden death. Browser checks cover every golf hole, keyboard shots, course counts and a nine-hole scorecard at 390 x 844 without scrolling.
+
 # PolyGolf · October 5, 2026
 
 Rendering update: clear colour and depth with write masks enabled and the full viewport before each game frame. Restore the caddie scissor window even if a render fails. The sky no longer tests against object depth, and full-golf cameras use a 0.5 m near plane to improve distant depth precision. No additional rendering pass or asset downloads.

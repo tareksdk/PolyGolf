@@ -2,7 +2,7 @@
 
 A low-poly browser golf game by **Room310 × OneShotStudios**, playable at [polygolf.lol](https://polygolf.lol).
 
-Play three detailed holes each at Willow Park, Saltwind Links and Autumn Pines, or 45 mini-golf holes. Create and share courses, collect equipment, complete achievements, play friends and enter competitive matchmaking at level 15. Map editors unlock at level 10.
+Play nine detailed holes at Willow Park and three each at Saltwind Links and Autumn Pines, or 45 mini-golf holes. Create and share courses, collect equipment, complete achievements, play friends and enter competitive matchmaking at level 15. Map editors unlock at level 10.
 
 The item shop includes daily and weekly rotations, bundles, novelty clubs and ten lockers during Halloween (nine year-round) with disclosed odds. Forge and Workshop Lockers contain 18 original patterned drivers, putters and balls. Every drop saves a pattern numbered 000–999; different patterns of an item stay in the Caddie. Country Club costs 50,000 earned coins and contains 30 tiers with one free reward and one member item per tier, plus a separate members-only collection. Real-money prices are Coming Soon previews only. Opening each Room310 community link awards 1,000 coins once per account; no follow verification is required.
 

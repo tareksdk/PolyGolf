@@ -1,3 +1,7 @@
+## Willow Park nine-hole landscape update · v0.3
+
+This branch is a local preview. Before a future release, deploy the packaged Edge Function with the matching shared course modules, then apply `backend/ranked-bots.sql` (updates the matchmaking version guard, per-course round sizes and saved bot plans), then publish `dist/`. Fresh installations use the updated `competitive-schema.sql`, followed by `ranked-bots.sql`. Willow Park is nine holes / par 36; the other full-golf courses stay three holes / par 12. Replay version is `polygolf-v8`; old in-progress rounds need a fresh start. Existing accounts, items and historical scores are preserved.
+
 # Deploying PolyGolf
 
 Run the checks in README.md before release. No frontend compilation is required: Netlify publishes `dist/`.
@@ -6,7 +10,7 @@ Run the checks in README.md before release. No frontend compilation is required:
 
 The existing project is `khbmuaitysznyxxefhou`, function `little-links`. Run `node scripts/package-backend.mjs` to assemble `artifacts/backend-deploy.json`, including all relative imports. Send that payload to Supabase's Edge Function deployment API/tool. Gateway JWT verification remains disabled because login and signup are public; protected operations independently validate the bearer token with Supabase Auth. Never put service-role credentials in the client or Git.
 
-Apply `backend/competitive-version.sql` to existing installations to align ranked matchmaking with `polygolf-v7`. Fresh projects use the updated guard in `competitive-schema.sql`. When changing `RULES_VERSION`, update both SQL guards and the transactional competitive fixture; the regression test checks this agreement.
+Apply `backend/competitive-version.sql` to existing installations to align ranked matchmaking with `polygolf-v8`. Fresh projects use the updated guard in `competitive-schema.sql`. When changing `RULES_VERSION`, update both SQL guards and the transactional competitive fixture; the regression test checks this agreement.
 
 The October 2 interface/trading update requires `backend/trading.sql` before deploying the Edge Function. It adds service-only trade transactions and public read-only activity settings. It was applied to the connected project as `trading_and_activity_settings`. Replay version remains `polygolf-v6`; existing course scores are compatible. Preserve the previous Edge Function and Netlify deploy IDs before release.
 

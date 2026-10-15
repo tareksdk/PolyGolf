@@ -15,6 +15,7 @@ import {
   waterLevel,
   GOLF_COURSES,
   getGolfHole,
+  golfHoleCount,
 } from "./golf-courses.js";
 import { COURSES, getHole } from "./courses.js";
 export function batchScenery(world) {
@@ -61,15 +62,18 @@ export function buildGolf(world, h) {
   world.coin = null;
   world.flag = null;
   const c = h.course;
-  world.scene.background = new THREE.Color(c.sky);
+  world.scene.background = new THREE.Color(h.atmosphere?.horizon || c.sky);
   buildSky(world,h);
-  world.scene.fog = new THREE.Fog(c.sky, 750, 2400);
+  world.scene.fog = new THREE.Fog(h.atmosphere?.horizon || c.sky, 750, 2400);
   // Golf cameras stay metres away. Preserve depth precision across the forest.
   world.camera.near = 0.5;
   world.camera.far = 3000;
   world.camera.updateProjectionMatrix();
   world.renderer.toneMappingExposure = 1.05;
-  world.sun.intensity = 2.4;
+  world.golfSunColor ??= world.sun.color.clone();
+  world.sun.color.copy(world.golfSunColor);
+  if (h.atmosphere?.sun) world.sun.color.set(h.atmosphere.sun);
+  world.sun.intensity = h.atmosphere?.intensity ?? 2.4;
   if (world.hemi) world.hemi.intensity = 1.8;
   world.shadowCenter = null;
   world.flightPoints = [];
@@ -199,6 +203,6 @@ export function coursePreview(index, mode = "mini") {
       .filter((_, i) => i % 5 === 0)
       .map((p, i) => `${i ? "L" : "M"}${220 + p.x * 8},${130 + p.z * 8}`)
       .join(" ");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 260"><rect width="440" height="260" fill="${c.sky}"/><ellipse cx="220" cy="159" rx="235" ry="145" fill="${c.grass}"/><ellipse cx="330" cy="180" rx="58" ry="38" fill="${c.water}"/><path d="${path}" fill="none" stroke="${c.edge}" stroke-width="${mode === "golf" ? 40 : 45}" stroke-linecap="round" stroke-linejoin="round"/><path d="${path}" fill="none" stroke="#b4cc89" stroke-width="${mode === "golf" ? 34 : 38}" stroke-linecap="round" stroke-linejoin="round"/>${Array.from({ length: 10 }, (_, i) => `<circle cx="${25 + ((i * 61) % 390)}" cy="${20 + ((i * 83) % 220)}" r="${8 + (i % 3) * 4}" fill="#527550" opacity=".65"/>`).join("")}<circle cx="220" cy="230" r="4" fill="#fffbed"/><text x="20" y="238" font-family="sans-serif" font-size="12" letter-spacing="3" fill="#fffbed">${mode === "golf" ? "3 HOLES • SIGNATURE LOOP" : "9 HOLES • MINI GOLF"}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 260"><rect width="440" height="260" fill="${c.sky}"/><ellipse cx="220" cy="159" rx="235" ry="145" fill="${c.grass}"/><ellipse cx="330" cy="180" rx="58" ry="38" fill="${c.water}"/><path d="${path}" fill="none" stroke="${c.edge}" stroke-width="${mode === "golf" ? 40 : 45}" stroke-linecap="round" stroke-linejoin="round"/><path d="${path}" fill="none" stroke="#b4cc89" stroke-width="${mode === "golf" ? 34 : 38}" stroke-linecap="round" stroke-linejoin="round"/>${Array.from({ length: 10 }, (_, i) => `<circle cx="${25 + ((i * 61) % 390)}" cy="${20 + ((i * 83) % 220)}" r="${8 + (i % 3) * 4}" fill="#527550" opacity=".65"/>`).join("")}<circle cx="220" cy="230" r="4" fill="#fffbed"/><text x="20" y="238" font-family="sans-serif" font-size="12" letter-spacing="3" fill="#fffbed">${mode === "golf" ? `${golfHoleCount(index)} HOLES • SIGNATURE LOOP` : "9 HOLES • MINI GOLF"}</text></svg>`;
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 }

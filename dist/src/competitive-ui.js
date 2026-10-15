@@ -2,7 +2,7 @@ import { nameplate } from "./nameplates.js";
 import { page, button, esc } from "./views.js";
 import { icon } from "./icons.js";
 import { ITEMS } from "./catalog.js";
-import { GOLF_COURSES } from "./golf-courses.js";
+import { GOLF_COURSES, golfHoleCount } from "./golf-courses.js";
 import { RANKS, rankFor, COMPETITIVE_LEVEL, suddenHole } from "./competitive-rules.js";
 
 const active = (m) => m && m.phase !== "finished";
@@ -14,8 +14,9 @@ export function matchCard(ui) {
     isA = m.a_id === me,
     own = isA ? m.a_scores : m.b_scores,
     other = isA ? m.b_scores : m.a_scores,
-    opponent = isA ? m.b_name : m.a_name;
-  return `<section class="panel ranked-match"><div class="eyebrow">${esc(GOLF_COURSES[m.course].name)} · ${m.phase === "sudden" ? "CLOSEST TO THE PIN" : "THREE-HOLE MATCH"}</div><div class="ranked-versus"><div>${nameplate(ui.progress.data.name,isA?m.a_plate:m.b_plate)}<b>${sum(own) || "-"}</b><small>${own?.length || 0} / 3 holes</small></div><span>vs</span><div>${nameplate(opponent,isA?m.b_plate:m.a_plate)}<b>${sum(other) || "-"}</b><small>${other?.length || 0} / 3 holes</small></div></div>${m.phase === "sudden" ? "<p>One shot each. The ball that finishes closer to the cup wins. An exact tie starts another single-shot decider.</p>" : ""}</section>`;
+    opponent = isA ? m.b_name : m.a_name,
+    count = golfHoleCount(m.course);
+  return `<section class="panel ranked-match"><div class="eyebrow">${esc(GOLF_COURSES[m.course].name)} · ${m.phase === "sudden" ? "CLOSEST TO THE PIN" : `${count}-HOLE MATCH`}</div><div class="ranked-versus"><div>${nameplate(ui.progress.data.name,isA?m.a_plate:m.b_plate)}<b>${sum(own) || "-"}</b><small>${own?.length || 0} / ${count} holes</small></div><span>vs</span><div>${nameplate(opponent,isA?m.b_plate:m.a_plate)}<b>${sum(other) || "-"}</b><small>${other?.length || 0} / ${count} holes</small></div></div>${m.phase === "sudden" ? "<p>One shot each. The ball that finishes closer to the cup wins. An exact tie starts another single-shot decider.</p>" : ""}</section>`;
 }
 function rankedPage(ui) {
   const s = ui.ranked || {},
@@ -49,7 +50,7 @@ export function installCompetitive(ui) {
       badge = document.createElement("div");
     badge.id = "ranked-live";
     badge.className = "ranked-live";
-    badge.innerHTML = nameplate(isA?m.b_name:m.a_name,isA?m.b_plate:m.a_plate,{compact:true}) + '<small>' + (m.phase === 'sudden' ? 'Sudden death' : 'Competitive') + ' · ' + (isA?m.b_holes:m.a_holes) + '/3 holes · ' + Math.max(0,Math.ceil((Date.parse(m.deadline)-Date.now())/60000)) + 'm left</small>';
+    badge.innerHTML = nameplate(isA?m.b_name:m.a_name,isA?m.b_plate:m.a_plate,{compact:true}) + '<small>' + (m.phase === 'sudden' ? 'Sudden death' : 'Competitive') + ' · ' + (isA?m.b_holes:m.a_holes) + '/' + golfHoleCount(m.course) + ' holes · ' + Math.max(0,Math.ceil((Date.parse(m.deadline)-Date.now())/60000)) + 'm left</small>';
     ui.root.append(badge);
   };
   ui.render = () => {

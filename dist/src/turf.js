@@ -20,7 +20,9 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
   const material=new THREE.MeshStandardMaterial({map:mask,roughness:1});
   const rgb=hex=>{const v=new THREE.Color(hex);return `vec3(${v.r.toFixed(7)},${v.g.toFixed(7)},${v.b.toFixed(7)})`;};
   const number=n=>Number(n).toFixed(6);
-  const oval=(p,scale)=>`turfOval(vTurfXZ,vec2(${number(p.x)},${number(p.z)}),vec2(${number(p.rx*scale)},${number(p.rz*scale)}))`;
+  const oval=(p,scale)=>p.angle||p.scallop
+    ? `turfShapedOval(vTurfXZ,vec2(${number(p.x)},${number(p.z)}),vec2(${number(p.rx*scale)},${number(p.rz*scale)}),vec2(${number(Math.cos(p.angle||0))},${number(Math.sin(p.angle||0))}),${number(p.scallop||0)})`
+    : `turfOval(vTurfXZ,vec2(${number(p.x)},${number(p.z)}),vec2(${number(p.rx*scale)},${number(p.rz*scale)}))`;
   const fill=(coverage,color)=>`turf=mix(turf,${rgb(color)},${coverage});`;
   const layers=[fill(oval(h.green,1.12),'#648f43'),fill(oval(h.green,1),'#add174'),fill('turfInside(max(abs(vTurfXZ.x)-4.0,abs(vTurfXZ.y)-6.0))','#97bd65')];
   for(const b of h.bunkers)layers.push(fill(oval(b,1.035),'#bca16f'),fill(oval(b,1),'#e3c990'));
@@ -40,6 +42,14 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
       varying vec2 vTurfXZ;
       float turfInside(float d){float aa=max(fwidth(d)*0.5,0.0001);return 1.0-smoothstep(-aa,aa,d);}
       float turfOval(vec2 p,vec2 center,vec2 radius){return turfInside(length((p-center)/radius)-1.0);}
+      float turfShapedOval(vec2 p,vec2 center,vec2 radius,vec2 rotation,float scallop){
+        vec2 q=mat2(rotation.x,-rotation.y,rotation.y,rotation.x)*(p-center)/radius;
+        float aa=max(length(fwidth(q))*0.5,0.0001);
+        if(dot(q,q)>1.5)return 0.0;
+        float a=atan(q.y,q.x+0.0000001);
+        float edge=1.0+scallop*(0.65*sin(3.0*a)+0.35*cos(5.0*a));
+        return 1.0-smoothstep(-aa,aa,length(q)/edge-1.0);
+      }
     `).replace('#include <map_fragment>',fragment);
   };
   material.customProgramCacheKey=()=>fragment;

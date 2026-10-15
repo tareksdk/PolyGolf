@@ -33,12 +33,22 @@ test('human join replaces a filled bot slot and leaving the last human closes th
 });
 test('bot rooms create rounds only for humans and server clocks control bot scores',async()=>{
  const f=fixture();await roomAction('add_room_bot',f.host,{roomId:'room'},f.api);await roomAction('start_room',f.host,{roomId:'room'},f.api);assert.equal(f.rounds.length,1);
+ assert.equal(f.rounds[0].hole_count,9);assert.equal(f.room.state.members[1].plan.length,9);
  await assert.rejects(roomAction('add_room_bot',f.host,{roomId:'room'},f.api),/Only the host/);
  await roomAction('room',f.host,{roomId:'room',scores:[1,1,1]},f.api);assert.deepEqual(f.room.state.members[1].scores,[]);
  const strokes=f.room.state.members[1].plan[0].strokes;f.room.state.botHoleStartedAt=Date.now()-botHoleDuration(strokes)-1;
  await roomAction('room',f.host,{roomId:'room'},f.api);assert.deepEqual(f.room.state.members[1].scores,[strokes]);assert.equal(f.room.state.hole,0);
  f.rounds[0].holes=[{strokes:4}];f.rounds[0].next_hole=1;await roomAction('room',f.host,{roomId:'room'},f.api);assert.equal(f.room.state.hole,1);
  await roomAction('room',f.host,{roomId:'room'},f.api);assert.deepEqual(f.room.state.members[1].scores,[strokes]);
+});
+test('a Willow bot room progresses through nine holes before ending',async()=>{
+ const f=fixture();await roomAction('add_room_bot',f.host,{roomId:'room'},f.api);await roomAction('start_room',f.host,{roomId:'room'},f.api);
+ for(let i=0;i<9;i++){
+  f.rounds[0].holes.push({strokes:4});f.rounds[0].next_hole=i+1;
+  f.room.state.botHoleStartedAt=Date.now()-60000;
+  await roomAction('room',f.host,{roomId:'room'},f.api);
+  assert.equal(f.room.state.hole,i+1);assert.equal(f.room.state.phase,i===8?'finished':'playing');
+ }
 });
 test('bot presentation produces bounded live packets, motion, swings and cup completion',()=>{
  const bot=makeBot([4,3,5],0,()=>.5),start=Date.now(),hole=getGolfHole(0,0),ui={game:{hole,index:0,round:{}},world:{renderGround:()=>0},cloud:{room:{state:{hole:0,botHoleStartedAt:start}}}};

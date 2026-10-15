@@ -33,7 +33,7 @@ globalThis.fetch=async(raw,options={})=>{
  if(path.endsWith('/golf_players')){if(url.searchParams.get('id')?.startsWith('in.(')){const ids=url.searchParams.get('id').slice(4,-1).split(',');return reply(ids.map(id=>players.get(id)).filter(Boolean).map(p=>structuredClone(p)));}const id=url.searchParams.get('id')?.slice(3),row=players.get(id);if(method==='PATCH'){Object.assign(row,body);return reply([row]);}if(!id)return reply([...players.values()].map(p=>structuredClone(p)));return reply(row?[structuredClone(row)]:[]);}
  if(path.endsWith('/golf_trades'))return reply([]);
  if(path.endsWith('/golf_friends'))return reply([]);
- if(path.endsWith('/golf_rounds')&&method==='POST')return reply([{...body,id:'round-test'}]);
+ if(path.endsWith('/golf_rounds')&&method==='POST'){const r={...body,id:'round-test',holes:[],next_hole:0,finished:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};rounds.set(r.id,r);return reply([r]);}
  if(path.endsWith('/golf_public_maps')){
   if(method==='POST'){const row={...body,id:'map-'+maps.length};maps.push(row);return reply([row]);}
   const rows=maps.filter(m=>(!url.searchParams.has('user_id')||m.user_id===url.searchParams.get('user_id').slice(3))&&(!url.searchParams.has('id')||m.id===url.searchParams.get('id').slice(3)));
@@ -108,8 +108,19 @@ test('profile updates cannot change currency or another account; invalid images 
 test('shop rejects unavailable or exclusive items even with sufficient balance',async()=>{
  const p=players.get('a');p.state=defaultSave();p.state.coins=100000;const rotation=shopRotation(),active=[...rotation.featured,...rotation.weekly,...rotation.daily,...rotation.permanent],inactive=ITEMS.find(i=>i.price>0&&!active.includes(i));await assert.rejects(call('buy',{id:inactive.id}),/rotated/);await assert.rejects(call('buy',{id:'ball-alpha'}),/collection/);const item=active.find(i=>i.category==='ball');await call('buy',{id:item.id});assert.ok(p.state.owned.includes(item.id));assert.equal(p.state.coins,100000-item.price);
 });
-test('old clients cannot start a mismatched replay version; new golf rounds store three holes',async()=>{
+test('old clients cannot start a mismatched replay version; each course stores its full round length',async()=>{
  await assert.rejects(call('start_round',{mode:'golf',course:0,rulesVersion:'legacy-v1'}),/Reload/);const r=await call('start_round',{mode:'golf',course:0});assert.equal(r.roundId,'round-test');
+ assert.equal(rounds.get(r.roundId).hole_count,9);
+ players.get('a').state.xp=20000;
+ for(const course of [1,2]){await call('start_round',{mode:'golf',course});assert.equal(rounds.get('round-test').hole_count,3);}
+ await call('start_round',{mode:'mini',course:0});assert.equal(rounds.get('round-test').hole_count,9);
+});
+test('Willow submissions continue after hole three and finish only after hole nine',async()=>{
+ await call('start_round',{mode:'golf',course:0});
+ for(let index=0;index<9;index++){
+  const r=await call('submit_hole',{roundId:'round-test',index,transcript:[{kind:'skip',tick:0}],endTick:0});
+  assert.equal(r.finished,index===8);assert.equal(rounds.get('round-test').next_hole,index+1);
+ }
 });
 
 test('locker openings are atomic and retries do not spend a second time',async()=>{

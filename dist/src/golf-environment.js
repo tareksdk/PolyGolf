@@ -44,4 +44,10 @@ export function buildBackdrop(w, h) {
   // The surrounding massif meshes come from the Blender scenic kit.
   const valley = w.mesh('box',h.courseIndex===2?'#6b774d':'#597249',0,-13,-h.length/2,2300,2,2600);
   valley.castShadow=false;
+  if (h.backdrop === "lake") {
+    // Meets the final hole's sloping right bank beyond the out-of-bounds line.
+    const lake = w.mesh('box','#6b9fae',820,-5.85,-h.length/2,1240,.1,h.length+2200);
+    lake.castShadow=false;
+    lake.receiveShadow=false;
+  }
 }

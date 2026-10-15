@@ -55,3 +55,10 @@ The v7 kit adds ridged alpine ranges, wooded shoulders, inhabited coastal headla
 ## October 4 scenery
 
 `source/polygolf-course-kit-v8.blend` and the v8 browser kit contain 59 reusable models. The waterfall is a low, stepped rock formation instead of a tall monolith. A low-poly jack-o-lantern decorates tees and the hidden Autumn Pines target during the 2026 Halloween event. Grass surface edges use an antialiased shader in `dist/src/turf.js`; terrain and cliff rings share the same boundary vertices.
+
+
+## Willow Park landscape update (v0.3)
+
+Holes 4–9 reuse the v8 kit, with no new model or texture downloads. Each has a different authored elevation profile, side mounds, tree glades, prop clusters and backdrop. Mountain instances frame meadow, garden, alpine-pass, wetland and lookout settings; the last hole uses an inland lake, existing wooded headland meshes and sailboats. Tree variants and the number of background ranges vary by hole. New tee complexes use starter huts or gazebos; the last returns to the clubhouse.
+
+`golf-courses.js` owns the playable heights, narrowing fairways and rotated scalloped bunker boundaries. `turf.js` uses the same boundary formula for sand and its lip; `forest.js` keeps trees off these shapes and out of the authored glades. Side props are grounded against the displayed terrain and kept beyond fairway edges. Bunker rakes follow the rotated rims. Scenery remains visual; ball flight, sand lies and slopes use the shared heightfield on the client and replay verifier.

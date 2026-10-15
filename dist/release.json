@@ -1,7 +1,7 @@
 {
-  "version": "polygolf-v7",
-  "contentVersion": "october-render-6",
-  "date": "2026-10-05",
+  "version": "polygolf-v8",
+  "contentVersion": "willow-landscapes-0.3",
+  "date": "2026-10-14",
   "items": 629,
   "lockers": 10,
   "patternSeeds": 1000,
@@ -19,5 +19,6 @@
     "upbeat",
     "calm"
   ],
-  "bots": true
+  "bots": true,
+  "appVersion": "0.3"
 }

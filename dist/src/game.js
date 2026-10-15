@@ -1,6 +1,6 @@
 import { recommendClub } from "./club-distances.js";
 import { getHole, scoreName } from "./courses.js";
-import { getGolfHole, terrainAt, GOLF_HOLE_COUNT } from "./golf-courses.js";
+import { getGolfHole, terrainAt, golfHoleCount } from "./golf-courses.js";
 import { GolfPhysics, CLUBS } from "./golf-physics.js";
 import { PhysicsManager, FIXED_STEP } from "./physics.js";
 import { miniStats, golfGear } from "./equipment.js";
@@ -41,7 +41,7 @@ export class GameManager {
       time: 0,
       penalties: 0,
       collectibles: 0,
-      holeCount: this.customHole ? 1 : this.mode === "golf" ? GOLF_HOLE_COUNT : 9,
+      holeCount: this.customHole ? 1 : this.mode === "golf" ? golfHoleCount(courseIndex) : 9,
       ...options.round,
     };
     this.physics = this.mode === "golf" ? new GolfPhysics() : new PhysicsManager();

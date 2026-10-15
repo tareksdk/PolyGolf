@@ -43,7 +43,7 @@ begin
   if elapsed>=duration then scores:=scores||jsonb_build_array(h);n:=n+1;end if;
  end loop;
  if m.phase='playing' then
-  if r.finished and n=3 then
+  if r.finished and n=r.hole_count then
    select coalesce(sum((value->>'strokes')::integer),0) into sa from jsonb_array_elements(r.holes);
    select sum((value->>'strokes')::integer) into sb from jsonb_array_elements(scores);
    if sa<>sb then perform public.golf_ranked_finish(m.id,case when sa<sb then p_user else null end,'score');
@@ -97,9 +97,9 @@ begin
 end $$;
 create or replace function public.golf_ranked_join(p_user uuid,p_equipment jsonb,p_version text) returns jsonb
 language plpgsql security invoker set search_path='' as $$
-declare opponent public.golf_match_queue;m uuid;ar uuid;br uuid;c integer;v_status jsonb;bot_data jsonb;human_elo integer;roll double precision;offset_score integer;strokes integer[]:=array[4,3,5];slot integer;
+declare opponent public.golf_match_queue;m uuid;ar uuid;br uuid;c integer;v_status jsonb;bot_data jsonb;human_elo integer;roll double precision;offset_score integer;pars integer[];strokes integer[];slot integer;
 begin
- if p_version is distinct from 'polygolf-v7' then raise exception 'Reload PolyGolf before matchmaking';end if;
+ if p_version is distinct from 'polygolf-v8' then raise exception 'Reload PolyGolf before matchmaking';end if;
  if not exists(select 1 from public.golf_players p where p.id=p_user and (p.state->>'xp')::numeric>=18375) then raise exception 'Competitive unlocks at level 15';end if;
  perform pg_advisory_xact_lock(310415);
  v_status:=public.golf_ranked_status(p_user);
@@ -110,21 +110,21 @@ begin
  select * into opponent from public.golf_match_queue q where q.user_id<>p_user and q.expires_at>now() and not exists(select 1 from public.golf_ranked_matches m where (m.a_id=q.user_id or m.b_id=q.user_id) and m.phase<>'finished') order by random() limit 1 for update;
  if found then
   c:=floor(random()*3)::integer;
-  insert into public.golf_ranked_matches(a_id,b_id,course) values(opponent.user_id,p_user,c) returning id into m;
-  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(opponent.user_id,'golf',c,opponent.equipment,p_version,3,m) returning id into ar;
-  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(p_user,'golf',c,p_equipment,p_version,3,m) returning id into br;
+  insert into public.golf_ranked_matches(a_id,b_id,course,deadline) values(opponent.user_id,p_user,c,now()+make_interval(mins=>case when c=0 then 54 else 18 end)) returning id into m;
+  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(opponent.user_id,'golf',c,opponent.equipment,p_version,case when c=0 then 9 else 3 end,m) returning id into ar;
+  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(p_user,'golf',c,p_equipment,p_version,case when c=0 then 9 else 3 end,m) returning id into br;
   update public.golf_ranked_matches set a_round=ar,b_round=br where id=m;
   delete from public.golf_match_queue where user_id in(p_user,opponent.user_id);
  elsif exists(select 1 from public.golf_match_queue where user_id=p_user and created_at<=now()-interval '60 seconds') and (select elo from public.golf_ratings where user_id=p_user)<1300 then
-  c:=floor(random()*3)::integer;roll:=random();offset_score:=case when roll<.01 then -3 when roll<.04 then -2 when roll<.30 then -1 when roll<.70 then 0 else 1 end;
+  c:=floor(random()*3)::integer;pars:=case when c=0 then array[4,3,5,4,3,5,4,3,5] else array[4,3,5] end;strokes:=pars;roll:=random();offset_score:=case when roll<.01 then -3 when roll<.04 then -2 when roll<.30 then -1 when roll<.70 then 0 else 1 end;
   for i in 1..abs(offset_score) loop
-   select n into slot from generate_series(1,3) n where offset_score>0 or strokes[n]>1 order by random() limit 1;
+   select n into slot from generate_series(1,array_length(pars,1)) n where offset_score>0 or strokes[n]>1 order by random() limit 1;
    strokes[slot]:=strokes[slot]+sign(offset_score);
   end loop;
   select elo into human_elo from public.golf_ratings where user_id=p_user;
-  bot_data:=jsonb_build_object('id','bot-'||gen_random_uuid()::text,'name','Birdie Bot','bot',true,'elo',human_elo,'equipment',jsonb_build_object('ball','ball-classic','club','club-classic','driver','driver-classic','trail','trail-fire','hole','hole-confetti','nameplate','nameplate-classic','emote','emote-wave'),'plan',jsonb_build_array(jsonb_build_object('par',4,'strokes',strokes[1]),jsonb_build_object('par',3,'strokes',strokes[2]),jsonb_build_object('par',5,'strokes',strokes[3])));
-  insert into public.golf_ranked_matches(a_id,b_id,course,bot) values(p_user,null,c,bot_data) returning id into m;
-  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(p_user,'golf',c,p_equipment,p_version,3,m) returning id into ar;
+  bot_data:=jsonb_build_object('id','bot-'||gen_random_uuid()::text,'name','Birdie Bot','bot',true,'elo',human_elo,'equipment',jsonb_build_object('ball','ball-classic','club','club-classic','driver','driver-classic','trail','trail-fire','hole','hole-confetti','nameplate','nameplate-classic','emote','emote-wave'),'plan',(select jsonb_agg(jsonb_build_object('par',pars[n],'strokes',strokes[n]) order by n) from generate_series(1,array_length(pars,1)) n));
+  insert into public.golf_ranked_matches(a_id,b_id,course,bot,deadline) values(p_user,null,c,bot_data,now()+make_interval(mins=>case when c=0 then 54 else 18 end)) returning id into m;
+  insert into public.golf_rounds(user_id,mode,course,equipment,rules_version,hole_count,competitive_id) values(p_user,'golf',c,p_equipment,p_version,case when c=0 then 9 else 3 end,m) returning id into ar;
   update public.golf_ranked_matches set a_round=ar where id=m;
   delete from public.golf_match_queue where user_id=p_user;
  end if;

@@ -4,7 +4,7 @@ import * as THREE from '../dist/vendor/three.module.js';
 import {ITEMS,CATEGORIES,ALPHA_ITEMS,shopRotation} from '../dist/src/catalog.js';
 import {MEMBER_COLLECTION,buyMemberItem,PASS_TIERS,claimTier,tierClaimed} from '../dist/src/equipment.js';
 import {defaultSave,ProgressionManager} from '../dist/src/save.js';
-import {courseRecordKey,getGolfHole,pathDistance} from '../dist/src/golf-courses.js';
+import {courseRecordKey,getGolfHole,golfHoleCount,pathDistance} from '../dist/src/golf-courses.js';
 import {nearbyTrees} from '../dist/src/forest.js';
 import {fairwayWidth} from '../dist/src/golf-courses.js';
 import {GameManager} from '../dist/src/game.js';
@@ -34,8 +34,8 @@ test('three-hole personal bests preserve and do not compete with old eighteen-ho
  p.completeCourse({mode:'golf',courseIndex:0,strokes:[4,3,5],time:300},[4,3,5]);assert.equal(d.bests[courseRecordKey('golf',0)].score,0);assert.equal(d.bests['golf:0'].score,-18);
 });
 
-test('dense forests preserve fairways and landmarks with spaced trunks on all nine holes',()=>{
- for(let c=0;c<3;c++)for(let index=0;index<3;index++){const h=getGolfHole(c,index);assert.ok(h.trees.length>(c===1?1000:3000));for(let i=0;i<h.trees.length;i++){const t=h.trees[i];if(t.z<8&&t.z>-h.length-8)assert.ok(pathDistance(h,t.x,t.z)>=fairwayWidth(h,Math.max(0,Math.min(1,-t.z/h.length)))/2+9);assert.ok(Math.hypot(t.x+26,t.z-24)>=16);if(c===1)assert.ok(Math.hypot(t.x+105,t.z+h.length*.65)>=18);for(const p of nearbyTrees(h,t.x,t.z))if(t!==p)assert.ok(Math.hypot(t.x-p.x,t.z-p.z)>=4.8);}}
+test('dense forests preserve fairways and landmarks with spaced trunks on all fifteen holes',()=>{
+ for(let c=0;c<3;c++)for(let index=0;index<golfHoleCount(c);index++){const h=getGolfHole(c,index);assert.ok(h.trees.length>(h.backdrop?500:c===1?1000:3000));for(let i=0;i<h.trees.length;i++){const t=h.trees[i];if(t.z<8&&t.z>-h.length-8)assert.ok(pathDistance(h,t.x,t.z)>=fairwayWidth(h,Math.max(0,Math.min(1,-t.z/h.length)))/2+9);assert.ok(Math.hypot(t.x+26,t.z-24)>=16);if(c===1)assert.ok(Math.hypot(t.x+105,t.z+h.length*.65)>=18);for(const p of nearbyTrees(h,t.x,t.z))if(t!==p)assert.ok(Math.hypot(t.x-p.x,t.z-p.z)>=4.8);}}
 });
 
 function game(){

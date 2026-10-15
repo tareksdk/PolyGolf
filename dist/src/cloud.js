@@ -1,6 +1,6 @@
 import { normalizeInventory } from "./save.js";
 import { SESSION_KEY, readSession, writeSession, clearSession, invalidRefresh } from './session-store.js';
-import { RULES_VERSION, GOLF_HOLE_COUNT } from "./golf-courses.js";
+import { RULES_VERSION, golfHoleCount } from "./golf-courses.js";
 export const SUPABASE_URL = "https://khbmuaitysznyxxefhou.supabase.co";
 export const PUBLISHABLE_KEY = "sb_publishable_Xm4rfU4lZ2vBnrfy-p8utw_Dp11cOqR";
 // Network failures surface as friendly messages instead of the browser's "Failed to fetch".
@@ -238,7 +238,7 @@ export class GolfCloud {
         "&course=eq." +
         course +
         "&hole_count=eq." +
-        (mode === "golf" ? GOLF_HOLE_COUNT : 9) +
+        (mode === "golf" ? golfHoleCount(course) : 9) +
         "&rules_version=eq." +
         RULES_VERSION +
         "&order=" +

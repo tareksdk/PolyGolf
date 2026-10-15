@@ -1,3 +1,4 @@
+import { APP_VERSION } from "./version.js";
 import { caddieItems, CADDIE_RARITIES, CADDIE_SORTS } from './caddie-collection.js';
 import { finishItem } from './finishes.js';
 import { nameplate } from "./nameplates.js";
@@ -19,7 +20,7 @@ export const minutes = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec
 export function header(ui) {
   const d = ui.progress.data,
     l = ui.progress.level;
-  return `<header class="topbar"><button class="logo" data-action="home" aria-label="PolyGolf clubhouse">${brandMark()}<span class="wordmark">Poly<span>Golf</span></span></button><nav class="nav" aria-label="Main menu">${[
+  return `<header class="topbar"><button class="logo" data-action="home" aria-label="PolyGolf clubhouse">${brandMark()}<span class="wordmark">Poly<span>Golf</span> <small>v${APP_VERSION}</small></span></button><nav class="nav" aria-label="Main menu">${[
     ["home", "Home"],
     ["courses", "Courses"],
     ["garage", "Caddie"],

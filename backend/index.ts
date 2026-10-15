@@ -10,7 +10,7 @@ import {competitiveAction} from './competitive.ts';
 import {publicProfile} from './shared/profile-data.js';
 import {defaultSave,ProgressionManager,levelInfo} from './shared/save.js';
 import {ITEM_BY_ID,ITEMS,ALPHA_ITEMS} from './shared/catalog.js';
-import {GOLF_COURSES,getGolfHole,GOLF_HOLE_COUNT,RULES_VERSION} from './shared/golf-courses.js';
+import {GOLF_COURSES,getGolfHole,golfHoleCount,RULES_VERSION} from './shared/golf-courses.js';
 import {COURSES,getHole} from './shared/courses.js';
 import {joinClub,claimTier,claimClubDaily,requireEditor,buyMemberItem} from './shared/equipment.js';
 import {validateMap} from './shared/maps.js';
@@ -87,7 +87,7 @@ Deno.serve(async req=>{
   else if(['trades','trade_inventory','trade_create','trade_accept','trade_close'].includes(action))result=await tradingAction(action,p,b,{table,rpc,insert,limited});
   else if(['profile','update_profile','search_players','friends','friend_action'].includes(action))result=await socialAction(action,p,b,{table,rpc,update});
   else if(['ranked_status','ranked_queue','ranked_leave','ranked_shot'].includes(action))result=await enrichRanked(p,await competitiveAction(action,p,b,{table,rpc}));
-  else if(action==='start_round'){const c=info(b.mode,b.course);if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?GOLF_HOLE_COUNT:9}))[0];result={roundId:r.id};}
+  else if(action==='start_round'){const c=info(b.mode,b.course);if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9}))[0];result={roundId:r.id};}
   else if(action==='submit_hole')result=await submit(p,b);
   else if(action==='claim_ship'||action==='claim_pumpkin'){
    const pumpkin=action==='claim_pumpkin',discovery=pumpkin?'pumpkin':'pirate';
