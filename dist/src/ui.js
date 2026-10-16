@@ -1,3 +1,4 @@
+import { clampMeter, flowNeedleAngle } from './shot-meter-ui.js';
 import { icon } from "./icons.js";
 import { cardActionTarget } from './card-actions.js';
 import { COURSES, getHole, nearestPoint, surfaceAt, relative } from "./courses.js";
@@ -110,6 +111,8 @@ export class UIManager {
       fill: document.querySelector("#power-fill"),
       power: document.querySelector("#power-text"),
       marker: document.querySelector('#accuracy-marker'),
+      needle: document.querySelector('#flow-direction-needle'),
+      gauge: document.querySelector('#flow-direction'),
       accuracy: document.querySelector('#accuracy-text'),
       status: document.querySelector("#shot-status"),
       plate: document.querySelector("#ball-nameplate"),
@@ -119,17 +122,27 @@ export class UIManager {
   }
   tickMeters() {
     const g = this.game, h = this.hud;
-    const moving = (g.state === 'playing' && (!!g.pendingSwing || g.physics.active)) || !!g.holeReveal;
+    const moving = (g.state === 'playing' && (!!g.pendingSwing || g.physics.active)) || !!g.holeReveal || !!this.world.pirateMoment;
     if (moving !== this.movingHud) {
       document.body.classList.toggle('ball-moving', moving);
       this.movingHud = moving;
     }
     if (!h?.fill?.isConnected || moving) return;
-    h.fill.style.transform = `scaleX(${g.power})`;
-    h.fill.style.background = g.power >= .88 ? '#4dac69' : g.power > .5 ? '#a8b96a' : '#e1c782';
-    h.power.textContent = (g.power * 100).toFixed(1) + '%';
-    const accuracy = g.charging ? g.accuracy : 0;
-    if (h.marker) h.marker.style.transform = `translateX(${(accuracy + 1) * 50}%)`;
+    const flowReady = g.meterStyle() === 'fluid' && g.state === 'playing' && !g.physics.active && !g.pendingSwing;
+    const flowWaiting = flowReady && !g.charging;
+    const shownPower = flowWaiting ? 0 : clampMeter(g.power);
+    h.fill.style.width = '100%';
+    h.fill.style.transform = `scaleX(${shownPower})`;
+    h.fill.style.background = shownPower >= .88 ? '#4dac69' : shownPower > .5 ? '#a8b96a' : '#e1c782';
+    h.power.textContent = flowWaiting ? '0%' : (shownPower * 100).toFixed(1) + '%';
+    const accuracy = clampMeter(g.charging || flowReady ? g.accuracy : 0, -1, 1);
+    if (h.marker) {
+      const fraction = (accuracy + 1) / 2;
+      h.marker.style.left = `calc(${fraction * 100}% + ${2 - fraction * 4}px)`;
+      h.marker.style.transform = 'translateX(-50%)';
+    }
+    if (h.needle) h.needle.setAttribute('transform', `rotate(${flowNeedleAngle(accuracy)} 120 84)`);
+    if (h.gauge) h.gauge.dataset.phase = g.charging ? 'locked' : 'sweep';
     if (h.accuracy) h.accuracy.textContent = Math.abs(accuracy) <= .16 ? 'DIRECTION · CENTRE' : 'DIRECTION · ' + (accuracy < 0 ? 'LEFT' : 'RIGHT');
     // Input locks exactly the value last drawn, never an unseen timer sample.
     g.displayedAccuracy = accuracy;
@@ -164,13 +177,13 @@ export class UIManager {
     if (this.lastFocus?.isConnected) this.lastFocus.focus();
     if (this.resumeAfterModal && this.game.state === "paused") {
       this.resumeAfterModal = false;
-      this.game.state = "playing";
+      this.game.setPaused(false, false);
     }
+    if (this.game.state === 'playing') this.world.canvas.focus?.({ preventScroll: true });
   }
   pauseForDialog() {
     if (this.game.state === "playing") {
-      this.game.state = "paused";
-      this.game.cancelShot();
+      this.game.setPaused(true, false);
       this.resumeAfterModal = true;
     }
   }

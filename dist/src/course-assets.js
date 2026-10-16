@@ -5,6 +5,8 @@ import { registerOccluders } from "./occlusion.js";
 import { pirateShipFor, pumpkinFor } from "./course-features.js";
 import { scenicLayout } from "./scenic-layout.js";
 import { halloweenActive } from './season.js';
+import { buildPirateShip } from './pirate-effects.js';
+import { coastWaterLevel } from './golf-courses.js';
 
 // Places the Blender-authored course kit (assets/source/build_course_kit.py) around each
 // full-golf hole. Everything here is visual only: collisions, terrain and replays use
@@ -330,12 +332,13 @@ export function courseAssets(w, h) {
     }
   }
   const ship = pirateShipFor(h);
-  if (ship) add("pirate-ship", ship.x, ship.z, 1, ship.angle, ship.y);
+  if (ship) buildPirateShip(w,h,geometryFor('pirate-ship'),h.index===0?w.mat('#ffffff',{
+    vertexColors:true,roughness:.74,emissive:'#b67a32',emissiveIntensity:.08}):material);
   if (h.courseIndex === 1) {
     for (let i = 0; i < 9; i++) {
       const side = i % 2 ? 1 : -1;
       add("sea-stack", side * (218 + (i % 3) * 44), 80 - i * (h.length + 130) / 9,
-        0.65 + (i % 4) * 0.18, i * 1.7, -45.5);
+        0.65 + (i % 4) * 0.18, i * 1.7, coastWaterLevel(h)-2.9);
     }
   }
   cartPath(w, h, ground);

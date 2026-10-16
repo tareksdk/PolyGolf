@@ -1,5 +1,6 @@
 // Backdrop landmarks are deliberately outside the playable bounds. They add no
 // colliders or replay work; each Blender model is shared by all its instances.
+import { coastWaterLevel } from './golf-courses.js';
 export function scenicLayout(h) {
   const p = [];
   const add = (name,x,z,scale,angle,y) => p.push({name,x,z,scale,angle,y});
@@ -31,13 +32,14 @@ export function scenicLayout(h) {
     return p;
   }
   if(h.courseIndex === 1) {
+    const sea=coastWaterLevel(h),rise=sea+42.6;
     for(const [x,z,s,a] of [[345,-h.length*.86,1.1,.5],[-360,-h.length*.45,1.3,1.8],[510,-h.length-220,1.6,-.6],[-370,170,1.45,.7],[-470,-h.length-250,1.7,2.2],[520,270,1.6,1],[650,center,1.1,.2]])
-      add('coastal-headland',x,z,s,a,-44);
-    add('sea-arch',236,-h.length*.68,1.25,.45,-44);
-    add('sea-arch',-228,-h.length*.12,.86,-.7,-44);
-    add('harbor-jetty',194,-h.length*.86+20,1.1,-.2,-43.5);
-    add('lighthouse',345,-h.length*.86,1.45,.4,36.3);
-    for(let i=0;i<7;i++)add(i%2?'sailboat':'sailboat-red',265+(i%3)*36,80-i*(h.length+100)/7,1+(i%3)*.3,.5+i*1.3,-42.6);
+      add('coastal-headland',x,z,s,a,-44+rise);
+    add('sea-arch',236,-h.length*.68,1.25,.45,-44+rise);
+    add('sea-arch',-228,-h.length*.12,.86,-.7,-44+rise);
+    add('harbor-jetty',194,-h.length*.86+20,1.1,-.2,-43.5+rise);
+    add('lighthouse',345,-h.length*.86,1.45,.4,36.3+rise);
+    for(let i=0;i<7;i++)add(i%2?'sailboat':'sailboat-red',265+(i%3)*36,80-i*(h.length+100)/7,1+(i%3)*.3,.5+i*1.3,sea);
     for(let i=0;i<18;i++)add('gull',190+(i%6)*17,-40-Math.floor(i/6)*125+(i%3)*10,1+(i%3)*.2,.6,15+(i%5)*3);
   } else {
     // Interlocking asymmetric ranges enclose the entire course, with lower

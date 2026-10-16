@@ -5,19 +5,44 @@ import { getGolfHole } from "./golf-courses.js";
 import { getHole } from "./courses.js";
 import { coursePreview } from "./landscape.js";
 import { halloweenActive } from './season.js';
-const PREVIEW_PREFIX = "polygolf.preview.v27."+(halloweenActive()?'october.':'standard.');
+const PREVIEW_PREFIX = "polygolf.preview.v28."+(halloweenActive()?'october.':'standard.');
 function prunePreviewCache() {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k?.startsWith("little-links.preview.") && !k.startsWith(PREVIEW_PREFIX)) localStorage.removeItem(k);
+      if ((k?.startsWith("little-links.preview.") || k?.startsWith("polygolf.preview.")) && !k.startsWith(PREVIEW_PREFIX)) localStorage.removeItem(k);
     }
   } catch {}
 }
+
+export function encodeCoursePreview(canvas) {
+  // Encoding a full-size thumbnail synchronously can block the first camera pan.
+  // toBlob snapshots the rendered frame now and encodes it asynchronously.
+  return new Promise((resolve, reject) => canvas.toBlob(blob => {
+    if (!blob) return reject(Error('Could not encode course preview'));
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || Error('Could not read course preview'));
+    reader.readAsDataURL(blob);
+  }, 'image/webp', .88));
+}
+
+export function releasePreviewStudio(studio) {
+  if (!studio) return;
+  // Course geometry and owned turf/sky materials belong to this studio; the
+  // reusable primitive geometry and cached materials still belong to the game.
+  studio.clear();
+  studio.sun.shadow.dispose();
+  studio.renderer.dispose();
+  if (!studio.renderer.getContext?.().isContextLost()) studio.renderer.forceContextLoss();
+  studio.canvas.width = studio.canvas.height = 1;
+}
+
 export function installCoursePreviews(world) {
   prunePreviewCache();
   const queue = [],
-    pending = new Set();
+    pending = new Set(),
+    placeholders = new Map();
   let processing = false,
     studio = null;
   world.thumbnail = (index, mode = "mini") => {
@@ -35,7 +60,8 @@ export function installCoursePreviews(world) {
       queue.push({ index, mode, key });
       schedule();
     }
-    return coursePreview(index, mode);
+    if (!placeholders.has(key)) placeholders.set(key, coursePreview(index, mode));
+    return placeholders.get(key);
   };
   world.mapThumbnail = (map, id) => {
     const key = "custom:" + id;
@@ -73,18 +99,37 @@ export function installCoursePreviews(world) {
   function schedule() {
     if (processing) return;
     processing = true;
-    setTimeout(renderNext, 200);
+    defer(200);
   }
-  function renderNext() {
+  function defer(delay) {
+    setTimeout(() => {
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(renderNext, {timeout:1000});
+      else void renderNext();
+    }, delay);
+  }
+  function release() {
+    releasePreviewStudio(studio);
+    studio = null;
+  }
+  async function renderNext() {
     if (!queue.length) {
       processing = false;
+      release();
       return;
     }
-    if (world.mode === "play") {
-      setTimeout(renderNext, 1000);
+    if (document.hidden || world.mode === "play") {
+      release();
+      defer(1000);
       return;
     }
     const { index, mode, key, custom } = queue.shift();
+    const images = () => [...document.querySelectorAll('img[data-course-preview]')].filter(el => el.dataset.coursePreview === key);
+    // A navigation may have replaced the cards while this job was waiting.
+    if (!images().length) {
+      pending.delete(key);
+      defer(0);
+      return;
+    }
     try {
       if (!studio) {
         const canvas = document.createElement("canvas"),
@@ -128,8 +173,9 @@ export function installCoursePreviews(world) {
       }
       studio.camera.aspect = 720 / 440;
       studio.camera.updateProjectionMatrix();
+      if (studio.renderer.getContext().isContextLost()) throw Error('Preview graphics context was lost');
       studio.renderer.render(studio.scene, studio.camera);
-      const image = studio.canvas.toDataURL("image/webp", 0.88);
+      const image = await encodeCoursePreview(studio.canvas);
       world.thumbCache.set(key, image);
       // Only official course previews are cached on the device; draft and community
       // previews stay in memory so they never crowd out saves.
@@ -137,13 +183,15 @@ export function installCoursePreviews(world) {
         try {
           localStorage.setItem(PREVIEW_PREFIX + key, image);
         } catch {}
-      document.querySelectorAll(`img[data-course-preview="${key}"]`).forEach((el) => {
+      images().forEach((el) => {
         el.src = image;
         el.classList.add("preview-ready");
       });
     } catch (e) {
       console.warn("Course preview unavailable", e);
+    } finally {
+      pending.delete(key);
     }
-    setTimeout(renderNext, 250);
+    defer(250);
   }
 }

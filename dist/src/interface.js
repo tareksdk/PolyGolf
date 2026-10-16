@@ -2,12 +2,14 @@ import { button } from './views.js';
 import { installTrading } from './trading-ui.js';
 import { installActivity } from './online-activity.js';
 import { installTheme } from './theme.js';
+import { installDialogPages } from './dialog-pages.js';
+import { installMenuPages } from './menu-pages.js';
 import { installEmotes } from './emotes.js';
 import { ITEMS, ITEM_BY_ID } from './catalog.js';
 
 export function controlsDialog() {
-  const keys = [['Hold mouse / Space','Step 1: build power, release to lock'],['Click / Space','Step 2: lock direction and swing'],['Pointer / ← →','Aim / fine-tune direction'],['Right drag · Q / E','Orbit the camera'],['Scroll','Zoom in or out'],['C','Change golf club'],['B · 1–6','Open emote wheel · choose an emote'],['R','Return to last shot (+1 stroke)'],['Esc','Pause / resume']];
-  return `<section class="controls-guide"><span class="menu-kicker">ON THE COURSE</span><h2>Make your shot.</h2><p>Aim first. Hold and release to lock your power. Then click again when the direction marker is near the centre to swing.</p><div class="controls-meters"><div><strong>Power</strong><div class="demo-power"><i></i></div><small>More green, more distance. The meter bounces at both ends.</small></div><div><strong>Direction</strong><div class="accuracy-track demo-accuracy"><span></span><i></i></div><small>Centre is straight. Left or right adds a slight miss in that direction.</small></div></div><div class="controls-keys">${keys.map(([key,label])=>`<div><kbd>${key}</kbd><span>${label}</span></div>`).join('')}</div><div class="controls-notes"><p><b>Golf</b> Your caddie picks a club after each shot. You can change it; shape and spin add draw, fade and backspin.</p><p><b>Mini golf</b> Bank off the walls and read the surfaces. Sand slows the ball; ice carries it farther. Water costs one stroke.</p></div>${button('Back to the game','close-modal','','button yellow wide')}</section>`;
+  const keys = [['Hold mouse / Space','Step 1: build power, release to lock'],['Click / Space','Step 2: lock direction and swing'],['Pointer / ← →','Aim continuously · Shift + arrows: fine aim'],['Right / Ctrl drag · Q / E','Orbit the camera'],['Scroll','Zoom in or out'],['C','Change golf club'],['B · 1–6','Open emote wheel · choose an emote'],['R','Return to last shot (+1 stroke)'],['Esc','Pause / resume']];
+  return `<section class="controls-guide"><span class="menu-kicker">ON THE COURSE</span><h2>Make your shot.</h2><p>Choose your Shot meter in Club &amp; shot. <b>Classic:</b> hold and release to lock power, then click again to lock direction. <b>Flow:</b> the direction marker sweeps first; press to lock it, keep holding for power, then release to swing. Space works the same way.</p><div class="controls-meters"><div><strong>Power</strong><div class="demo-power"><i></i></div><small>More green, more distance. The meter bounces at both ends.</small></div><div><strong>Direction</strong><div class="accuracy-track demo-accuracy"><span></span><i></i></div><small>Centre is straight. Left or right adds a slight miss in that direction.</small></div></div><div class="controls-keys">${keys.map(([key,label])=>`<div><kbd>${key}</kbd><span>${label}</span></div>`).join('')}</div><div class="controls-notes"><p><b>Golf</b> The short sky arrow suggests direction and loft, leaving the landing to your judgement. Your caddie picks a club after each shot; shape and spin add draw, fade and backspin.</p><p><b>Mini golf</b> Bank off the walls and read the surfaces. Sand slows the ball; ice carries it farther. Water costs one stroke.</p></div>${button('Back to the game','close-modal','','button yellow wide')}</section>`;
 }
 export function installInterface(ui) {
   const render = ui.render.bind(ui), action = ui.action.bind(ui);
@@ -47,4 +49,6 @@ export function installInterface(ui) {
   installActivity(ui);
   installTheme(ui);
   installEmotes(ui);
+  installDialogPages(ui);
+  installMenuPages(ui);
 }

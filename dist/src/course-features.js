@@ -1,8 +1,16 @@
-import { terrainHeight, pathDistance, fairwayWidth } from "./golf-courses.js";
+import { terrainHeight, pathDistance, fairwayWidth, coastBounds, coastWaterLevel } from "./golf-courses.js";
 import { halloweenActive } from './season.js';
 // Shared course targets: render placement and verified replays use the same metres.
 export function pirateShipFor(h) {
   if (h.courseIndex !== 1 || h.custom) return null;
+  if(h.index===0){
+    // The round supplies one seed in local practice. A missing seed stays
+    // deterministic for previews and replay fixtures; resets never reroll it.
+    let seed=(Number.isFinite(h.pirateSeed)?h.pirateSeed:h.seed)>>>0;
+    const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+    const z=-h.length*.42+(random()-.5)*22, x=coastBounds(h,z)[1]+54+(random()-.5)*12;
+    return {x,y:coastWaterLevel(h)-3.4,z,angle:-.2+(random()-.5)*.24,scale:1.65};
+  }
   const z = -h.length * 0.42;
   let x = h.points[0][0];
   for (let i = 1; i < h.points.length; i++) {
@@ -26,7 +34,9 @@ export function segmentBox(a, b, min, max) {
 
 export function hitsPirateShip(ship, a, b) {
   if (!ship) return false;
-  const local = p => ({ x: p.x - ship.x, y: p.y - ship.y, z: p.z - ship.z });
+  const c=Math.cos(ship.angle||0),s=Math.sin(ship.angle||0),scale=ship.scale||1;
+  const local = p => ({ x: ((p.x-ship.x)*c-(p.z-ship.z)*s)/scale,
+    y:(p.y-ship.y)/scale,z:((p.x-ship.x)*s+(p.z-ship.z)*c)/scale });
   const boxes = [
     [-3.7, 0, -11.6, 3.7, 4.2, 11.6], // hull and deck
     [-2.5, 4.2, 5.5, 2.5, 6.7, 9.5], // raised quarterdeck

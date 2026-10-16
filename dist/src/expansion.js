@@ -1,3 +1,5 @@
+import { APP_VERSION } from './version.js';
+import { flowDirectionGauge } from './shot-meter-ui.js';
 import { LOCKERS } from "./pro-shop.js";
 import { homeMenu } from "./home-menu.js";
 import { weatherControls } from './course-weather.js';
@@ -158,10 +160,14 @@ function hud(ui) {
   queueMicrotask(() => holeIntro(ui));
   const stat = (label, value, extra = "") =>
     `<div class="ph-stat ${extra}"><span>${label}</span><strong>${value}</strong></div>`;
+  const fluid = g.meterStyle() === 'fluid';
+  const meterChoice = `<label class="ph-field ph-meter-choice">Shot meter<select id="shot-meter" aria-label="Shot meter"><option value="classic" ${!fluid ? 'selected' : ''}>Classic · 2 steps</option><option value="fluid" ${fluid ? 'selected' : ''}>Flow · press &amp; hold</option></select></label>`;
+  const powerMeter = `<div class="meter-power"><div class="power-header"><span id="shot-status"></span><span id="power-text"></span></div><div class="power-track ph-track"><div class="power-fill" id="power-fill"></div></div></div>`;
+  const directionMeter = fluid ? flowDirectionGauge() : `<div class="accuracy-label"><span>LEFT</span><span id="accuracy-text">DIRECTION · CENTRE</span><span>RIGHT</span></div><div class="accuracy-track" aria-label="Shot direction"><i id="accuracy-marker"></i></div>`;
   const shotCard = golf
-    ? `<label class="ph-field">Club<select id="shot-club">${CLUBS.map((c) => `<option value="${c.id}" ${c.id === g.club ? "selected" : ""}>${c.name} · ${clubYards(c.id, d.equipment)} yd</option>`).join("")}</select></label><label class="ph-field">Draw / fade<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}"></label><label class="ph-field">Spin · low / high<input id="shot-spin" type="range" min="-1" max="1" step=".05" value="${g.spin}"></label>${button(icon("camera") + "Overview", "overview", "", "ph-chip")}`
-    : `<div class="ph-equip"><span>Equipment</span><strong>${esc(ITEM_BY_ID[d.equipment.club]?.name || "Putter")}</strong><small>${esc(itemDescription(ITEM_BY_ID[d.equipment.ball]).split(" Full golf")[0])}</small></div><label class="ph-field">Curve<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}" ${!miniStats(d.equipment).curve ? "disabled" : ""}></label>`;
-  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}" aria-label="Round controls">${weatherControls(ui.world)}<div class="ball-nameplate" id="ball-nameplate" >${nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="power-header"><span id="shot-status"></span><span id="power-text"></span></div><div class="power-track ph-track"><div class="power-fill" id="power-fill"></div></div><div class="accuracy-label"><span>LEFT</span><span id="accuracy-text">DIRECTION · CENTRE</span><span>RIGHT</span></div><div class="accuracy-track" aria-label="Shot direction"><i id="accuracy-marker"></i></div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right">${ui.cloud.room ? `<div class="ph-card ph-live" id="live-players">Live room · ${ui.cloud.room.code}</div>` : ""}<div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
+    ? `<label class="ph-field">Club<select id="shot-club">${CLUBS.map((c) => `<option value="${c.id}" ${c.id === g.club ? "selected" : ""}>${c.name} · ${clubYards(c.id, d.equipment)} yd</option>`).join("")}</select></label><label class="ph-field">Draw / fade<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}"></label><label class="ph-field">Spin · low / high<input id="shot-spin" type="range" min="-1" max="1" step=".05" value="${g.spin}"></label>${button(icon("camera") + "Overview", "overview", "", "ph-chip")}${meterChoice}`
+    : `<div class="ph-equip"><span>Equipment</span><strong>${esc(ITEM_BY_ID[d.equipment.club]?.name || "Putter")}</strong><small>${esc(itemDescription(ITEM_BY_ID[d.equipment.ball]).split(" Full golf")[0])}</small></div><label class="ph-field">Curve<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}" ${!miniStats(d.equipment).curve ? "disabled" : ""}></label>${meterChoice}`;
+  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}" aria-label="Round controls">${weatherControls(ui.world)}<span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span><div class="ball-nameplate" id="ball-nameplate" >${nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right">${ui.cloud.room ? `<div class="ph-card ph-live" id="live-players">Live room · ${ui.cloud.room.code}</div>` : ""}<div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
 }
 function scorecard(ui, round, reward) {
   const pars = round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
@@ -422,8 +428,8 @@ export function installExpansion(ui) {
             : g.physics.active
               ? "BALL IN PLAY"
               : g.charging
-                ? (g.shotPhase === "direction" ? "2 · CLICK TO LOCK DIRECTION" : "1 · RELEASE TO LOCK POWER")
-                : "READY FOR YOUR SHOT";
+                ? (g.meterStyle() === 'fluid' ? "2 · HOLD POWER · RELEASE TO SWING" : g.shotPhase === "direction" ? "2 · CLICK TO LOCK DIRECTION" : "1 · RELEASE TO LOCK POWER")
+                : g.meterStyle() === 'fluid' ? "1 · PRESS TO LOCK DIRECTION" : "READY FOR YOUR SHOT";
       const p = g.mode === "golf" ? ui.world.golferScreen() : ui.world.ballScreen();
       h.plate.style.transform = `translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;
       h.plate.style.opacity = p.visible && !g.physics.sunk ? "1" : "0";
@@ -450,14 +456,15 @@ export function installExpansion(ui) {
             : "";
       const power = document.querySelector("#shot-power");
       if (power && document.activeElement !== power) power.value = g.power;
-      for (const el of document.querySelectorAll("#shot-club,#shot-spin"))
-        el.disabled = g.charging || !!g.pendingSwing || g.physics.active || g.state !== "playing";
+      for (const el of document.querySelectorAll("#shot-club,#shot-spin,#shot-meter"))
+        el.disabled = g.charging || !!g.pendingSwing || g.physics.active || g.state !== "playing" || !!ui.world.waterMoment || !!ui.world.pirateMoment;
       const shape = document.querySelector("#shot-shape");
       if (shape)
         shape.disabled =
           g.charging || !!g.pendingSwing ||
           g.physics.active ||
           g.state !== "playing" ||
+          !!ui.world.waterMoment || !!ui.world.pirateMoment ||
           (g.mode !== "golf" && !miniStats(ui.progress.data.equipment).curve);
     }
     const timer = document.querySelector("#rotation-countdown");
@@ -725,15 +732,28 @@ function accountDialog(ui) {
 }
 function bindShotControls(ui) {
   const g = ui.game;
+  document.getElementById('shot-meter')?.addEventListener('change', e => {
+    if (g.charging || g.physics.active || g.pendingSwing || g.state !== 'playing' || ui.world.waterMoment || ui.world.pirateMoment) { e.target.value = g.meterStyle(); return; }
+    const style = e.target.value === 'fluid' ? 'fluid' : 'classic';
+    ui.progress.data.settings.shotMeter = style;
+    ui.world.settings.shotMeter = style;
+    ui.progress.save();
+    g.cancelShot();
+    ui.render();
+    ui.world.canvas.focus?.({ preventScroll: true });
+  });
   for (const [id, key] of [
     ["shot-shape", "shape"],
     ["shot-spin", "spin"],
     ["shot-club", "club"],
   ])
     document.getElementById(id)?.addEventListener("input", (e) => {
-      if (g.charging || g.physics.active || g.pendingSwing) return;
+      if (g.charging || g.physics.active || g.pendingSwing || g.state !== 'playing' || ui.world.waterMoment || ui.world.pirateMoment) return;
       g[key] = key === "club" ? e.target.value : Number(e.target.value);
     });
+  document.getElementById('shot-club')?.addEventListener('change', () => ui.world.canvas.focus?.({ preventScroll: true }));
+  for (const id of ['shot-shape', 'shot-spin'])
+    document.getElementById(id)?.addEventListener('pointerup', () => ui.world.canvas.focus?.({ preventScroll: true }));
   document.querySelector("#hole-map")?.addEventListener("pointerdown", (e) => {
     if (g.physics.active || g.pendingSwing) return;
     const r = e.currentTarget.getBoundingClientRect(),

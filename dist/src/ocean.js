@@ -1,4 +1,5 @@
 import * as THREE from '../vendor/three.module.js';
+import { coastWaterLevel } from './golf-courses.js';
 export function buildOcean(w,h) {
   const time={value:0};w.oceanTime=time;
   const material=new THREE.ShaderMaterial({uniforms:{time,deep:{value:new THREE.Color('#287b97')},light:{value:new THREE.Color('#62a8b5')}},vertexShader:`varying vec3 vOcean;void main(){vec4 p=modelMatrix*vec4(position,1.0);vOcean=p.xyz;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`
@@ -13,6 +14,6 @@ export function buildOcean(w,h) {
       #include <colorspace_fragment>
     }`});
   const surface=new THREE.Mesh(new THREE.PlaneGeometry(5000,5000),material);
-  surface.rotation.x=-Math.PI/2;surface.position.set(0,-42.6,-h.length/2);surface.userData.ownedMaterial=true;
+  surface.rotation.x=-Math.PI/2;surface.position.set(0,coastWaterLevel(h),-h.length/2);surface.userData.ownedMaterial=true;
   w.group.add(surface);
 }

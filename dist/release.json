@@ -1,6 +1,6 @@
 {
   "version": "polygolf-v10",
-  "contentVersion": "living-adventures-0.6",
+  "contentVersion": "regression-fixes-local-0.8",
   "date": "2026-10-16",
   "items": 629,
   "lockers": 10,
@@ -22,7 +22,8 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "0.6",
+  "appVersion": "0.8",
+  "localPreview": true,
   "weatherModes": [
     "normal",
     "night",

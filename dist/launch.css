@@ -166,3 +166,363 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
 .ranked-match .ranked-versus>div{min-width:0;flex:1;align-items:center}.ranked-match .golfer-nameplate{max-width:100%}
 @media(max-width:540px){:is(#modal-root,#modal-exit) .modal .ranked-match{padding:16px 10px}.ranked-match .ranked-versus{gap:10px}.ranked-match .golfer-nameplate{font-size:12px}.ranked-match .golfer-nameplate i{min-width:24px}}
 @media(max-width:600px){.ranked-match .ranked-versus{flex-direction:column;gap:14px}.ranked-match .ranked-versus>div{width:100%;flex:auto}.ranked-match .golfer-nameplate{width:100%;box-sizing:border-box;justify-content:center}.ranked-match .golfer-nameplate strong{overflow-wrap:break-word}.ranked-match .ranked-versus>div>b{font-size:36px}.ranked-match .ranked-versus>span{font-size:12px}}
+
+/* Shot options fit the viewport as a compact grid; the playfield never scrolls. */
+.play-hud .ph-left{overflow:visible;max-height:none}
+.ph-shot #shot-options{display:grid;gap:10px;min-width:0}.ph-shot #shot-options[hidden]{display:none}
+.ph-shot .ph-field{min-width:0;margin:0}.ph-shot .ph-field select{min-width:0;width:100%;max-width:100%}
+@media(max-width:980px){
+ .play-hud .ph-left{bottom:194px}.play-hud .ph-center{bottom:10px}
+ .play-hud .ph-power{padding:10px 14px}.play-hud .ph-stats{margin-bottom:7px;padding-bottom:7px}
+ .play-hud .ph-meta{margin-top:7px;gap:5px 12px}
+ .play-hud .ph-shot{padding:10px;display:block}.play-hud .ph-collapse{float:none;margin:0 0 8px;min-height:30px;padding:6px 10px}
+ .play-hud .ph-shot.is-collapsed .ph-collapse{margin:0}.play-hud .ph-shot.is-collapsed{padding:7px}
+ .play-hud #shot-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+ .play-hud #shot-options .ph-field{font-size:9px;letter-spacing:.4px;gap:4px}
+ .play-hud #shot-options label:has(#shot-club),.play-hud #shot-options label:has(#shot-meter),.play-hud #shot-options .ph-equip{grid-column:1/-1}
+ .play-hud #shot-options label:nth-of-type(3){display:grid}
+ .play-hud #shot-options .ph-chip{display:none}
+ .play-hud #shot-options select{font-size:11px;padding:7px 6px;min-height:30px}
+ .play-hud #shot-options .ph-meter-choice{margin:0}
+ .play-hud #shot-options .ph-equip small{display:none}
+}
+@media(max-width:600px){
+ .play-hud .ph-left{left:10px;width:174px;bottom:190px}
+ .play-hud .ph-center{width:calc(100vw - 20px)}
+ .play-hud .ph-stats{margin-bottom:6px;padding-bottom:6px}.play-hud .ph-stat strong{font-size:18px}.play-hud .ph-stat span{font-size:8.5px;letter-spacing:1px}
+ .play-hud .ph-power{padding:8px 12px}.play-hud .ph-meta{font-size:10px;margin-top:6px;min-height:14px}
+ .play-hud .is-flow-meter .ph-meter-body{gap:10px}.play-hud .flow-gauge{height:62px}.play-hud .flow-direction .accuracy-label{font-size:8px}
+ .play-hud .is-flow-meter .power-header{font-size:8px;gap:4px}.play-hud .is-flow-meter #power-text{font-size:20px}
+ .play-hud .ph-right{top:10px;right:10px;bottom:auto}.play-hud .ph-tools{gap:5px}.play-hud .ph-tools .icon-button{width:36px;height:36px;min-width:36px}
+ .play-hud .course-weather{top:60px;right:10px}
+}
+@media(max-height:480px) and (min-width:601px){
+ .play-hud .ph-left{left:10px;bottom:10px;top:auto;width:246px}
+ .play-hud .ph-center{left:auto;right:10px;bottom:10px;transform:none;width:310px;min-width:0}
+ .play-hud .ph-power{padding:8px 12px}.play-hud .ph-stats{margin-bottom:5px;padding-bottom:5px}.play-hud .ph-stat strong{font-size:18px}.play-hud .ph-stat span{font-size:8px}
+ .play-hud .ph-meta{font-size:10px;min-height:14px;margin-top:5px;gap:5px 9px}.play-hud .ph-hint{display:none}
+ .play-hud .flow-gauge{height:59px}.play-hud .flow-direction .accuracy-label{font-size:8px}.play-hud .is-flow-meter .ph-meter-body{gap:8px}.play-hud .is-flow-meter #power-text{font-size:18px}.play-hud .is-flow-meter .power-header{font-size:8px;gap:4px;margin-bottom:6px}
+ .play-hud .ph-right{top:10px;right:10px;bottom:auto}.play-hud .ph-tools .icon-button{width:34px;height:34px;min-width:34px}.play-hud .ph-tools{gap:6px}
+ .play-hud .course-weather{left:10px;right:auto;top:10px}.play-hud .course-weather button{min-height:28px;padding:4px 8px}
+ .play-hud .ph-shot{padding:8px}.play-hud .ph-collapse{margin-bottom:6px;min-height:28px;padding:5px 8px}.play-hud #shot-options{gap:6px 10px}
+ .play-hud #shot-options select{min-height:28px;padding:5px 6px}.play-hud .ph-live{display:none}
+}
+
+/* Dialog pages fit the window; no gameplay overlay needs a scrollbar. */
+.dialog-page[hidden]{display:none!important}
+.dialog-tabs{display:flex;gap:6px;margin:8px 0 14px;flex-shrink:0}
+.dialog-tabs .button{flex:1;min-width:0;min-height:34px;padding:7px 9px;font-size:12px}
+.dialog-tabs [aria-pressed=true]{border-color:var(--ui-accent);background:var(--ui-raised);color:var(--ui-text)}
+.modal:has(.dialog-tabs){overflow:hidden;max-height:calc(100dvh - 24px)}
+.modal:has(.dialog-tabs) .settings-custom{margin:12px 0;gap:0}
+.dialog-page>.settings-choice+.settings-choice{margin-top:18px}
+.modal:has(.dialog-tabs) .controls-guide h2{margin-top:0}
+.modal:has(.dialog-tabs) .controls-meters{margin:16px 0}
+.modal:has(.dialog-tabs) .controls-keys>div{padding:9px 0}
+.modal:has(.dialog-tabs) .controls-notes{margin:8px 0}
+.modal:has(.dialog-tabs) .settings-heading>p{margin:6px 0}
+@media(max-height:540px){
+ .modal:has(.dialog-tabs),.modal:has(.pause-menu),.modal:has(.result){padding:16px 22px;overflow:hidden}
+ .modal:has(.dialog-tabs) h2,.modal:has(.pause-menu) h2{font-size:25px;margin:3px 0}
+ .modal:has(.dialog-tabs) .settings-heading>p,.modal:has(.dialog-tabs) .menu-kicker,.modal:has(.dialog-tabs) .controls-guide>.menu-kicker{display:none}
+ .dialog-tabs{margin:6px 0;gap:5px}.dialog-tabs .button{min-height:28px;padding:5px 8px;font-size:11px}
+ .modal:has(.dialog-tabs) .settings-custom{margin:7px 0}
+ .modal:has(.dialog-tabs) .setting-option>span{min-height:42px;padding:7px 25px 7px 10px;gap:2px}
+ .modal:has(.dialog-tabs) .setting-option small{font-size:10px}.modal:has(.dialog-tabs) .setting-option strong{font-size:12px}
+ .modal:has(.dialog-tabs) .appearance-swatch{display:none}
+ .modal:has(.dialog-tabs) .settings-group .setting-row{min-height:32px;padding-block:5px}
+ .modal:has(.dialog-tabs) .setting-row.setting-slider{display:grid;grid-template-columns:1fr minmax(80px,1fr) 38px;gap:8px;align-items:center}
+ .modal:has(.dialog-tabs) .setting-slider>*{grid-area:auto}
+ .modal:has(.dialog-tabs) .settings-choice legend,.modal:has(.dialog-tabs) .settings-group h3{margin-bottom:5px;font-size:10px}
+ .modal:has(.dialog-tabs) .modal-actions{margin-top:8px;gap:7px;display:flex}
+ .modal:has(.dialog-tabs) .modal-actions .button,.modal:has(.dialog-tabs) .controls-guide>.button{min-height:30px;padding:6px 10px;font-size:11px}
+ .modal:has(.dialog-tabs) .settings-legal{margin-top:8px;font-size:9px;gap:6px 12px}
+ .modal:has(.dialog-tabs) .controls-keys{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}
+ .modal:has(.dialog-tabs) .controls-keys>div{font-size:11px;padding:5px 0;gap:8px}
+ .modal:has(.dialog-tabs) .controls-keys kbd{font-size:10px;padding:3px 4px}
+ .modal:has(.dialog-tabs) .controls-guide>p,.modal:has(.dialog-tabs) .dialog-page>p{font-size:12px;line-height:1.45;margin:8px 0}
+ .modal:has(.dialog-tabs) .controls-meters{margin:10px 0;gap:16px;grid-template-columns:1fr 1fr}
+ .modal:has(.dialog-tabs) .controls-meters small{margin-top:8px;font-size:11px;line-height:1.4}
+ .modal:has(.dialog-tabs) .controls-notes{font-size:11px;line-height:1.5;grid-template-columns:1fr 1fr}
+ .pause-menu{gap:7px}.pause-menu .button{min-height:32px;padding-block:7px}
+ .modal:has(.result) .result-icon{display:none}.modal:has(.result) .result h2{margin:6px 0;font-size:28px}
+ .modal:has(.result) .result-score{margin:10px 0}.modal:has(.result) .result-score strong{font-size:28px}
+ .modal:has(.result) .modal-actions{margin-top:10px}.modal:has(.result) .reward-line{margin-block:8px}
+}
+.round-version{position:absolute;top:14px;left:14px;font:600 11px "DM Sans",sans-serif;color:#eff3dc;background:#173e38dc;border-radius:5px;padding:5px 8px;pointer-events:none}
+@media(max-height:480px) and (min-width:601px){.round-version{top:52px;left:10px}}
+/* Pause and reset remain reachable while the shot HUD is out of view. */
+.ball-moving .play-hud .ph-right{visibility:visible!important;pointer-events:auto!important}
+/* Hole announcements stay above the taller Flow meter and away from options. */
+.hole-intro{top:20%;bottom:auto;width:min(460px,calc(100vw - 24px))}
+@media(max-height:480px){.hole-intro{top:23%;width:min(440px,calc(100vw - 24px))}.hole-intro strong{font-size:28px}.hole-intro span{font-size:9px}}
+@media(max-width:480px){
+ .modal:has(.dialog-tabs){padding:22px 20px}
+ .modal:has(.dialog-tabs) .settings-heading h2{font-size:27px;margin:3px 0}
+ .modal:has(.dialog-tabs) .settings-heading>p{font-size:12px}
+ .modal:has(.dialog-tabs) .settings-choice .setting-segments{flex-direction:row}
+ .modal:has(.dialog-tabs) .settings-choice .setting-option>span{display:flex;min-height:56px;padding:10px 20px 10px 8px;gap:4px}
+ .modal:has(.dialog-tabs) .setting-option strong{font-size:12px}.modal:has(.dialog-tabs) .setting-option small{font-size:10px}
+ .modal:has(.dialog-tabs) .settings-choice .choice-check{right:6px;top:10px}
+ .modal:has(.dialog-tabs) .setting-row.setting-slider{display:grid;grid-template-columns:minmax(90px,1fr) minmax(65px,1fr) 32px;gap:7px;align-items:center;min-height:42px;padding-block:6px}
+ .modal:has(.dialog-tabs) .setting-slider>*{grid-area:auto}.modal:has(.dialog-tabs) .setting-slider>span{font-size:12px}
+ .modal:has(.dialog-tabs) .setting-slider output{font-size:10px}
+ .modal:has(.dialog-tabs) .settings-legal{font-size:10px;gap:7px 12px;margin-top:12px}
+ .modal:has(.dialog-tabs) .modal-actions{margin-top:10px;gap:7px}
+ .modal:has(.dialog-tabs) .modal-actions .button{min-height:34px;padding:7px 8px;font-size:11px}
+}
+@media(max-width:600px){.play-hud .ph-center{min-width:0}}
+@media(max-width:600px){.hole-intro{top:105px}.hole-intro span{font-size:8px;letter-spacing:1.4px}.hole-intro strong{font-size:22px;line-height:1.1;margin:3px 0}.hole-intro small{font-size:10px}}
+@media(max-height:480px) and (min-width:601px){.hole-intro{top:72px}.hole-intro strong{font-size:24px;margin:3px 0}.hole-intro small{font-size:11px}}
+@media(max-width:360px){
+ .clubhouse-menu .topbar{padding:10px 12px;gap:8px}
+ .clubhouse-menu .topbar .logo{gap:5px}.clubhouse-menu .topbar .logo svg{width:24px;height:24px}
+ .clubhouse-menu .topbar .wordmark{font-size:20px}
+ .clubhouse-menu .topbar .player-bar{gap:5px;margin-left:auto}
+ .clubhouse-menu .topbar .player-button{padding:3px;min-width:0}
+ .clubhouse-menu .topbar .player-button>div{display:none}
+ .clubhouse-menu .topbar .avatar{width:28px;height:28px;font-size:13px}
+ .clubhouse-menu .topbar .wallet{padding:6px;font-size:11px}
+ .clubhouse-menu .topbar .header-settings{width:30px;height:30px;padding:6px}
+ .clubhouse-menu .topbar .nav{gap:2px}.clubhouse-menu .topbar .nav button{padding:7px 8px;font-size:10px}
+}
+
+/* Collections and shop shelves use bounded pages, retaining their existing cards. */
+.menu-pager{display:flex;align-items:center;justify-content:center;gap:14px;flex:none;padding:8px 0 0;min-height:40px}
+.menu-pager .button{padding:7px 12px;min-height:32px;font-size:11px}.menu-pager>span{font-size:11px;white-space:nowrap}
+.compact-menu-select{display:none}
+.menu-page-content>[hidden],.garage-items>[hidden]{display:none!important}
+.clubhouse-menu .garage-page{position:absolute;inset:var(--header-height,110px) 0 0;display:grid;grid-template-columns:minmax(190px,32%) minmax(0,1fr);overflow:hidden;min-height:0;padding:12px var(--page-gutter);gap:16px}
+.clubhouse-menu .garage-preview,.clubhouse-menu .garage-preview .caddie-stage{height:100%;min-height:0!important;max-height:none;overflow:hidden}
+.clubhouse-menu .garage-inventory{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:14px}
+.clubhouse-menu .garage-inventory>.garage-equipped{flex:none;margin:0 0 10px;padding-bottom:10px}
+.clubhouse-menu .garage-inventory>.category-tabs{flex:none;margin:8px 0}
+.clubhouse-menu .garage-inventory .garage-items{flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:repeat(var(--page-columns,3),minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:10px;align-content:stretch;padding:0}
+.garage-items .pg-card{min-height:0;display:flex;flex-direction:column;contain-intrinsic-size:none;content-visibility:visible}
+.garage-items .pg-art{flex:1;min-height:30px;max-height:190px;aspect-ratio:auto}
+.garage-items .pg-art img{object-fit:contain}.garage-items .pg-body{flex:none;padding:9px}
+.garage-items .pg-body h3{margin:6px 0;font-size:14px}.garage-items .pg-foot{margin-top:7px;gap:7px}
+.garage-items .pg-foot .button{min-height:30px;padding:6px 9px;font-size:11px}
+.clubhouse-menu .garage-inventory>.garage-bottom{order:10;flex:none;margin-top:5px;padding-top:6px;gap:8px;font-size:10px}
+.clubhouse-menu .garage-inventory>.menu-pager{order:9}
+.clubhouse-menu .shop-page{display:flex;flex-direction:column;overflow:hidden;inset:var(--header-height,110px) 0 0;padding:16px var(--page-gutter)}
+.shop-page>.page-heading{flex:none;margin-bottom:8px}.shop-page>.shop-toolbar{flex:none;margin-bottom:10px!important;padding-top:0}
+.shop-page>.shop-shelf{display:flex;flex-direction:column;flex:1;min-height:0;width:100%;overflow:hidden}
+.shop-page .menu-page-content{flex:1;min-height:0;overflow:hidden}
+.shop-page .menu-page-content> :not([hidden]){max-height:100%;margin-block:0}
+.shop-page .paged-card-grid{display:grid;grid-template-columns:repeat(var(--page-columns,3),minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:12px;height:100%;min-height:0}
+.shop-page .paged-card-grid>.pg-card{display:flex;flex-direction:column;min-height:0}
+.shop-page .paged-card-grid .pg-art{flex:1;min-height:30px;max-height:160px;aspect-ratio:auto}
+.shop-page .paged-card-grid .pg-art img{object-fit:contain}
+.shop-page .pg-body{padding:10px}.shop-page .pg-body h3{font-size:15px;margin:6px 0}.shop-page .pg-foot{margin-top:7px}
+.shop-page .pg-foot .button{font-size:11px;min-height:32px;padding:6px 9px}
+.shop-page .shop-rail{height:100%;display:flex;flex-direction:column}.shop-page .rail-head{flex:none;margin-bottom:8px}.shop-page .rail-head h2{font-size:20px}
+.shop-page .shop-rail .paged-card-grid{flex:1;min-height:0}
+.shop-page .shop-featured{height:100%;min-height:0}.shop-page .shop-hero{min-height:0;height:100%}
+.shop-page .promo-card{min-height:0;display:flex;flex-direction:column}.shop-page .promo-card>img{min-height:50px;max-height:150px;flex:1;object-fit:contain}.shop-page .promo-card>div{padding:14px}
+.shop-page .shelf-caption{flex:none;font-size:11px;margin:0 0 7px;line-height:1.35}
+.shop-page .shop-filters{flex:none;margin-bottom:8px;gap:8px}.shop-page .shop-filters .chip-row{gap:5px}
+.shop-page .shop-filters .chip{font-size:10px;padding:5px 8px;min-height:29px}
+.shop-page .shop-filters .sort-select{font-size:11px}.shop-page .shop-filters select{font-size:11px;padding:6px}
+.shop-page .crate-card{display:flex;flex-direction:column;min-height:0}.shop-page .crate-art{flex:1;min-height:35px;max-height:150px}.shop-page .crate-art img{height:100%;object-fit:contain}
+.shop-page .crate-body{padding:10px}.shop-page .crate-body h3{font-size:17px;margin:5px 0}.shop-page .crate-body p{font-size:11px;margin:4px 0}.shop-page .crate-best{font-size:10px;margin:7px 0}
+.shop-page .crate-foot{gap:7px;margin-top:8px;flex-wrap:wrap}.shop-page .crate-foot .button{min-height:30px;padding:6px 8px;font-size:10px}
+.shop-page .bundle-card{min-height:0;padding:14px}.shop-page .bundle-card h2{font-size:20px}.shop-page .bundle-images{max-height:140px;overflow:hidden}
+.shop-page .achievement-reward{min-height:0;padding:12px;display:flex;flex-direction:column}.shop-page .achievement-reward>img{height:75px;min-height:30px;width:100%;object-fit:contain}.shop-page .achievement-reward h2{font-size:18px}.shop-page .achievement-reward h3{font-size:14px}.shop-page .achievement-reward p{font-size:11px;margin:5px 0}
+.shop-page .membership-offer{height:auto;min-height:0;padding:18px}.shop-page .membership-offer h2{font-size:25px}.shop-page .community-menu-content{padding:10px}.shop-page .community-menu-content h2{font-size:24px;margin:0 0 6px}
+.shop-page .community-menu-content p{font-size:11px;margin:7px 0;line-height:1.4}.shop-page .community-link{padding:10px;min-height:0}.shop-page .community-links{gap:8px;margin:10px 0}
+@media(max-width:700px),(max-height:600px){
+ .compact-menu-select{display:block;width:100%;min-width:0;min-height:32px;padding:6px 10px;font-size:12px;margin:5px 0;background:var(--ui-field,#173e32);color:var(--ui-text,#edf0dc);border:1px solid var(--ui-border,#719a6b);border-radius:4px}
+ .compact-menu-source{display:none!important}
+ .clubhouse-menu .topbar{padding:9px 12px;gap:6px}
+ .clubhouse-menu .topbar>.compact-menu-select{order:3;flex:1 0 100%;margin:0}
+ .clubhouse-menu .topbar .logo{gap:5px}.clubhouse-menu .topbar .logo svg{width:24px;height:24px}
+ .clubhouse-menu .topbar .wordmark{font-size:20px}.clubhouse-menu .topbar .player-bar{margin-left:auto;gap:5px}
+ .clubhouse-menu .topbar .player-button{padding:3px;min-width:0}.clubhouse-menu .topbar .player-button>div{display:none}
+ .clubhouse-menu .topbar .avatar{width:28px;height:28px;font-size:13px}.clubhouse-menu .topbar .wallet{padding:6px;font-size:11px}.clubhouse-menu .topbar .header-settings{width:30px;height:30px;padding:6px}
+ .clubhouse-menu .garage-inventory{padding:9px}.clubhouse-menu .garage-inventory>.garage-equipped{margin-bottom:6px;padding-bottom:6px;gap:5px}
+ .garage-inventory .caddie-setup-label,.garage-inventory .caddie-setup-copy>p{display:none}
+ .clubhouse-menu .garage-inventory .garage-equipped h2{font-size:17px;margin:0}
+ .garage-inventory .caddie-setup-actions{gap:5px;width:auto}.garage-inventory .caddie-setup-actions .button{padding:5px 8px;min-height:28px;font-size:10px}
+ .clubhouse-menu .garage-collection-header h2{font-size:16px!important}.garage-collection-header h2 span{font-size:10px!important}.collection-tools .text-button{font-size:10px}
+ .caddie-toolbar{gap:6px;margin-block:6px}.caddie-toolbar input{min-height:30px;padding:6px 8px;font-size:11px}.caddie-toolbar .button{min-height:30px;font-size:10px;padding:6px 8px}
+ .caddie-toolbar #caddie-result-count{font-size:9px}.caddie-filters{padding:5px!important;margin:0!important}.caddie-filters>.compact-menu-select{margin:3px 0;min-height:28px}
+ .menu-pager{min-height:34px;padding-top:5px;gap:8px}.menu-pager .button{min-height:28px;padding:5px 9px;font-size:10px}
+ .shop-page>.page-heading{margin-bottom:5px}.shop-page>.page-heading h1{font-size:24px}.shop-page>.page-heading p{display:none}.shop-page .shop-wallet{padding:4px 7px}.shop-page .shop-wallet small{display:none}
+ .shop-page .shop-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:6px!important}.shop-page .shop-toolbar>.compact-menu-select{flex:1;margin:0}.shop-page .shop-toolbar>.text-button{font-size:10px;white-space:nowrap}
+ .shop-page .shop-filters{display:flex;flex-wrap:wrap;gap:5px}.shop-page .shop-filters>.compact-menu-select{flex:1;min-width:85px;width:auto;margin:0}.shop-page .shop-sorts{flex:1;gap:5px}
+ .shop-page .hero-copy{padding:16px}.shop-page .hero-copy h2{font-size:23px}.shop-page .hero-copy p{font-size:12px;margin-block:8px}
+ .shop-page .shop-hero{grid-template-columns:1.4fr 1fr}.shop-page .hero-tags{font-size:10px;gap:6px}.shop-page .hero-actions{margin-top:12px;gap:10px}.shop-page .hero-actions .button{padding:7px 10px;min-height:32px;font-size:11px}
+ .shop-page .promo-card{height:100%;max-height:100%}.shop-page .promo-card h3{font-size:20px}.shop-page .promo-card p{font-size:11px;margin:7px 0}
+ .shop-page .rail-head h2{font-size:17px}.shop-page .rail-head span{font-size:10px}.shop-page .rail-head .text-button{font-size:10px}
+ .shop-page .pg-art{max-height:110px!important}.shop-page .pg-body{padding:8px}.shop-page .pg-body h3{font-size:13px;margin:5px 0}.shop-page .pg-meta{font-size:9px}.shop-page .pg-category{display:none}
+ .shop-page .crate-art{max-height:100px}.shop-page .crate-body .eyebrow{font-size:9px}.shop-page .crate-body h3{font-size:15px}.shop-page .crate-best{margin:5px 0}.shop-page .crate-foot{margin-top:6px}
+ .shop-page .locker-quantity{padding:5px;margin:0 0 6px}.shop-page .locker-quantity span{font-size:9px}.shop-page .locker-quantity strong{font-size:11px}
+ .shop-page .achievement-reward>img{height:50px}.shop-page .achievement-reward h2{font-size:16px;margin:4px 0}.shop-page .achievement-reward h3{font-size:12px;margin:4px 0}.shop-page .achievement-reward .challenge-track{margin:5px 0}
+ .shop-page .bundle-card{padding:9px}.shop-page .bundle-images{max-height:80px}.shop-page .bundle-card h2{font-size:18px;margin:6px 0}.shop-page .bundle-card p{font-size:11px}
+}
+@media(max-width:600px){
+ .clubhouse-menu .garage-page{grid-template-columns:minmax(0,1fr);grid-template-rows:82px minmax(0,1fr);gap:7px;padding:7px 10px}
+ .clubhouse-menu .garage-preview{height:82px!important;margin:0!important;min-height:0!important}
+ .clubhouse-menu .garage-preview .caddie-stage{height:82px!important}
+ .garage-inventory .pg-art{max-height:120px}.garage-inventory .pg-body{padding:7px}.garage-inventory .pg-meta{font-size:9px}.garage-inventory .pg-body h3{font-size:13px;margin:4px 0}
+ .garage-inventory .pg-foot{margin-top:4px}.garage-inventory .pg-foot .button{min-height:27px;padding:5px 8px;font-size:10px}.garage-inventory .garage-bottom .text-button{font-size:10px}
+ .clubhouse-menu .shop-page{padding:10px 12px}.shop-page .community-menu-content{padding:0}.shop-page .community-link{padding:8px;gap:7px}.shop-page .community-link strong{font-size:12px}.shop-page .community-link small{font-size:10px}.shop-page .community-link b{font-size:10px}
+ .shop-page .community-menu-content>h2{font-size:21px}.shop-page .membership-offer{padding:12px}.shop-page .membership-offer h2{font-size:23px}.shop-page .membership-offer p{font-size:12px;line-height:1.4}
+}
+@media(max-height:600px){
+ .clubhouse-menu .garage-page{padding-block:7px}.clubhouse-menu .garage-inventory{padding:7px 10px}.garage-inventory .caddie-toolbar{margin:4px 0}
+ .garage-inventory .pg-art{max-height:75px}.garage-inventory .pg-body{padding:6px}.garage-inventory .pg-meta{font-size:8px}.garage-inventory .pg-body h3{font-size:12px;margin:3px 0}.garage-inventory .pg-foot{margin-top:3px}
+ .garage-inventory .garage-bottom{padding-top:3px!important;margin-top:2px!important}.garage-inventory .garage-bottom .text-button{font-size:9px;padding:3px}
+ .shop-page .crate-art{max-height:65px}.shop-page .crate-body p,.shop-page .crate-best{font-size:10px}.shop-page .crate-body{padding:7px}.shop-page .crate-foot .button{padding:4px 6px;min-height:27px}
+ .shop-page .paged-card-grid .pg-art{max-height:65px!important}.shop-page .pg-body h3{font-size:12px}.shop-page .pg-body{padding:6px}.shop-page .pg-meta{font-size:8px}
+ .shop-page .promo-card>img{max-height:70px}.shop-page .promo-card>div{padding:9px}.shop-page .promo-card h3{font-size:18px;margin:5px 0}
+ .shop-page .hero-copy{padding:12px}.shop-page .hero-copy h2{font-size:21px}.shop-page .hero-copy p{font-size:10px}.shop-page .hero-tags{font-size:9px}.shop-page .hero-actions{margin-top:7px}
+ .shop-page .achievement-reward>img{height:35px}.shop-page .achievement-reward p{font-size:10px;margin:3px 0}.shop-page .achievement-reward h2{font-size:14px}.shop-page .achievement-reward small{font-size:9px}
+ .shop-page .bundle-images{max-height:60px}.shop-page .bundle-card .eyebrow{font-size:9px}.shop-page .bundle-card h2{font-size:15px;margin:4px 0}.shop-page .bundle-card .button{min-height:28px;padding:5px 8px;font-size:10px}
+ .shop-page .membership-offer{padding:10px}.shop-page .membership-offer h2{font-size:20px;margin:6px 0}.shop-page .membership-offer p{font-size:10px}.shop-page .membership-offer .button{min-height:28px;padding:5px 8px;font-size:10px}
+}
+@media(max-width:600px) and (max-height:600px){.clubhouse-menu .garage-page{grid-template-rows:48px minmax(0,1fr)}.clubhouse-menu .garage-preview,.clubhouse-menu .garage-preview .caddie-stage{height:48px!important}}
+/* Override legacy mobile document flow and card gaps inside the bounded panels. */
+.clubhouse-menu .shop-page{position:absolute!important;height:calc(100dvh - var(--header-height,110px))!important;min-height:0!important;inset:var(--header-height,110px) 0 0!important;margin:0!important}
+.shop-page .shop-shelf,.shop-page .menu-page-content{min-height:0!important}
+.shop-page .crate-card{height:100%;gap:0}.shop-page .crate-body{gap:4px;min-height:0;flex:none}
+.shop-page .crate-body p{min-height:0;line-height:1.35}.shop-page .crate-art{flex:1 1 80px;min-height:20px;aspect-ratio:auto}
+.shop-page .crate-art img{aspect-ratio:auto}.shop-page .crate-best{min-height:0;margin:4px 0}.shop-page .crate-foot{margin-top:4px}
+.shop-page .achievement-reward{gap:5px;height:100%}.shop-page .achievement-reward>img{flex:0 1 55px;min-height:20px}
+.shop-page .achievement-reward .button{min-height:30px;padding:6px 9px;font-size:11px;margin-top:5px}
+.shop-page .achievement-reward p{line-height:1.35}.shop-page .achievement-reward h3{margin-top:5px}
+.shop-page .community-menu-content{margin:0!important;max-width:100%;height:auto}
+.shop-page .community-link{min-height:0;gap:10px;padding:9px 12px}.shop-page .community-link i{font-size:22px;width:24px}
+.shop-page .community-link strong{font-size:14px}.shop-page .community-link small{margin-top:2px;font-size:10px}
+.shop-page .community-menu-content .community-terms{line-height:1.35;font-size:10px;margin:7px 0}
+.shop-page .community-menu-content>.arcade-button{min-height:30px;padding:6px 12px;font-size:11px}
+@media(max-width:700px),(max-height:600px){
+ .clubhouse-menu .topbar{display:flex;flex-wrap:wrap;min-height:0;height:auto}
+ .shop-page .achievement-reward{gap:3px}.shop-page .achievement-reward>img{height:35px;flex-basis:35px}
+ .shop-page .community-link strong{font-size:12px}.shop-page .community-link b{font-size:10px}
+}
+@media(max-height:600px){
+ .shop-page .shelf-caption{display:none}
+ .garage-items .pg-card,.shop-page .paged-card-grid>.pg-card{display:grid;grid-template-columns:minmax(50px,30%) minmax(0,1fr);gap:0;height:100%}
+ .garage-items .pg-art,.shop-page .paged-card-grid .pg-art{height:100%;max-height:none!important;min-height:0}
+ .garage-items .pg-body,.shop-page .pg-body{min-height:0;align-self:center}
+ .shop-page .crate-card{display:grid;grid-template-columns:minmax(45px,27%) minmax(0,1fr);height:100%}
+ .shop-page .crate-art{height:100%;max-height:none;min-height:0}.shop-page .crate-body{align-self:center;gap:3px;padding:6px}
+ .shop-page .crate-body h3{font-size:14px;margin:3px 0}.shop-page .crate-body p{font-size:9px;margin:3px 0}.shop-page .crate-body .eyebrow{font-size:8px}
+ .shop-page .crate-best{font-size:9px}.shop-page .crate-foot{gap:4px}.shop-page .crate-foot>.money{font-size:12px}.shop-page .crate-foot .row{gap:4px}
+ .shop-page .crate-foot .button{font-size:9px;padding:4px 5px;min-height:25px}
+ .shop-page .achievement-reward{display:grid;grid-template-columns:minmax(30px,22%) minmax(0,1fr);gap:7px;padding:7px}
+ .shop-page .achievement-reward>img{height:60px;align-self:center}.shop-page .achievement-reward h2{font-size:13px;margin:3px 0}.shop-page .achievement-reward h3{font-size:11px;margin:3px 0}
+ .shop-page .achievement-reward p{font-size:9px;line-height:1.25;margin:3px 0}.shop-page .achievement-reward .button{min-height:26px;font-size:9px;margin-top:3px;padding:4px 6px}
+ .shop-page .bundle-images{max-height:42px}.shop-page .bundle-card h2{font-size:14px;margin:4px 0}.shop-page .bundle-card p{font-size:10px;margin:4px 0}.shop-page .bundle-card .row{gap:5px}
+ .shop-page .membership-offer{padding:9px}.shop-page .membership-offer h2{font-size:18px;margin:4px 0}.shop-page .membership-offer p{font-size:9px;line-height:1.3;margin:5px 0}.shop-page .membership-prices{margin:6px 0}.shop-page .membership-prices strong{font-size:19px}
+}
+@media(max-height:480px){
+ .shop-page .community-menu-content>p:not(.community-terms){display:none}.shop-page .community-menu-content>h2{font-size:18px}
+ .shop-page .community-links{margin:6px 0}.shop-page .community-link{padding:6px 9px}.shop-page .community-menu-content .community-terms{font-size:9px}
+}
+.clubhouse-menu .shop-page{padding:16px var(--page-gutter)!important;align-items:stretch}
+.shop-page>.page-heading,.shop-page>.shop-toolbar{width:100%;margin-inline:0}
+@media(max-width:700px),(max-height:600px){
+ .clubhouse-menu .shop-page{padding:8px 12px!important}
+ .shop-page .achievement-reward>img{height:30px;min-height:0}
+ .shop-page .achievement-reward p{margin:2px 0}
+}
+@media(max-height:480px) and (min-width:601px){
+ .clubhouse-menu .garage-inventory{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:32px 30px 34px minmax(0,1fr) 32px 22px;gap:4px 8px;height:100%}
+ .clubhouse-menu .garage-inventory>.garage-equipped{grid-area:1/1/2/3;margin:0;padding:0;border-bottom:0}
+ .garage-inventory>.garage-collection-header{grid-area:2/2/3/3;justify-content:flex-end}
+ .garage-inventory>.garage-collection-header h2{display:none}
+ .garage-inventory>.compact-menu-select{grid-area:2/1/3/2;margin:0;min-height:28px;height:28px}
+ .garage-inventory>.caddie-toolbar{grid-area:3/1/4/3;margin:0;min-height:0;height:32px}
+ .garage-inventory>.garage-items{grid-area:4/1/5/3}
+ .garage-inventory>.menu-pager{grid-area:5/1/6/3;padding-top:2px;min-height:30px}
+ .garage-inventory>.garage-bottom{grid-area:6/1/7/3;padding:0!important;margin:0!important;min-height:0}
+ .garage-inventory .collection-tools .favorite-button{width:24px;height:24px;min-height:24px}
+ .garage-inventory .pg-foot .button{min-height:27px!important;padding:5px 7px!important;font-size:10px!important}
+ .garage-inventory .pg-body{gap:3px}.garage-inventory .pg-foot .favorite-button{width:27px;height:27px;min-height:27px}
+ .shop-page .locker-quantity{height:30px;min-height:0;gap:6px;padding:3px;margin:0 0 4px}
+ .shop-page .locker-quantity>div:first-child{display:flex;align-items:center;gap:5px}.shop-page .locker-quantity span{display:none}
+ .shop-page .locker-quantity .chip{min-height:24px;height:24px;padding:3px 6px;font-size:10px}
+ .shop-page .crate-body{gap:2px;padding:5px}.shop-page .crate-body h3{font-size:12px;line-height:1.15;margin:2px 0}
+ .shop-page .crate-body p{font-size:9px;line-height:1.2;margin:2px 0}.shop-page .crate-body .eyebrow{font-size:8px}
+ .shop-page .crate-body .odds-bar{height:5px}.shop-page .crate-best{font-size:8.5px;line-height:1.2;margin:2px 0}
+}
+@media(max-width:480px){
+ .modal:has(.result){padding:20px;max-height:calc(100dvh - 24px);overflow:hidden}
+ .modal .result{padding-top:8px}.modal .result-icon{width:50px;height:50px;margin-bottom:12px}.modal .result-icon svg{width:26px;height:26px}
+ .modal .result>.eyebrow{margin-bottom:9px}.modal .result h2{font-size:30px;margin-bottom:8px}
+ .modal .result-score{padding:12px 0;margin:15px 0}.modal .result-score strong{font-size:30px}
+ .modal .result .modal-actions{margin-top:15px;gap:8px}.modal .result .modal-actions .button{padding:8px 10px;min-height:36px;font-size:12px}
+ .modal .result .table-scroll{overflow:hidden}.modal .result .scorecard{width:100%;table-layout:fixed}
+ .modal .result .scorecard th,.modal .result .scorecard td{font-size:9px;padding:5px 1px;text-align:center}
+ .modal .result .scorecard th:first-child{width:40px;font-size:8px}
+}
+@media(max-width:360px){
+ .modal:has(.controls-guide){padding:16px}
+ .modal:has(.controls-guide) .dialog-tabs{margin:5px 0 8px}
+ .modal:has(.controls-guide) .dialog-tabs .button{min-height:28px;font-size:10px;padding:5px 8px}
+ .modal:has(.controls-guide) .controls-guide h2{font-size:25px;margin:4px 0 7px}
+ .modal:has(.controls-guide) .menu-kicker{font-size:9px}
+ .modal:has(.controls-guide) .dialog-page>p{font-size:11px;line-height:1.4;margin:8px 0}
+ .modal:has(.controls-guide) .controls-meters{grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+ .modal:has(.controls-guide) .controls-meters strong{font-size:12px}
+ .modal:has(.controls-guide) .controls-meters small{font-size:10px;line-height:1.35;margin-top:8px}
+ .modal:has(.controls-guide) .controls-keys>div{font-size:10px;padding:4px 0;gap:8px;line-height:1.3}
+ .modal:has(.controls-guide) .controls-keys kbd{font-size:9px;padding:3px 4px}
+ .modal:has(.controls-guide) .controls-guide>.button{min-height:30px;padding:6px 9px;font-size:11px}
+}
+/* Complete locker odds remain available through pages instead of a long overlay. */
+.modal.paged-locker{width:min(900px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px;overflow:hidden}
+.paged-locker .crate-detail{height:min(560px,calc(100dvh - 62px));display:flex;flex-direction:column;gap:10px;min-width:0}
+.locker-dialog-pager{display:flex;gap:7px;flex:none;padding-right:24px;align-items:center}
+.locker-dialog-pager .button{min-height:30px;min-width:30px;padding:5px 8px}
+.locker-dialog-pager select{flex:1;min-width:0;padding:6px;font-size:12px}
+.locker-dialog-body{flex:1;min-height:0;overflow:hidden}.locker-dialog-body>[hidden]{display:none!important}
+.locker-dialog-body .crate-detail-head{display:grid;grid-template-columns:35% minmax(0,1fr);gap:15px;margin:0;align-items:center}
+.locker-dialog-body .crate-detail-head>img{width:100%;height:150px;object-fit:contain}
+.locker-dialog-body h2{font-size:25px;margin:8px 0}.locker-dialog-body p{font-size:12px;line-height:1.5}
+.locker-dialog-body .odds-group{margin:0}.locker-dialog-body .odds-group header{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:11px}
+.locker-dialog-body .odds-items{display:grid;grid-template-columns:repeat(var(--odds-columns),minmax(0,1fr));gap:7px;overflow:hidden;max-height:none;padding:0}
+.locker-dialog-body .odds-item{height:100px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px;gap:3px;font-size:10px;line-height:1.2;overflow-wrap:anywhere}
+.locker-dialog-body .odds-item img{width:100%;height:60px;min-height:0;object-fit:contain}
+.locker-dialog-footer{flex:none}.locker-dialog-footer .locker-quantity{margin:0 0 6px;padding:5px;font-size:11px;gap:7px}
+.locker-dialog-footer .locker-quantity span{font-size:10px}.locker-dialog-footer .crate-detail-actions{margin:0!important;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0}
+.locker-dialog-footer .button{min-height:30px;padding:6px 9px;font-size:11px}
+@media(max-width:600px){
+ .locker-dialog-body .crate-detail-head{grid-template-columns:1fr;gap:6px}.locker-dialog-body .crate-detail-head>img{height:85px}
+ .locker-dialog-body h2{font-size:22px}.locker-dialog-body p{font-size:11px;line-height:1.4}
+ .locker-dialog-body .odds-item{height:95px;font-size:9px}.locker-dialog-body .odds-item img{height:52px}
+ .locker-dialog-body .odds-group header{font-size:9px}.locker-dialog-body .odds-group header .rarity-chip{font-size:10px}
+ .locker-dialog-footer .locker-quantity span{font-size:9px}.locker-dialog-footer .locker-quantity strong{font-size:10px}
+}
+@media(max-height:480px){
+ .modal.paged-locker{padding:14px}.paged-locker .crate-detail{height:calc(100dvh - 54px);gap:6px}
+ .locker-dialog-pager .button{min-height:27px}.locker-dialog-pager select{font-size:11px;padding:4px}
+ .locker-dialog-body .crate-detail-head>img{height:90px}.locker-dialog-body h2{font-size:20px;margin:5px 0}.locker-dialog-body p{font-size:10px;line-height:1.35}
+ .locker-dialog-body .odds-item{height:70px;font-size:9px}.locker-dialog-body .odds-item img{height:36px}
+ .locker-dialog-body .odds-group header{font-size:9px;margin-bottom:5px}.locker-dialog-body .rarity-chip{font-size:9px}
+ .locker-dialog-footer .locker-quantity{padding:3px;margin-bottom:4px;min-height:0;gap:5px}.locker-dialog-footer .locker-quantity span{display:none}
+ .locker-dialog-footer .locker-quantity .chip{min-height:24px;padding:3px 6px;font-size:10px}
+ .locker-dialog-footer .button{min-height:27px;padding:4px 8px;font-size:10px}
+}
+@media(max-width:480px){
+ .modal:has(.item-detail-v2){padding:20px;max-height:calc(100dvh - 24px);overflow:hidden}
+ .item-detail-v2{gap:12px}.item-detail-v2 .detail-art img{height:125px;object-fit:contain}
+ .item-detail-v2 .detail-copy{gap:7px}.item-detail-v2 h2{font-size:25px}.item-detail-v2 .detail-copy>p{font-size:12px;line-height:1.4}
+ .item-detail-v2 .detail-facts{gap:4px}.item-detail-v2 .detail-facts div{font-size:11px;padding:6px 0}
+ .item-detail-v2 .detail-actions{gap:8px}.item-detail-v2 .detail-actions .button{font-size:11px;min-height:32px;padding:7px 9px}
+}
+@media(max-height:600px) and (min-width:601px){
+ .modal:has(.item-detail-v2){padding:18px;max-height:calc(100dvh - 24px);overflow:hidden}
+ .item-detail-v2{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:16px}
+ .item-detail-v2 .detail-art img{height:210px;object-fit:contain}.item-detail-v2 .detail-copy{gap:6px}
+ .item-detail-v2 h2{font-size:25px}.item-detail-v2 .detail-copy>p{font-size:11px;line-height:1.35}
+ .item-detail-v2 .detail-facts{gap:3px}.item-detail-v2 .detail-facts div{font-size:10px;padding:5px 0}
+ .item-detail-v2 .detail-actions{gap:8px}.item-detail-v2 .detail-actions .button{min-height:30px;padding:6px 8px;font-size:10px}
+}
+.garage-inventory{position:relative}.garage-inventory .caddie-filters[hidden]{display:none!important}
+@media(max-width:700px),(max-height:600px){
+ .garage-inventory .caddie-filters{position:absolute;left:9px;right:9px;z-index:5;height:auto!important;background:var(--ui-surface,#173e32);border:1px solid var(--ui-border,#719a6b);border-radius:5px;box-shadow:0 8px 24px #001e2a55;padding:6px!important;overflow:visible}
+}

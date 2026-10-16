@@ -33,6 +33,13 @@ export class World {
     this.camera = new THREE.PerspectiveCamera(39, innerWidth / innerHeight, 0.1, 250);
     this.camera.position.set(34, 31, 40);
     this.look = new THREE.Vector3();
+    this.cameraTarget = new THREE.Vector3();
+    this.cameraPosition = new THREE.Vector3();
+    this.pointerRay = new THREE.Raycaster();
+    this.pointerNdc = new THREE.Vector2();
+    this.pointerPlane = new THREE.Plane(UP);
+    this.pointerPoint = new THREE.Vector3();
+    this.aimVector = new THREE.Vector3();
     this.sun = new THREE.DirectionalLight("#fff0d7", 3);
     this.sun.position.set(-15, 30, 15);
     this.sun.castShadow = true;
@@ -643,16 +650,25 @@ export class World {
       this.aim.children[i].scale.setScalar(golf ? 1 + t * 5 : 1);
     }
     this.arrow.position.set(ball.x, ball.y + 0.09, ball.z);
-    this.arrow.setDirection(new THREE.Vector3(dir.x, 0, dir.z));
+    this.arrow.setDirection(this.aimVector.set(dir.x, 0, dir.z));
     this.arrow.setLength(length, 0.5, 0.28);
     if (golf) this.arrow.visible = false;
   }
   pointerToWorld(x, y) {
-    const ray = new THREE.Raycaster();
-    ray.setFromCamera(new THREE.Vector2((x / innerWidth) * 2 - 1, (-y / innerHeight) * 2 + 1), this.camera);
-    const result = new THREE.Vector3();
-    ray.ray.intersectPlane(new THREE.Plane(UP, -this.ball.position.y), result);
-    return result;
+    const rect = this.canvas.getBoundingClientRect(),
+      width = rect.width || innerWidth,
+      height = rect.height || innerHeight;
+    this.pointerNdc.set(((x - rect.left) / width) * 2 - 1, 1 - ((y - rect.top) / height) * 2);
+    this.pointerRay.setFromCamera(this.pointerNdc, this.camera);
+    this.pointerPlane.constant = -this.ball.position.y;
+    const ray = this.pointerRay.ray,
+      distance = ray.distanceToPlane(this.pointerPlane),
+      limit = Math.max(1000, (this.hole?.length || 0) * 4);
+    // Near the horizon a ground-plane hit runs towards infinity, then disappears.
+    // Continue along the same ray at a bounded distance instead of snapping to (0,0,0).
+    ray.at(distance !== null && distance >= 0 ? Math.min(distance, limit) : limit, this.pointerPoint);
+    this.pointerPoint.y = this.ball.position.y;
+    return this.pointerPoint;
   }
   burst(x, y, z, color, count = 24) {
     if (this.settings?.particles === false) return;
@@ -707,6 +723,9 @@ export class World {
     if(Math.abs(next-current)>0.01){this.dynamicRatio=next;this.renderer.setPixelRatio(next);this.resize();}
   }
   update(dt, ball, physics) {
+    // The locker covers the entire view. Freeze its hidden course before doing
+    // animation, terrain queries, particle transforms or shadow bookkeeping.
+    if (this.suspended) return;
     this.clock += dt;
     if(this.clock>=(this.nextSeasonCheck||0)){
       this.nextSeasonCheck=this.clock+1;
@@ -784,9 +803,8 @@ export class World {
       this.ball.visible = true;
       if (this.groundShadow) this.groundShadow.visible = false;
       if (this.flightTrail) this.flightTrail.visible = false;
-      this.ball.position.copy(
-        this.mode === "garage" ? new THREE.Vector3(0, 3.05, 8) : new THREE.Vector3(-7, 0.75, 11),
-      );
+      if (this.mode === "garage") this.ball.position.set(0, 3.05, 8);
+      else this.ball.position.set(-7, 0.75, 11);
       this.ball.scale.setScalar(this.mode === "garage" ? 3.8 : 3);
       this.ball.position.y += Math.sin(this.clock * 1.6) * 0.09;
       this.ball.rotation.y = this.clock * 0.18;
@@ -816,33 +834,33 @@ export class World {
     }
     const stage = this.mode === 'garage' && this.caddieViewport?.isConnected ? this.caddieViewport.getBoundingClientRect() : null;
     const aspect = stage?.height > 0 ? stage.width / stage.height : innerWidth / innerHeight;
-    let target, position;
+    const target = this.cameraTarget, position = this.cameraPosition;
     if (this.mode === "menu" && this.hole.mode === "golf") {
-      target = new THREE.Vector3(0, 0, -this.hole.length * 0.25);
+      target.set(0, 0, -this.hole.length * 0.25);
       const drift = this.settings?.reducedMotion ? 0 : this.clock * .025;
       const start = Math.atan2(95, 35 - target.z), radius = Math.hypot(95, 35 - target.z);
-      position = new THREE.Vector3(Math.sin(start + drift) * radius, 85, target.z + Math.cos(start + drift) * radius);
+      position.set(Math.sin(start + drift) * radius, 85, target.z + Math.cos(start + drift) * radius);
     } else if (this.mode === "play" && ball) {
       ball = this.cameraHold || ball;
-      target = new THREE.Vector3(ball.x, ball.y, ball.z);
+      target.set(ball.x, ball.y, ball.z);
       if (this.hole.mode === "golf") {
         target.x -= Math.sin(this.orbit) * Math.min(10, this.zoom * 0.22);
         target.z -= Math.cos(this.orbit) * Math.min(10, this.zoom * 0.22);
       }
       const zoom = this.zoom * (this.hole.mode === "golf" && physics?.airborne ? 1.8 : 1);
-      position = new THREE.Vector3(
+      position.set(
         ball.x + Math.sin(this.orbit) * zoom,
         ball.y + (this.hole.mode === "golf" ? Math.max(2.5, zoom * (this.pitch || 0.32)) : zoom * 0.83),
         ball.z + Math.cos(this.orbit) * zoom,
       );
     } else if (this.mode === "garage") {
-      target = new THREE.Vector3(-.3, 2.5, 8);
+      target.set(-.3, 2.5, 8);
       const fit = Math.max(1, 1.05 / aspect);
-      position = new THREE.Vector3(4 * fit, 2.5 + 4 * fit, 8 + 10 * fit);
+      position.set(4 * fit, 2.5 + 4 * fit, 8 + 10 * fit);
     } else {
       const t = this.clock * 0.035;
-      target = new THREE.Vector3(-7, 0, 2);
-      position = new THREE.Vector3(30 + Math.sin(t) * 1.7, 30, 40 + Math.cos(t) * 1.5);
+      target.set(-7, 0, 2);
+      position.set(30 + Math.sin(t) * 1.7, 30, 40 + Math.cos(t) * 1.5);
     }
     this.camera.position.lerp(position, 1 - Math.exp(-dt * 3));
     this.look.lerp(target, 1 - Math.exp(-dt * 4));
@@ -852,8 +870,6 @@ export class World {
       this.renderer.shadowMap.needsUpdate = true;
       this.lastShadow = this.clock;
     }
-    // Full-screen overlays (such as the locker stage) suspend the 3D view to save power.
-    if (this.suspended) return;
     this.updateRibbon?.(dt, ball, physics);
     this.atmosphere?.update(dt,ball,physics);
     if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }

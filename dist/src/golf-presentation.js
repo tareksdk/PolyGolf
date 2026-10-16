@@ -1,7 +1,7 @@
 import { createGolfer } from "./golfer.js";
 import * as THREE from "../vendor/three.module.js";
 import { GOLF_RADIUS } from "./golf-physics.js";
-import { ShotPreview } from './shot-preview.js';
+import { fillDirectionalGuide, directionalGuideSpec, GUIDE_SAMPLES } from './directional-guide.js';
 import { terrainAt, terrainHeight } from "./golf-courses.js";
 import { nearestPoint, heightAt } from "./courses.js";
 
@@ -64,60 +64,21 @@ export function installGolfPresentation(world) {
   const guide = new THREE.Group();
   world.scene.add(guide);
   world.shotGuide = guide;
-  const lineGeo = new THREE.BufferGeometry(),
-    lineMat = new THREE.LineBasicMaterial({
-      color: "#fff4c8",
-      transparent: true,
-      opacity: 0.8,
-      depthWrite: false,
-    });
-  const line = new THREE.Line(lineGeo, lineMat);
-  const linePositions = new THREE.BufferAttribute(new Float32Array(526 * 3), 3).setUsage(THREE.DynamicDrawUsage);
-  lineGeo.setAttribute('position', linePositions); lineGeo.setDrawRange(0, 0);
-  line.frustumCulled = false;
-  guide.add(line);
-  const stroke = new THREE.Mesh(
-    new THREE.BufferGeometry(),
-    new THREE.MeshBasicMaterial({ color: "#fff9df", transparent: true, opacity: 0.95, depthWrite: false }),
-  );
-  stroke.frustumCulled = false;
-  guide.add(stroke);
-  const beads = new THREE.InstancedMesh(
-    new THREE.SphereGeometry(1, 8, 6),
-    new THREE.MeshBasicMaterial({ color: "#fff8d9", transparent: true, opacity: 0.9, depthWrite: false }),
-    64,
-  );
-  beads.frustumCulled = false;
-  guide.add(beads);
-  const landing = new THREE.Mesh(
-    new THREE.RingGeometry(0.82, 1, 48),
-    new THREE.MeshBasicMaterial({
-      color: "#f7cc66",
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.85,
-      depthWrite: false,
-    }),
-  );
-  landing.rotation.x = -Math.PI / 2;
-  guide.add(landing);
-  let cached = "",
-    lastPreview = -1;
-  const dummy = new THREE.Object3D();
-  const preview = new ShotPreview((samples, job) => {
-    if (world.hole !== job.hole || !guide.visible) return;
-    const putt = job.options.club === 'putter', points = [];
-    for (let i = 0; i < samples.length; i += 3) {
-      const [x, y, z] = samples.subarray(i, i + 3);
-      points.push(new THREE.Vector3(x, Math.max(y - GOLF_RADIUS, world.renderGround(x, z)) + .07, z));
-    }
-    drawGuide(points, putt);
-  });
+  const positions = new Float32Array(GUIDE_SAMPLES * 3);
+  const lineMat = new THREE.MeshBasicMaterial({ color:'#fff2bc', transparent:true, opacity:.82, depthWrite:false });
+  const segments = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 6), lineMat, GUIDE_SAMPLES - 1);
+  segments.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  segments.frustumCulled = false;
+  guide.add(segments);
+  const arrow = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 10), new THREE.MeshBasicMaterial({ color:'#ffde7c', transparent:true, opacity:.94, depthWrite:false }));
+  arrow.frustumCulled = false;
+  guide.add(arrow);
+  const dummy = new THREE.Object3D(), start = new THREE.Vector3(), end = new THREE.Vector3(), tangent = new THREE.Vector3(), up = new THREE.Vector3(0,1,0);
+  // The putter hint follows the nearby ground; the airborne hint deliberately
+  // never reads terrain ahead, wind or collision geometry.
+  const guideGround = (x,z) => terrainHeight(world.hole,x,z);
   world.load = (h) => {
     oldLoad(h);
-    cached = "";
-    lastPreview = -1;
-    preview.reset();
     world.swingPose = null;
     world.cupMoment = null;
     celebration.visible = false;
@@ -125,76 +86,41 @@ export function installGolfPresentation(world) {
     golfer.visible = false;
   };
   world.setAim = (ball, dir, power, visible) => {
-    if (world.hole.mode !== "golf") {
+    if (world.hole.mode !== 'golf') {
       guide.visible = false;
       oldAim(ball, dir, power, visible);
       return;
     }
     world.aim.visible = world.arrow.visible = false;
     guide.visible = visible;
-    if (!visible) {
-      if (cached) {cached = ''; preview.reset();}
-      return;
+    if (!visible) return;
+    world.aimDirection = dir;
+    const options = world.shotOptions || {club:world.activeClub};
+    const {putting} = directionalGuideSpec(power,options);
+    fillDirectionalGuide(positions,ball,dir,power,options,guideGround);
+    // Reuse all geometry and matrices. Updating every rendered frame keeps
+    // sub-degree changes visible instead of waiting for an 8 Hz prediction.
+    const width = putting ? .035 : Math.max(.045,Math.min(.16,(world.zoom || 13)*.0032));
+    for(let i=0;i<GUIDE_SAMPLES-1;i++) {
+      start.fromArray(positions,i*3); end.fromArray(positions,(i+1)*3);
+      tangent.subVectors(end,start);
+      dummy.position.copy(start).add(end).multiplyScalar(.5);
+      dummy.quaternion.setFromUnitVectors(up,tangent.normalize());
+      dummy.scale.set(width*(1-i/(GUIDE_SAMPLES*2)),start.distanceTo(end)+.007,width*(1-i/(GUIDE_SAMPLES*2)));
+      dummy.updateMatrix(); segments.setMatrixAt(i,dummy.matrix);
     }
-    world.aimDirection = { ...dir };
-    const opts = world.shotOptions || { club: world.activeClub },
-      key = [
-        world.hole.seed,
-        ball.x.toFixed(2),
-        ball.z.toFixed(2),
-        dir.x.toFixed(3),
-        dir.z.toFixed(3),
-        power.toFixed(3),
-        opts.club,
-        opts.shape,
-        opts.spin,
-        opts.gear?.driverYards,
-      ].join(":");
-    if (key === cached || world.clock - lastPreview < 0.12) return;
-    lastPreview = world.clock;
-    cached = key;
-    preview.request(world.hole, ball, dir, power, opts);
+    segments.instanceMatrix.needsUpdate = true;
+    arrow.position.copy(end);
+    arrow.quaternion.setFromUnitVectors(up,tangent);
+    arrow.scale.set(putting ? .16 : Math.max(.25,width*4.8),putting ? .55 : Math.max(.85,width*15),putting ? .16 : Math.max(.25,width*4.8));
+    lineMat.color.set(putting?'#c9f1c6':'#fff2bc');
+    arrow.material.color.set(putting?'#e2f6cd':'#ffde7c');
   };
-  function drawGuide(points, putt) {
-    if (points.length < 2) return;
-    const end = points.at(-1);
-    points.forEach((p,i) => linePositions.setXYZ(i,p.x,p.y,p.z));
-    linePositions.needsUpdate = true;
-    lineGeo.setDrawRange(0, points.length);
-    lineMat.color.set(putt ? "#c9f1c6" : "#fff4c8");
-    lineMat.opacity = putt ? 0.8 : 0.48;
-    stroke.visible = !putt;
-    const curve = new THREE.CatmullRomCurve3(points);
-    if (!putt) {
-      stroke.geometry.dispose();
-      stroke.geometry = new THREE.TubeGeometry(
-      curve,
-      Math.min(160, points.length),
-      putt ? 0.048 : 0.065,
-      5,
-      false,
-      );
-    }
-    stroke.material.opacity = putt ? 0.98 : 0.82;
-    const length = curve.getLength(),
-      count = Math.min(64, Math.max(8, Math.ceil(length / (putt ? 0.65 : 5))));
-    beads.count = count;
-    for (let i = 0; i < count; i++) {
-      const p = curve.getPointAt(i / (count - 1));
-      dummy.position.copy(p);
-      dummy.scale.setScalar((putt ? 0.035 : 0.085) * (1 - (i / count) * 0.35));
-      dummy.updateMatrix();
-      beads.setMatrixAt(i, dummy.matrix);
-    }
-    beads.instanceMatrix.needsUpdate = true;
-    landing.position.set(end.x, world.renderGround(end.x, end.z) + 0.035, end.z);
-    landing.scale.setScalar(putt ? 0.24 : 1.25);
-    landing.material.color.set(putt ? "#fff5c9" : "#f7cc66");
-  }
   world.update = (dt, ball, physics) => {
-    const golf = world.mode === "play" && world.hole.mode === "golf" && ball && !world.waterMoment;
+    const golf = world.mode === "play" && world.hole.mode === "golf" && ball && !world.waterMoment && !world.pirateMoment;
     world.updateGolfer(dt, ball, physics);
-    if(world.waterMoment){world.cameraHold=world.waterMoment;golfer.visible=false;}
+    if(world.waterMoment && !world.pirateMoment){world.cameraHold=world.waterMoment;golfer.visible=false;}
+    if(world.pirateMoment){world.cameraHold=world.pirateEffects?.focus||world.cameraHold;golfer.visible=false;}
     if (world.cupMoment) {
       const moment = world.cupMoment;
       moment.time += dt;

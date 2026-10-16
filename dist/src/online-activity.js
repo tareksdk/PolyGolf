@@ -5,6 +5,7 @@ export function activityCount(base, phase) {
   return Math.min(max,Math.max(min,value));
 }
 export function installActivity(ui) {
+  if(ui.cloud.localPreview)return;
   let message=null,base=null,enabled=true,nextFetch=0,failures=0,busy=false;
   const offset=Math.random()*Math.PI*2;
   function paint(){const splash=document.querySelector('#home-splash');if(splash){const config=homeMessage(message);splash.hidden=!config.text;splash.textContent=config.text;splash.style.color=config.color;splash.style.fontSize=config.size+'px';splash.style.transform=`rotate(${config.rotation}deg)`;}const node=document.querySelector('#online-estimate');if(!node)return;node.hidden=!enabled||base===null;const count=node.querySelector('b');if(count&&base!==null)count.textContent=activityCount(base,Date.now()/55000+offset).toLocaleString();}

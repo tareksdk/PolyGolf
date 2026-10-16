@@ -29,6 +29,7 @@ export class GameManager {
     this.accuracy = 0;
     this.accumulator = 0;
     this.elapsed = 0;
+    this.heldKeys = new Set();
     this.bindInput();
   }
   start(courseIndex, practice = false, options = {}) {
@@ -49,9 +50,14 @@ export class GameManager {
     };
     this.physics = this.mode === "golf" ? new GolfPhysics() : new PhysicsManager();
     this.elapsed = 0;
+    const random = new Uint32Array(1);
+    globalThis.crypto?.getRandomValues?.(random);
+    this.pirateRoundSeed = random[0] || Math.floor(Math.random() * 0xffffffff);
     this.loadHole(0);
   }
   loadHole(index) {
+    this.clearInput();
+    this.world.presentationPaused = false;
     this.index = index;
     this.strokes = 0;
     this.holeTime = 0;
@@ -66,6 +72,9 @@ export class GameManager {
     this.state = "playing";
     this.hole =
       this.customHole || (this.mode === "golf" ? getGolfHole : getHole)(this.round.courseIndex, index);
+    // Random ship placements are a local-preview/practice variation. Verified online
+    // rounds continue to use the course's deterministic replay seed.
+    if (this.mode === 'golf' && (this.round.practice || this.round.localPreview)) this.hole.pirateSeed = this.pirateRoundSeed;
     this.physics.load(this.hole);
     this.world.load(this.hole);
     this.world.mode = "play";
@@ -81,6 +90,7 @@ export class GameManager {
     this.world.pitch = 0.24;
     this.shape = this.spin = 0;
     this.autoAim();
+    this.cancelShot();
     this.onUpdate();
   }
   normalizeAim() {
@@ -111,29 +121,52 @@ export class GameManager {
     };
   }
   cancelShot() {
+    const input = this.shotInput;
+    this.shotInput = null;
+    if (input?.type === 'pointer') this.releasePointer(input.id);
     this.charging = false;
     this.shotPhase = 'aim';
     this.accuracy = 0;
     this.displayedAccuracy = 0;
+    this.lockedAccuracy = null;
+    this.directionTime = 0;
   }
+  releasePointer(id) {
+    const canvas = this.world.canvas;
+    if (id != null && canvas.hasPointerCapture?.(id)) canvas.releasePointerCapture(id);
+  }
+  clearInput() {
+    const id = this.cameraPointer;
+    this.cameraPointer = null;
+    this.rotating = false;
+    this.lastPointer = null;
+    this.heldKeys.clear();
+    this.aimTarget = null;
+    this.cancelShot();
+    this.releasePointer(id);
+  }
+  meterStyle() { return this.world.settings?.shotMeter === 'fluid' ? 'fluid' : 'classic'; }
   beginPower() {
-    if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging || this.world.waterMoment) return;
+    if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging || this.world.waterMoment || this.world.pirateMoment) return;
     this.charging = true;
     this.shotPhase = 'power';
     this.chargeTime = 0;
-    this.accuracy = 0;
+    this.lockedAccuracy = this.meterStyle() === 'fluid' ? (this.displayedAccuracy ?? this.accuracy) : null;
+    this.accuracy = this.lockedAccuracy ?? 0;
     this.power = .01;
     this.aimTarget = null;
   }
   lockPower() {
     if (this.shotPhase !== 'power' || !this.charging) return;
+    if (this.meterStyle() === 'fluid') { this.shoot(); return; }
     this.shotPhase = 'direction';
     this.directionTime = 0;
     this.accuracy = 0;
     this.displayedAccuracy = 0;
   }
   shoot() {
-    if (!this.charging || this.shotPhase !== 'direction') return;
+    const fluid = this.meterStyle() === 'fluid';
+    if (!this.charging || this.shotPhase !== (fluid ? 'power' : 'direction')) return;
     if (
       this.state !== "playing" ||
       this.pendingSwing ||
@@ -143,7 +176,7 @@ export class GameManager {
       return;
     this.charging = false;
     this.shotPhase = 'aim';
-    const shot = { dir: shotDirection(this.direction, this.displayedAccuracy ?? this.accuracy, this.club === 'putter' || this.mode === 'mini'), power: this.power, options: this.shotOptions() };
+    const shot = { dir: shotDirection(this.direction, fluid ? this.lockedAccuracy : (this.displayedAccuracy ?? this.accuracy), this.club === 'putter' || this.mode === 'mini'), power: this.power, options: this.shotOptions() };
     if (this.mode === "golf") {
       this.pendingSwing = { ...shot, remaining: this.club === "putter" ? 0.36 : 0.56 };
       this.world.beginSwing?.(this.physics.ball, shot.dir, this.club);
@@ -172,8 +205,7 @@ export class GameManager {
   reset() {
     if (this.round?.sudden) return;
     if (this.state !== "playing" || this.pendingSwing || this.physics.sunk) return;
-    this.charging = false;
-    this.shotPhase = 'aim';
+    this.clearInput();
     this.transcript.push({ kind: "reset", tick: this.ticks });
     this.strokes++;
     this.round.penalties++;
@@ -182,19 +214,24 @@ export class GameManager {
     this.accumulator = 0;
     this.onEvent("penalty");
     this.onUpdate();
+    if (this.strokes >= this.hole.par + 8) this.skip();
   }
   pause() {
     if (!["playing", "paused"].includes(this.state)) return;
-    this.charging = false;
-    this.shotPhase = 'aim';
-    this.state = this.state === "paused" ? "playing" : "paused";
-    this.onPause(this.state === "paused");
+    this.setPaused(this.state !== 'paused');
+  }
+  setPaused(paused, notify = true) {
+    if (!["playing", "paused"].includes(this.state)) return;
+    this.clearInput();
+    this.state = paused ? 'paused' : 'playing';
+    this.world.presentationPaused = paused;
+    if (notify) this.onPause(paused);
   }
   leave() {
     this.holeReveal = null;
     this.pendingSwing = null;
-    this.charging = false;
-    this.shotPhase = 'aim';
+    this.clearInput();
+    this.world.presentationPaused = false;
     this.state = "menu";
     this.world.mode = "menu";
     // The menu backdrop follows the selected mode and course when the UI provides one.
@@ -228,8 +265,8 @@ export class GameManager {
     }
     if (this.state === "complete") return;
     this.state = "complete";
-    this.charging = false;
-    this.shotPhase = 'aim';
+    this.clearInput();
+    this.world.presentationPaused = false;
     this.round.strokes[this.index] = this.strokes;
     const y = this.mode === "golf" ? this.hole.cup.y : 0.4;
     this.world.burst(this.hole.cup.x, y + 0.4, this.hole.cup.z, this.world.holeColor, 35);
@@ -251,8 +288,8 @@ export class GameManager {
   finishSudden() {
     if (this.state === "complete") return;
     this.state = "complete";
-    this.charging = false;
-    this.shotPhase = 'aim';
+    this.clearInput();
+    this.world.presentationPaused = false;
     const result = { round: this.round, index: 0, transcript: this.transcript, endTick: this.ticks };
     if (this.physics.sunk) {
       this.world.celebrate?.(this.hole.cup, this.world.holeColor);
@@ -263,22 +300,49 @@ export class GameManager {
   }
   bindInput() {
     const canvas = this.world.canvas;
+    const orbit = (e) => {
+      this.cancelShot();
+      this.aimTarget = null;
+      this.rotating = true;
+      this.cameraPointer = e.pointerId;
+      this.cameraButtons = e.button === 0 ? 1 : 2;
+      this.lastPointer = { x: e.clientX, y: e.clientY };
+      canvas.setPointerCapture?.(e.pointerId);
+    };
+    const stopOrbit = () => {
+      const id = this.cameraPointer;
+      this.rotating = false;
+      this.cameraPointer = null;
+      this.lastPointer = null;
+      this.releasePointer(id);
+    };
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     canvas.addEventListener("pointerdown", (e) => {
-      if (this.state !== "playing" || this.pendingSwing) return;
+      if (this.state !== "playing" || this.pendingSwing || this.world.waterMoment || this.world.pirateMoment) return;
+      e.preventDefault?.();
+      canvas.focus?.({ preventScroll: true });
       this.onEvent("interact");
-      if (e.button === 2) {
-        this.rotating = true;
-        this.lastPointer = { x: e.clientX, y: e.clientY };
-        canvas.setPointerCapture(e.pointerId);
-      } else if (e.button === 0 && !this.physics.active) {
+      if (e.button === 2 || (e.button === 0 && e.ctrlKey)) {
+        if (this.cameraPointer == null) orbit(e);
+      } else if (e.button === 0 && !this.physics.active && !this.shotInput && !this.rotating) {
         if (this.shotPhase === 'direction') this.shoot();
-        else this.beginPower();
-        canvas.setPointerCapture(e.pointerId);
+        else {
+          this.beginPower();
+          if (this.charging) {
+            this.shotInput = { type: 'pointer', id: e.pointerId };
+            canvas.setPointerCapture?.(e.pointerId);
+          }
+        }
       }
     });
     canvas.addEventListener("pointermove", (e) => {
+      if (this.state !== 'playing' || this.world.waterMoment || this.world.pirateMoment) return;
+      // A mouse chord sends pointermove, not a second pointerdown. Orbit wins
+      // over a held shot so releasing the last button cannot fire accidentally.
+      if (!this.rotating && (e.buttons & 2) && !this.pendingSwing) orbit({ pointerId:e.pointerId, clientX:e.clientX, clientY:e.clientY, button:2 });
       if (this.rotating) {
+        if (e.pointerId !== this.cameraPointer) return;
+        if (e.buttons !== undefined && !(e.buttons & this.cameraButtons)) { stopOrbit(); return; }
         this.world.orbit -=
           (e.clientX - this.lastPointer.x) * 0.006 * (this.world.settings?.cameraSensitivity || 1);
         this.world.pitch = Math.max(
@@ -286,13 +350,22 @@ export class GameManager {
           Math.min(1.2, (this.world.pitch || 0.32) + (e.clientY - this.lastPointer.y) * 0.003),
         );
         this.lastPointer = { x: e.clientX, y: e.clientY };
-      } else if (this.state === "playing" && !this.physics.active && !this.pendingSwing && !this.charging) this.aimAt(e);
+      } else if (!e.buttons && !this.physics.active && !this.pendingSwing && !this.charging) this.aimAt(e);
     });
     canvas.addEventListener("pointerup", (e) => {
-      if (e.button === 2) this.rotating = false;
-      else if (e.button === 0) this.lockPower();
+      if (e.pointerId === this.cameraPointer) { stopOrbit(); return; }
+      if (e.button === 0 && this.shotInput?.type === 'pointer' && this.shotInput.id === e.pointerId) {
+        this.shotInput = null;
+        this.lockPower();
+        this.releasePointer(e.pointerId);
+      }
     });
-    canvas.addEventListener('pointercancel', () => { this.cancelShot(); this.rotating = false; });
+    const cancelPointer = (e) => {
+      if (e.pointerId === this.cameraPointer) stopOrbit();
+      if (this.shotInput?.type === 'pointer' && this.shotInput.id === e.pointerId) this.cancelShot();
+    };
+    canvas.addEventListener('pointercancel', cancelPointer);
+    canvas.addEventListener('lostpointercapture', cancelPointer);
     canvas.addEventListener(
       "wheel",
       (e) => {
@@ -302,7 +375,7 @@ export class GameManager {
             this.mode === "golf" ? 8 : 10,
             Math.min(
               this.mode === "golf" ? 240 : 34,
-              this.world.zoom + e.deltaY * (this.mode === "golf" ? 0.05 : 0.013),
+              this.world.zoom + e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1) * (this.mode === "golf" ? 0.05 : 0.013) * (this.world.settings?.zoomSensitivity || 1),
             ),
           );
         }
@@ -317,50 +390,52 @@ export class GameManager {
         return;
       if (e.code === "Escape") {
         e.preventDefault();
-        this.pause();
+        if (!e.repeat) this.pause();
+        return;
       }
-      if (this.state !== "playing") return;
+      if (this.state !== "playing" || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.code === "KeyR" && !e.repeat) this.reset();
-      if (e.code === "KeyQ") this.world.orbit -= 0.12;
-      if (e.code === "KeyE") this.world.orbit += 0.12;
-      if (e.code === "KeyC" && this.mode === "golf" && !this.charging && !this.physics.active && !this.pendingSwing) {
+      if (['KeyQ','KeyE','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','ShiftLeft','ShiftRight'].includes(e.code)) {
+        this.heldKeys.add(e.code);
+        if (e.code.startsWith('Arrow')) e.preventDefault();
+      }
+      if (e.code === "KeyC" && !e.repeat && this.mode === "golf" && !this.charging && !this.physics.active && !this.pendingSwing) {
         this.club = CLUBS[(CLUBS.findIndex((c) => c.id === this.club) + 1) % CLUBS.length].id;
         this.onUpdate();
       }
-      if (["ArrowLeft", "ArrowRight"].includes(e.code) && !this.charging && !this.physics.active && !this.pendingSwing) {
-        e.preventDefault();
-        const a = Math.atan2(this.direction.z, this.direction.x) + (e.code === "ArrowLeft" ? -0.008 : 0.008);
-        this.direction = { x: Math.cos(a), z: Math.sin(a) };
-        this.aimTarget = null;
-      }
-      if (["ArrowUp", "ArrowDown"].includes(e.code) && !this.charging && !this.physics.active && !this.pendingSwing) {
-        e.preventDefault();
-        this.power = Math.max(0.01, Math.min(1, this.power + (e.code === "ArrowUp" ? 0.01 : -0.01)));
-      }
-      if (e.code === "Space" && !e.repeat && !this.physics.active && !this.pendingSwing) {
+      if (e.code === "Space" && !e.repeat && !this.physics.active && !this.pendingSwing && !this.shotInput && !this.rotating) {
         e.preventDefault();
         if (this.shotPhase === 'direction') this.shoot();
-        else this.beginPower();
+        else {
+          this.beginPower();
+          if (this.charging) this.shotInput = { type: 'keyboard' };
+        }
         this.onEvent("interact");
       }
     });
     window.addEventListener("keyup", (e) => {
-      if (e.code === "Space" && this.charging) {
+      this.heldKeys.delete(e.code);
+      if (e.code === "Space" && this.shotInput?.type === 'keyboard') {
         e.preventDefault();
+        this.shotInput = null;
         this.lockPower();
       }
     });
     window.addEventListener("blur", () => {
-      this.cancelShot(); this.rotating = false;
+      this.clearInput();
       if (this.state === "playing") this.pause();
     });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden && this.state === "playing") this.pause();
     });
+    document.addEventListener('focusin', (e) => {
+      if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target?.tagName) || e.target?.isContentEditable) this.heldKeys.clear();
+    });
   }
   aimAt(e) {
-    const p = this.world.pointerToWorld(e.clientX, e.clientY),
-      x = p.x - this.physics.ball.x,
+    const p = this.world.pointerToWorld(e.clientX, e.clientY);
+    if (!p) return;
+    const x = p.x - this.physics.ball.x,
       z = p.z - this.physics.ball.z,
       n = Math.hypot(x, z);
     if (n < 0.6 || !Number.isFinite(n)) return;
@@ -376,6 +451,21 @@ export class GameManager {
       }
     }
     if (this.state === "playing") {
+      const keys = this.heldKeys;
+      this.world.orbit += ((keys.has('KeyE')?1:0) - (keys.has('KeyQ')?1:0)) * 1.2 * dt;
+      if (!this.pendingSwing && !this.physics.active && !this.charging) {
+        const turn = ((keys.has('ArrowRight')?1:0) - (keys.has('ArrowLeft')?1:0));
+        if (turn) {
+          const a = Math.atan2(this.direction.z,this.direction.x) + turn * dt * (keys.has('ShiftLeft') || keys.has('ShiftRight') ? .14 : .48);
+          this.direction = {x:Math.cos(a),z:Math.sin(a)};
+          this.aimTarget = null;
+        }
+        this.power = Math.max(.01,Math.min(1,this.power + ((keys.has('ArrowUp')?1:0) - (keys.has('ArrowDown')?1:0)) * dt * .35));
+        if (this.meterStyle() === 'fluid' && !this.world.waterMoment && !this.world.pirateMoment) {
+          this.directionTime = (this.directionTime || 0) + dt;
+          this.accuracy = directionAccuracy(this.directionTime);
+        }
+      }
       if (this.aimTarget && !this.pendingSwing && !this.physics.active && !this.charging) {
         const a = Math.atan2(this.direction.x, this.direction.z),
           b = Math.atan2(this.aimTarget.x, this.aimTarget.z),
@@ -395,7 +485,7 @@ export class GameManager {
       this.holeTime += dt;
       if (this.charging && this.shotPhase === 'power') {
         this.chargeTime += dt;
-        this.power = chargePower(this.chargeTime);
+        this.power = this.meterStyle() === 'fluid' ? flowPower(this.chargeTime) : chargePower(this.chargeTime);
       } else if (this.charging && this.shotPhase === 'direction') {
         this.directionTime += dt;
         this.accuracy = directionAccuracy(this.directionTime);
@@ -421,6 +511,7 @@ export class GameManager {
             this.onUpdate();
           } else {
             if (event === 'sand-impact' || event === 'sand-shot') this.world.sandBurst?.(this.physics.sandContact);
+            if (event === 'pirate-ship') this.world.pirateHit?.(this.physics.ball);
             this.onEvent(event);
             if (event === "rest") {
               if (this.round.sudden) {
@@ -467,11 +558,12 @@ export class GameManager {
       c?.id === "putter" ? 36 * this.power ** 2 : (c?.carry || 30) * this.power ** 1.65;
     this.world.setAim(
       b,
-      this.charging ? shotDirection(this.direction, this.accuracy, this.club === 'putter' || this.mode === 'mini') : this.direction,
+      this.charging || this.meterStyle() === 'fluid' ? shotDirection(this.direction, this.accuracy, this.club === 'putter' || this.mode === 'mini') : this.direction,
       this.power,
       this.state === "playing" &&
         !this.pendingSwing &&
         !this.world.waterMoment &&
+        !this.world.pirateMoment &&
         !this.physics.active &&
         this.world.settings?.aimGuide !== false,
     );
@@ -482,6 +574,11 @@ export class GameManager {
 export function chargePower(seconds) {
   const t = Math.max(0, seconds) / 1.65 % 2;
   return Math.max(0.01, 1 - Math.abs(t - 1));
+}
+export function flowPower(seconds) {
+  // Eased reversals preserve the original timing without a hard corner at
+  // either end of the hold meter.
+  return Math.max(.01,.5-.5*Math.cos(Math.max(0,seconds)*Math.PI/1.65));
 }
 export function chargeAccuracy(seconds) {
   // Centre at full power; reversing the meter never makes a straight full shot impossible.

@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS = {
   cameraSensitivity: 1,
   zoomSensitivity: 1,
   aimGuide: true,
+  shotMeter: "classic",
   showOpponents: true,
 };
 export function defaultSave() {
@@ -94,6 +95,7 @@ export class LocalSaveRepository {
       result.name = String(result.name).slice(0, 20);
       for (const k of ["master", "music", "sfx"])
         result.settings[k] = Math.max(0, Math.min(1, Number(result.settings[k]) || 0));
+      result.settings.shotMeter = result.settings.shotMeter === "fluid" ? "fluid" : "classic";
       return normalizeInventory(result);
     } catch (e) {
       this.error = "Your previous save could not be read. A new local session is ready.";

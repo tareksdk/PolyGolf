@@ -507,6 +507,41 @@ export function coastBounds(h, z) {
   }
   return [-150 + Math.sin(z * 0.027) * 7, right];
 }
+// Saltwind's opening cove is a lower, sloping headland. Keep the other two
+// holes' silhouettes intact; every ocean prop and collision reads this level.
+export const coastWaterLevel = h => h.index === 0 ? -18.6 : -42.6;
+export function coastBandPoint(h, point, band) {
+  const [x,y,z] = point;
+  if (!band) return point;
+  if(h.index!==0){
+    const spread=[0,2.8,5.4,8.2][band]+Math.sin(z*.085+band)*.7,
+      end=z>=99?1:z<=-h.length-119?-1:0;
+    return [x+(x<0?-1:1)*spread,[-0,-12,-27,-49][band]+(band===3?0:Math.sin(z*.047+band)*1.1),z+end*spread];
+  }
+  const spread = [0,5.5,12,22][band],
+    [left,right] = coastBounds(h,z), side = x < (left+right)/2 ? -1 : 1,
+    end = z >= 99 ? 1 : z <= -h.length-119 ? -1 : 0,
+    level = [y, y*.45-5.5, coastWaterLevel(h)+2.5, coastWaterLevel(h)-4][band];
+  return [x+side*spread,level,z+end*spread];
+}
+function coastSurface(h,x,z) {
+  const edgeZ = clamp(z,-h.length-120,100), [left,right] = coastBounds(h,edgeZ),
+    edgeX = clamp(x,left,right), dx=x-edgeX,dz=z-edgeZ;
+  if (!dx && !dz) return null;
+  if(h.index!==0)return {height:-43,normal:{x:0,y:1,z:0},surface:'rough',hazard:'water'};
+  const distance = Math.max(Math.abs(dx),Math.abs(dz)),
+    top = terrainHeight(h,edgeX,edgeZ),distances=[0,5.5,12,22],
+    heights=[top,top*.45-5.5,coastWaterLevel(h)+2.5,coastWaterLevel(h)-4];
+  for(let i=1;i<distances.length;i++)if(distance<distances[i]){
+    const slope=(heights[i]-heights[i-1])/(distances[i]-distances[i-1]),
+      height=heights[i-1]+(distance-distances[i-1])*slope,
+      nx=Math.abs(dx)>=Math.abs(dz)?-Math.sign(dx)*slope:0,
+      nz=Math.abs(dz)>Math.abs(dx)?-Math.sign(dz)*slope:0,n=Math.hypot(nx,1,nz);
+    if(height>coastWaterLevel(h))return {height,normal:{x:nx/n,y:1/n,z:nz/n},surface:'rough',hazard:null};
+    break;
+  }
+  return {height:coastWaterLevel(h),normal:{x:0,y:1,z:0},surface:'rough',hazard:'water'};
+}
 export function ellipse(p, x, z) {
   if (!p.angle && !p.scallop) return ((x - p.x) / p.rx) ** 2 + ((z - p.z) / p.rz) ** 2;
   const c = Math.cos(p.angle || 0), s = Math.sin(p.angle || 0),
@@ -574,9 +609,8 @@ export function terrainHeight(h, x, z) {
 }
 export function terrainAt(h, x, z) {
   if (h.courseIndex === 1) {
-    const [left, right] = coastBounds(h, z);
-    if (x < left || x > right || z > 100 || z < -h.length - 120)
-      return { height: -43, normal: { x: 0, y: 1, z: 0 }, surface: "rough", hazard: "water" };
+    const coast=coastSurface(h,x,z);
+    if(coast)return coast;
   }
   let surface = "rough";
   if (z < -30 && pathDistance(h, x, z) < fairwayWidth(h, -z / h.length) / 2) surface = "fairway";

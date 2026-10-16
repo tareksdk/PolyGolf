@@ -19,9 +19,15 @@ test('every course and next hole starts Normal after either optional atmosphere'
   installCourseAtmosphere(ui);
   for(const h of [...GOLF_COURSES.map((_,c)=>getGolfHole(c,0)),getGolfHole(0,8),...Array.from({length:5},(_,c)=>getHole(c,0))]){
     w.load(h);assert.equal(w.weather,'normal');
+    const normalNight=Number(['halloween','space','cyberpunk'].includes(h.course?.eventTheme));
+    assert.equal(w.sky.uniforms.night.value,normalNight);
+    assert.equal(w.sky.uniforms.rain.value,0);
     for(const mode of ['night','rainy']){
       assert.ok(w.setWeather(mode));assert.equal(w.weather,mode);assert.equal(w.atmosphere.rainRoot.visible,mode==='rainy');
+      assert.equal(w.sky.uniforms.night.value,Number(mode==='night'),'every sky shader uniform must be a finite 0 or 1');
+      assert.equal(w.sky.uniforms.rain.value,Number(mode==='rainy'));
       w.load(h);assert.equal(w.weather,'normal');assert.equal(w.atmosphere.rainRoot.visible,false);
+      assert.equal(w.sky.uniforms.night.value,normalNight);
       const profile=weatherProfile(h);assert.equal(w.sun.intensity,profile.sunIntensity);assert.equal(w.renderer.toneMappingExposure,profile.exposure);
     }
   }

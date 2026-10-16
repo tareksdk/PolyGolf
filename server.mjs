@@ -1,5 +1,5 @@
 import http from "node:http";
-import { readFile } from "node:fs/promises";
+import { readLocalFile as readFile } from "./scripts/local-files.mjs";
 import { resolve, extname, sep } from "node:path";
 const root = resolve("dist");
 const types = {
@@ -29,8 +29,10 @@ http
         "Cache-Control": "no-cache",
       });
       res.end(body);
-    } catch {
-      res.writeHead(404).end("Not found");
+    } catch (error) {
+      const missing = error.code === 'ENOENT' || error.code === 'ENOTDIR';
+      if (!missing) console.error('Local preview read failed:', error.code || error.message);
+      res.writeHead(missing ? 404 : 503).end(missing ? 'Not found' : 'Preview file is temporarily unavailable. Reload to try again.');
     }
   })
   .listen(Number(process.env.PORT) || 5173, "127.0.0.1", () => console.log(`PolyGolf ready at http://127.0.0.1:${Number(process.env.PORT) || 5173}`));

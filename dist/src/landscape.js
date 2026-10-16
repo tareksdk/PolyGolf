@@ -24,6 +24,7 @@ export function batchScenery(world) {
   const moving = new Set([
     world.flag,
     world.coin,
+    world.pirateShipMesh,
     ...world.obstacleMeshes,
     ...world.animations.map((a) => a.mesh),
     ...(world.scenicFloaters || []).map(p=>p.object),
@@ -57,6 +58,8 @@ export function batchScenery(world) {
 }
 export function buildGolf(world, h) {
   world.clear();
+  world.pirateShipMesh=null;
+  world.pirateShipGlints=[];
   world.hole = h;
   world.group = new THREE.Group();
   world.scene.add(world.group);
@@ -137,7 +140,7 @@ export function buildGolf(world, h) {
   world.group.add(terrain);
   world.surfaceHeight = (x, z) => {
     const edges = h.courseIndex === 1 ? coastBounds(h, z) : [-width / 2, width / 2];
-    if (h.courseIndex === 1 && (x < edges[0] || x > edges[1])) return -43;
+    if (h.courseIndex === 1 && (x < edges[0] || x > edges[1] || z>100 || z<-h.length-120)) return terrainAt(h,x,z).height;
     const fx = Math.max(0, Math.min(nx - 0.00001, ((x - edges[0]) / (edges[1] - edges[0])) * nx)),
       fz = Math.max(0, Math.min(nz - 0.00001, ((top - z) / depth) * nz)),
       i = Math.floor(fx),

@@ -1,4 +1,6 @@
 import { installInvites } from './room-invites.js';
+import { isLocalPreview, previewStorage, installLocalPreview } from './local-preview.js';
+import { installPirateEffects } from './pirate-effects.js';
 import { loadAdventureAssets } from './event-scenery.js';
 import { installInterface } from './interface.js';
 import { installCourseAtmosphere } from './course-weather.js';
@@ -23,7 +25,7 @@ import { installSharing } from "./map-share.js";
 let ui;
 try {
   await Promise.all([loadCourseAssets(),loadAdventureAssets()]);
-  const repository = new LocalSaveRepository();
+  const repository = new LocalSaveRepository(isLocalPreview() ? previewStorage() : undefined);
   const progress = new ProgressionManager(repository, (message, type) => {
     ui?.toast(message);
     audio?.play(type);
@@ -61,6 +63,8 @@ try {
   installSeason(ui);
   installLiveRound(ui);
   installCourseAtmosphere(ui);
+  installPirateEffects(world);
+  installLocalPreview(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);

@@ -1,12 +1,12 @@
 import * as THREE from '../vendor/three.module.js';
-import { terrainAt } from './golf-courses.js';
+import { terrainAt, coastWaterLevel } from './golf-courses.js';
 
 // Visual feedback only: penalty scoring and fixed-step replays stay in GameManager.
 export function waterContact(hole, ball) {
   if (hole.mode === 'golf') {
     const surface = terrainAt(hole, ball.x, ball.z);
     if (surface.hazard !== 'water') return null;
-    return {...ball, y: hole.courseIndex === 1 && surface.height === -43 ? -42.6 : surface.height};
+    return {...ball, y: hole.courseIndex === 1 && (surface.height===-43||surface.height===coastWaterLevel(hole)) ? coastWaterLevel(hole) : surface.height};
   }
   return {...ball, y: -.04};
 }

@@ -6,7 +6,7 @@ import { featuredCourses } from './rotating-courses.js';
 export function courseMenu(ui) {
   const golf=ui.mode==='golf',courses=golf?GOLF_COURSES:COURSES;
   const card=(i,feature)=>{
-    const c=courses[i],count=golf?golfHoleCount(i):9,unlocked=ui.progress.level.level>=c.level;
+    const c=courses[i],count=golf?golfHoleCount(i):9,unlocked=ui.localPreview||ui.progress.level.level>=c.level;
     const best=ui.progress.data.bests[courseRecordKey(ui.mode,i)],par=Array.from({length:count},(_,j)=>(golf?getGolfHole:getHole)(i,j).par).reduce((a,b)=>a+b,0);
     const reset=feature?new Date(feature.ends).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
     return `<article class="arcade-course ${feature?'featured-course':''}" data-card><img data-course-preview="${ui.mode}:${i}" src="${ui.world.thumbnail(i,ui.mode)}" alt="${esc(c.name)}"><div class="arcade-course-copy"><div class="course-card-meta">${feature?`<span class="course-slot" title="${feature.label==='Seasonal course'?'Ends':'Changes'} ${esc(reset)}">${esc(feature.label)}</span>`:''}<span>${count} ${count===1?'hole':'holes'} · Par ${par}</span></div><${golf?'h3':'h2'}>${esc(c.name)}</${golf?'h3':'h2'}><p>${esc(c.subtitle)}</p><div class="arcade-course-record"><span>${unlocked?esc(c.difficulty):'Level '+c.level+' · Practice available'}</span><span>Best ${best?relative(best.score):'-'}</span></div>${button(icon('play')+(unlocked?'Play':'Practice'),unlocked?'start':'practice',`data-course="${i}" data-card-primary aria-label="${unlocked?'Play':'Practice'} ${esc(c.name)}"`,'arcade-button arcade-primary')}</div></article>`;

@@ -1,4 +1,5 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
+import { readLocalFile as readFile } from './local-files.mjs';
 import { resolve, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 // Static release checks: module syntax, local imports, page links and hosting config.

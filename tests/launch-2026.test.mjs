@@ -5,7 +5,7 @@ import {availableLockers,openLocker} from '../dist/src/pro-shop.js';
 import {rollRoundLocker} from '../dist/src/round-rewards.js';
 mock.timers.enable({apis:['Date'],now:Date.parse('2026-10-15T12:00:00Z')});
 import {GameManager,chargePower} from '../dist/src/game.js';
-import {getGolfHole,terrainHeight,coastBounds} from '../dist/src/golf-courses.js';
+import {getGolfHole,terrainHeight,coastBounds,coastWaterLevel} from '../dist/src/golf-courses.js';
 import {pumpkinFor,hitsPumpkin} from '../dist/src/course-features.js';
 import {GolfPhysics} from '../dist/src/golf-physics.js';
 import {verifyHole} from '../dist/src/replay.js';
@@ -75,7 +75,7 @@ test('coastal cliff bands share every seam vertex and finish below the ocean',()
  const w={coastOutline:outline,group:new THREE.Group(),mat:(color,extra)=>new THREE.MeshStandardMaterial({color,...extra})};buildBackdrop(w,h);
  const cliffs=w.group.children.find(m=>m.geometry.getAttribute('color')),v=cliffs.geometry.getAttribute('position'),point=i=>[v.getX(i),v.getY(i),v.getZ(i)];
  for(let band=0;band<2;band++)for(let i=0;i<outline.length;i++){assert.deepEqual(point((band*outline.length+i)*6+2),point(((band+1)*outline.length+i)*6));assert.deepEqual(point((band*outline.length+i)*6+4),point(((band+1)*outline.length+i)*6+1));}
- for(let i=0;i<outline.length;i++){assert.ok(point((2*outline.length+i)*6+2)[1]<-42.6);assert.ok(Math.abs(point(i*6)[0]-outline[i][0])<.0001);}
+ for(let i=0;i<outline.length;i++){assert.ok(point((2*outline.length+i)*6+2)[1]<coastWaterLevel(h));assert.ok(Math.abs(point(i*6)[0]-outline[i][0])<.0001);}
  w.group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
 });
 

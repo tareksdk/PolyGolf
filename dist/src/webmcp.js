@@ -19,6 +19,13 @@ export function registerTools(ui) {
       screen: ui.screen,
       mode: ui.mode,
       online: !!ui.cloud?.session,
+      ...(ui.localPreview ? { localPreview: true, diagnostics: {
+        shot: {meter:ui.game.meterStyle?.(),phase:ui.game.shotPhase,power:ui.game.power,accuracy:ui.game.accuracy,
+          direction:{...ui.game.direction},charging:!!ui.game.charging,active:!!ui.game.physics?.active,pending:!!ui.game.pendingSwing},
+        camera: {orbit:ui.world.orbit,pitch:ui.world.pitch,zoom:ui.world.zoom,skyNight:ui.world.sky?.uniforms.night.value},
+        pirate: ui.world.pirateShipMesh ? {position:{...ui.world.pirateShipMesh.userData.ship},sunk:!!ui.world.pirateShipMesh.userData.sunk,
+          age:ui.world.pirateEffects?.moment?.age??null,cinematic:!!ui.world.pirateMoment} : null,
+      }} : {}),
       metrics: {
         drawCalls: ui.world.drawCalls,
         medianFrameMs: [...(ui.world.frameTimes || [])].sort((a, b) => a - b)[

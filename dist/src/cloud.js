@@ -2,10 +2,12 @@ import { normalizeInventory } from "./save.js";
 import { SESSION_KEY, readSession, writeSession, clearSession, invalidRefresh } from './session-store.js';
 import { courseRotationKey } from "./rotating-courses.js";
 import { RULES_VERSION, golfHoleCount } from "./golf-courses.js";
+import { isLocalPreview } from './local-preview.js';
 export const SUPABASE_URL = "https://khbmuaitysznyxxefhou.supabase.co";
 export const PUBLISHABLE_KEY = "sb_publishable_Xm4rfU4lZ2vBnrfy-p8utw_Dp11cOqR";
 // Network failures surface as friendly messages instead of the browser's "Failed to fetch".
 const OFFLINE = "Couldn’t reach the PolyGolf servers. Check your connection and try again.";
+const LOCAL_ONLY = 'Online features are unavailable in this local preview. Your solo rounds save on this device.';
 async function request(url, options) {
   try {
     return await fetch(url, options);
@@ -23,6 +25,8 @@ export class GolfCloud {
     this.lastPresence = 0;
     this.busy = false;
     this.guestRepository = ui.progress.repository;
+    this.localPreview = isLocalPreview();
+    if (this.localPreview) { this.status = 'Local preview · saved on this device'; return; }
     this.timer = setInterval(() => this.poll(), 500);
     this.restore();
     window.addEventListener('online', () => { if (this.session && this.status !== 'Account synced') this.restore(); });
@@ -46,6 +50,7 @@ export class GolfCloud {
     } catch {}
   }
   async restore() {
+    if(this.localPreview)return;
     if(this.restoring)return;
     this.restoring=true;
     try {
@@ -118,6 +123,7 @@ export class GolfCloud {
     this.ui.progress.data = normalizeInventory({ ...state, settings });
   }
   async refresh() {
+    if(this.localPreview)return;
     if (!this.session) return;
     if (this.session.expires_at * 1000 > Date.now() + 60000) return;
     if (this.refreshing) return this.refreshing;
@@ -146,6 +152,7 @@ export class GolfCloud {
     return this.refreshing;
   }
   async call(action, data = {}) {
+    if (this.localPreview) throw Error(LOCAL_ONLY);
     if (!["login", "signup", "guest"].includes(action)) await this.refresh();
     const actor=this.session?.user.id;
     const response = await request(SUPABASE_URL + "/functions/v1/little-links", {
@@ -172,6 +179,7 @@ export class GolfCloud {
     this.attach(await this.call("me"));
   }
   async ensureGuest() {
+    if (this.localPreview) return;
     if (this.session) return;
     if (this.joiningGuest) return this.joiningGuest;
     const connect = async () => {
@@ -185,6 +193,7 @@ export class GolfCloud {
     return this.joiningGuest;
   }
   async logout() {
+    if (this.localPreview) return;
     if (this.room) await this.call("leave_room", { roomId: this.room.id }).catch(() => {});
     const token = this.session?.access_token;
     clearSession();
@@ -207,6 +216,7 @@ export class GolfCloud {
     this.ui.render();
   }
   async rest(path, body) {
+    if (this.localPreview) throw Error(LOCAL_ONLY);
     await this.refresh();
     const r = await request(SUPABASE_URL + "/rest/v1/" + path, {
       method: body ? "POST" : "GET",
@@ -243,6 +253,7 @@ export class GolfCloud {
     }
   }
   async rankings(mode, course, metric = "score") {
+    if (this.localPreview) throw Error(LOCAL_ONLY);
     if(metric === 'elo'){
       const r=await request(SUPABASE_URL+'/functions/v1/little-links',{method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'ranked_leaderboard'}),signal:AbortSignal.timeout(10000)});
       if(!r.ok)throw Error('Ranked standings are unavailable. Please try again.');
