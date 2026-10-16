@@ -1,6 +1,7 @@
 import { ITEMS, ITEM_BY_ID, dayNumber } from "./catalog.js";
 import { grantPattern, rollPattern } from './finishes.js';
 import { halloweenActive } from './season.js';
+import { levelInfo } from './save.js';
 // Every locker discloses complete odds. Rarity is rolled first, then each item inside that
 // rarity has an equal chance. Lockers never contain Country Club, bundle or Alpha items.
 export const LOCKERS = [
@@ -133,10 +134,48 @@ export function rollLocker(id, rarityRoll, itemRoll) {
   return pool[Math.floor(itemRoll * pool.length)];
 }
 export function availableLockers(now=Date.now()) { return LOCKERS.filter(p=>p.id!=='halloween'||halloweenActive(now)); }
+export function lockerOpenLimit(xp) {
+  const level = levelInfo(xp).level;
+  return level >= 20 ? 10 : level >= 15 ? 5 : level >= 10 ? 3 : level >= 5 ? 2 : 1;
+}
+export function lockerQuote(data, id, count = 1, now = Date.now()) {
+  const pack = LOCKERS.find(p => p.id === id);
+  if (!pack) throw Error('Unknown locker.');
+  if (!Number.isInteger(count) || count < 1 || count > 10) throw Error('Choose between 1 and 10 lockers.');
+  const earned = Math.min(count, Math.max(0, data.lockers?.[id] || 0));
+  const paid = count - earned, cost = paid * pack.price;
+  const available = !paid || id !== 'halloween' || halloweenActive(now);
+  return { count, earned, paid, cost, available, affordable: available && data.coins >= cost };
+}
+// One receipt and one save for the entire batch. A failed roll cannot partially charge a player.
+export function openLockers(progress, id, count, requestId, random, now = Date.now()) {
+  if (typeof requestId !== 'string' || !/^[-a-zA-Z0-9]{16,64}$/.test(requestId)) throw Error('Invalid opening request.');
+  const d = progress.data;
+  const previous = d.lockerBatches?.find(r => r.requestId === requestId);
+  if (previous) {
+    if (previous.pack !== id || previous.count !== count) throw Error('Opening request was already used.');
+    return previous;
+  }
+  if (d.lockerReceipts?.some(r => r.requestId === requestId)) throw Error('Opening request was already used.');
+  if (d.lockerReceipts?.some(r => r.requestId.startsWith(`batch-${requestId}-`))) throw Error('Opening request was already used.');
+  if (!Number.isInteger(count) || count < 1 || count > lockerOpenLimit(d.xp))
+    throw Error(`Your level allows up to ${lockerOpenLimit(d.xp)} lockers at once.`);
+  const quote = lockerQuote(d, id, count, now);
+  if (!quote.available) throw Error('The Halloween event has ended. You can still open Halloween lockers you already own.');
+  if (!quote.affordable) throw Error(`You need ${(quote.cost - d.coins).toLocaleString()} more coins for this opening.`);
+  const draft = { data: structuredClone(d), save() {} };
+  const items = Array.from({ length: count }, (_, i) => openLocker(draft, id, `batch-${requestId}-${i}`, random, now));
+  const receipt = { requestId, pack: id, count, items, cost: quote.cost, refund: items.reduce((sum, r) => sum + r.refund, 0) };
+  draft.data.lockerBatches = [...(draft.data.lockerBatches || []), receipt].slice(-50);
+  Object.assign(d, draft.data);
+  progress.save();
+  return receipt;
+}
 export function openLocker(progress, id, requestId, random, now=Date.now()) {
   if (typeof requestId !== "string" || !/^[-a-zA-Z0-9]{16,80}$/.test(requestId))
     throw Error("Invalid opening request.");
   const d = progress.data;
+  if (d.lockerBatches?.some(r => r.requestId === requestId)) throw Error('Opening request was already used.');
   d.lockerReceipts ??= [];
   const previous = d.lockerReceipts.find((r) => r.requestId === requestId);
   if (previous) {

@@ -76,7 +76,7 @@ export const LEVEL_REWARDS = [
 export const MEMBERSHIP_COST = 50000;
 export const PASS_TIER_XP = 6000;
 export const PASS_TIER_COUNT = 30;
-export const MEMBER_DAILY = 40;
+export const MEMBER_DAILY = 500;
 export const EDITOR_LEVEL = 10;
 export function requireEditor(progress) {
   if (progress.level.level < EDITOR_LEVEL)

@@ -1,6 +1,6 @@
 import { socialRewards } from "./social-view.js";
 import { achievementCards } from './collection-ui.js';
-import { LOCKERS, availableLockers, shopBundles, lockerContents } from "./pro-shop.js";
+import { LOCKERS, availableLockers, shopBundles, lockerContents, lockerOpenLimit, lockerQuote } from "./pro-shop.js";
 import { halloweenActive } from './season.js';
 import { ITEMS, CATEGORIES, RARITY, shopRotation } from "./catalog.js";
 import { itemDescription } from "./equipment.js";
@@ -84,7 +84,24 @@ function lockerCard(ui, p) {
   const earned = ui.progress.data.lockers?.[p.id] || 0,
     afford = earned || ui.progress.data.coins >= p.price,
     best = lockerContents(p.id).flatMap((r) => r.items).sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0];
-  return `<article data-card class="crate-card" style="--crate:${p.color};--trim:${p.pattern};--gem:${p.gem}">${["forge", "workshop"].includes(p.id) ? '<span class="pg-new">New</span>' : ""}<button data-card-primary class="crate-art" data-action="locker-detail" data-id="${p.id}" aria-label="View ${esc(p.name)} contents"><img src="${lockerArt(ui, p)}" alt=""></button><div class="crate-body"><span class="eyebrow">${earned ? `${earned} earned · ready` : p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker exclusives"}</span><h3>${esc(p.name)}</h3><p>${esc(p.tagline)}</p>${oddsBar(p)}<div class="crate-best">${best ? `Top prize: <b style="color:${RARITY[best.rarity]}">${esc(best.name)}</b>` : ""}</div><div class="crate-foot">${earned ? `<strong class="earned-tag">${icon("gift")}Earned</strong>` : coins(p.price)}<div class="row">${button("Contents", "locker-detail", `data-id="${p.id}"`, "button secondary")}${button(earned ? "Open earned" : "Open", "open-locker", `data-id="${p.id}" ${afford ? "" : "disabled"}`, "button yellow")}</div></div></div></article>`;
+  return `<article data-card class="crate-card" style="--crate:${p.color};--trim:${p.pattern};--gem:${p.gem}">${["forge", "workshop"].includes(p.id) ? '<span class="pg-new">New</span>' : ""}<button data-card-primary class="crate-art" data-action="locker-detail" data-id="${p.id}" aria-label="View ${esc(p.name)} contents"><img src="${lockerArt(ui, p)}" alt=""></button><div class="crate-body"><span class="eyebrow">${earned ? `${earned} earned · ready` : p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker exclusives"}</span><h3>${esc(p.name)}</h3><p>${esc(p.tagline)}</p>${oddsBar(p)}<div class="crate-best">${best ? `Top prize: <b style="color:${RARITY[best.rarity]}">${esc(best.name)}</b>` : ""}</div><div class="crate-foot">${openingPrice(ui, p)}<div class="row">${button("Contents", "locker-detail", `data-id="${p.id}"`, "button secondary")}${openingButton(ui, p)}</div></div></div></article>`;
+}
+
+export function selectedLockerCount(ui) {
+  return Math.min(lockerOpenLimit(ui.progress.data.xp), Math.max(1, Number(ui.lockerCount) || 1));
+}
+export function lockerQuantity(ui, id = '') {
+  const max = lockerOpenLimit(ui.progress.data.xp), count = selectedLockerCount(ui);
+  const next = [[5, 2], [10, 3], [15, 5], [20, 10]].find(([, n]) => n > max);
+  return `<section class="locker-quantity"><div><strong>Open at once</strong><span>${next ? `Level ${next[0]} unlocks ${next[1]} at once` : 'Maximum unlocked'}</span></div><div role="group" aria-label="Number of lockers to open">${Array.from({length:max}, (_,i) => button(String(i+1), 'locker-quantity', `data-count="${i+1}" data-id="${id}" aria-pressed="${count===i+1}"`, 'chip '+(count===i+1?'active':''))).join('')}</div></section>`;
+}
+function openingPrice(ui, pack) {
+  const q = lockerQuote(ui.progress.data, pack.id, selectedLockerCount(ui));
+  return `${q.earned ? `<span class="earned-tag">${q.earned} earned${q.paid ? ` + ${q.paid} paid` : ''}</span>` : ''}${q.cost ? coins(q.cost) : '<strong>Free</strong>'}`;
+}
+function openingButton(ui, pack) {
+  const q = lockerQuote(ui.progress.data, pack.id, selectedLockerCount(ui));
+  return button(`Open ${q.count === 1 ? 'locker' : q.count + ' lockers'}`, 'open-locker', `data-id="${pack.id}" data-count="${q.count}" ${q.affordable ? '' : 'disabled'}`, 'button yellow');
 }
 
 export function lockerDetail(ui, id) {
@@ -92,7 +109,7 @@ export function lockerDetail(ui, id) {
   if (!p) throw Error("This locker is unavailable.");
   const earned = ui.progress.data.lockers?.[p.id] || 0,
     owned = ui.progress.data.owned;
-  return `<div class="crate-detail" style="--crate:${p.color}"><div class="crate-detail-head"><img src="${lockerArt(ui, p)}" alt="${esc(p.name)}"><div><span class="eyebrow">${p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker"}</span><h2>${esc(p.name)}</h2><p>${esc(p.tagline)}</p>${oddsBar(p)}<p class="small-note">Rarity is drawn first, then every item in that rarity is equally likely. Different patterns are separate collectibles; only an identical item and pattern counts as a duplicate. Purchased duplicates refund 35%. Earned lockers cost no tokens. Lockers use earned tokens only.</p></div></div>${lockerContents(p.id)
+  return `<div class="crate-detail" style="--crate:${p.color}"><div class="crate-detail-head"><img src="${lockerArt(ui, p)}" alt="${esc(p.name)}"><div><span class="eyebrow">${p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker"}</span><h2>${esc(p.name)}</h2><p>${esc(p.tagline)}</p>${oddsBar(p)}<p class="small-note">Rarity is drawn first, then every item in that rarity is equally likely. Different patterns are separate collectibles; only an identical item and pattern counts as a duplicate. Purchased duplicates refund 35%. Earned lockers cost no tokens. Lockers use earned tokens only.</p></div></div>${lockerQuantity(ui, p.id)}${lockerContents(p.id)
     .reverse()
     .map(
       (r) =>
@@ -105,7 +122,7 @@ export function lockerDetail(ui, id) {
     )
     .join(
       "",
-    )}<div class="modal-actions crate-detail-actions">${earned ? `<strong class="earned-tag">${icon("gift")}${earned} earned</strong>` : coins(p.price)}${button(earned ? "Open earned locker" : `Open for ${p.price.toLocaleString()}`, "open-locker", `data-id="${p.id}" ${earned || ui.progress.data.coins >= p.price ? "" : "disabled"}`, "button yellow")}</div></div>`;
+    )}<div class="modal-actions crate-detail-actions">${openingPrice(ui, p)}${openingButton(ui, p)}</div></div>`;
 }
 
 export function shopView(ui) {
@@ -130,7 +147,7 @@ export function shopView(ui) {
             : "Usable novelty clubs, always in stock. Find more in the Oddities Locker.";
     content = `<p class="shelf-caption">${caption}</p>${filters(ui, items)}${grid(ui, items)}`;
   } else if (shelf === "lockers")
-    content = `<p class="shelf-caption">Finish a full round for a 10% chance of a free random locker. Every locker shows its full odds and contents. Country Club, bundle and Alpha items never appear in lockers.${halloweenActive()?' Halloween ends November 1. Keep everything you earn.':''}</p><div class="crate-grid">${LOCKERS.filter(p=>availableLockers().includes(p)||(d.lockers?.[p.id]||0)>0).map((p) => lockerCard(ui, p)).join("")}</div>`;
+    content = `<p class="shelf-caption">Finish a full round for a 10% chance of a free random locker. Every locker shows its full odds and contents. Country Club, bundle and Alpha items never appear in lockers.${halloweenActive()?' Halloween ends November 1. Keep everything you earn.':''}</p>${lockerQuantity(ui)}<div class="crate-grid">${LOCKERS.filter(p=>availableLockers().includes(p)||(d.lockers?.[p.id]||0)>0).map((p) => lockerCard(ui, p)).join("")}</div>`;
   else if (shelf === "bundles")
     content = `<p class="shelf-caption">Coordinated finishes, available this week. You only pay for the pieces you’re missing.</p><div class="bundle-grid">${shopBundles()
       .map((b) => {

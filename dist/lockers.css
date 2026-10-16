@@ -1,0 +1,25 @@
+.locker-quantity{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:16px 0 24px;padding:16px 18px;background:var(--ui-raised);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:6px}
+.locker-quantity>div:first-child{display:grid;gap:4px}
+.locker-quantity span{font-size:13px;color:var(--ui-muted)}
+.locker-quantity [role=group]{display:flex;gap:7px;flex-wrap:wrap}
+.locker-quantity .chip{min-width:42px;min-height:42px;justify-content:center;padding:8px 12px}
+.locker-quantity .chip[aria-pressed=true]{background:#e7c86d;color:#173d30;border-color:#bca34c}
+.crate-foot{flex-wrap:wrap;gap:12px}.crate-foot .earned-tag{font-size:13px}
+.crate-detail-actions{flex-wrap:wrap}
+.crate-batch{--rarity:#c0a760;padding:18px}
+.crate-batch .crate-shell{width:min(1120px,100%);max-height:calc(100dvh - 100px);overflow:auto;scrollbar-width:thin;gap:12px;padding:6px}
+.crate-batch .locker-reel{display:grid;grid-template-columns:repeat(min(var(--batch-count),5),minmax(0,1fr));gap:10px}
+.crate-batch .reel-window{min-width:0;padding:12px 0;border-radius:6px;mask-image:none}
+.crate-batch .reel-card{border-radius:4px;box-shadow:none}
+.crate-batch .reel-card img{height:90px;aspect-ratio:auto}
+.crate-batch .crate-reveal{width:100%;gap:14px}
+.crate-batch .crate-reveal h2{font-size:clamp(24px,4vw,36px);margin:0}
+.batch-rewards{display:grid;grid-template-columns:repeat(min(var(--batch-count),5),minmax(0,1fr));gap:12px;width:100%}
+.batch-reward{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;padding:0 0 12px;background:#213f34;border:1px solid #ffffff25;border-top:3px solid var(--rarity);border-radius:6px;overflow:hidden;color:#f4f2e5}
+.batch-reward img{width:100%;aspect-ratio:1.4;object-fit:cover}
+.batch-reward h3{font-size:15px;line-height:1.25;margin:0;padding:0 8px;color:#f4f2e5}
+.batch-reward .rarity-chip{font-size:10px;letter-spacing:.04em;padding:4px 7px}
+.crate-reveal .batch-reward p{font-size:12px;text-align:center;margin:0;padding:0 8px;display:block;color:#d5e5d6}
+.batch-reward small{font-size:11px;color:#c5d8c9;padding:0 8px;margin-top:auto}
+.crate-batch .modal-actions{position:sticky;bottom:0;width:100%;padding:12px;background:#122a20f5;border-radius:5px;margin:0}
+@media(max-width:700px){.crate-batch .locker-reel,.batch-rewards{grid-template-columns:repeat(2,minmax(0,1fr))}.crate-batch .reel-card img{height:65px}.crate-batch .reel-window{padding:8px 0}.batch-reward img{max-height:110px}.locker-quantity{padding:12px}.locker-quantity [role=group]{gap:6px}.locker-quantity .chip{min-width:40px;padding:8px}.crate-batch .crate-shell{max-height:calc(100dvh - 85px)}}

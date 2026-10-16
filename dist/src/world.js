@@ -819,8 +819,9 @@ export class World {
     let target, position;
     if (this.mode === "menu" && this.hole.mode === "golf") {
       target = new THREE.Vector3(0, 0, -this.hole.length * 0.25);
-      const drift = this.settings?.reducedMotion ? 0 : this.clock * .0112;
-      position = new THREE.Vector3(95 + Math.sin(drift) * 10, 85 + Math.sin(drift * .7) * 2, 30 + Math.cos(drift) * 5);
+      const drift = this.settings?.reducedMotion ? 0 : this.clock * .025;
+      const start = Math.atan2(95, 35 - target.z), radius = Math.hypot(95, 35 - target.z);
+      position = new THREE.Vector3(Math.sin(start + drift) * radius, 85, target.z + Math.cos(start + drift) * radius);
     } else if (this.mode === "play" && ball) {
       ball = this.cameraHold || ball;
       target = new THREE.Vector3(ball.x, ball.y, ball.z);

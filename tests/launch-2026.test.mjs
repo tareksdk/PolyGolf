@@ -55,7 +55,7 @@ test('Halloween odds total 100 with a real pool for every rarity; exclusives nev
  assert.equal(ITEMS.length,629);
 });
 test('daily reward display source matches actual payouts, including cycle restart and no double claim',()=>{
- const p=new ProgressionManager({load:()=>defaultSave(),save:()=>true});for(let i=0;i<7;i++){const date=new Date(Date.UTC(2026,9,5+i));assert.equal(p.claimLogin(date).coins,DAILY_REWARDS[i]);assert.equal(p.claimLogin(date),null);}assert.ok(p.data.owned.includes('ball-streak'));assert.equal(p.claimLogin(new Date('2026-10-12')).coins,60);
+ const p=new ProgressionManager({load:()=>defaultSave(),save:()=>true});for(let i=0;i<7;i++){const date=new Date(Date.UTC(2026,9,5+i));assert.equal(p.claimLogin(date).coins,DAILY_REWARDS[i]);assert.equal(p.claimLogin(date),null);}assert.ok(p.data.owned.includes('ball-streak'));assert.equal(p.claimLogin(new Date('2026-10-12')).coins,300);
 });
 test('splash text is optional, size is bounded and arbitrary CSS is not accepted',()=>{
  assert.equal(homeMessage({home_message:'  '}).text,'');assert.equal(homeMessage({home_message:'Hello',home_message_color:'url(bad)',home_message_size:1000}).color,'#f1d982');assert.equal(homeMessage({home_message_size:1000}).size,40);assert.equal(homeMessage({home_message_size:1}).size,12);assert.equal(homeMessage({home_message_color:'#12abEF'}).color,'#12abEF');

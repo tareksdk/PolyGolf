@@ -4,7 +4,7 @@ import {rankFor,awardRankPlates} from './shared/ranks.js';
 import {halloweenActive} from './shared/season.js';
 import {grantPattern,rollPattern} from './shared/finishes.js';
 import {claimSocialReward} from './shared/community-rewards.js';
-import {openLocker,buyBundle,LOCKERS} from './shared/pro-shop.js';
+import {openLocker,openLockers,buyBundle,LOCKERS} from './shared/pro-shop.js';
 import {tradingAction} from './trading.ts';
 import {socialAction} from './social.ts';
 import {competitiveAction} from './competitive.ts';
@@ -160,7 +160,7 @@ Deno.serve(async req=>{
    const pm=progress(p);let outcome:any=true;
    if(action==='buy'){outcome=pm.buy(b.id);if(!outcome.ok)throw Error(outcome.message);}if(action==='equip'){if(!pm.equip(b.id,b.seed))throw Error('Earn or buy that item and pattern before equipping it.');}
    if(action==='claim_login'){outcome=pm.claimLogin();if(!outcome)throw Error('Today’s reward is already claimed.');}if(action==='claim_challenge'&&!pm.claimChallenge(b.id))throw Error('This challenge is not ready to claim.');if(action==='join_club')joinClub(pm);if(action==='claim_tier')claimTier(pm,b.tier);if(action==='claim_club_daily')claimClubDaily(pm);result={state:await save(p,pm),outcome};
-  }else if(action==='open_locker'||action==='buy_bundle'){const pm=progress(p);const outcome=action==='open_locker'?openLocker(pm,b.id,b.requestId,()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296):buyBundle(pm,b.id);result={state:await save(p,pm),outcome};}
+  }else if(action==='open_locker'||action==='buy_bundle'){const pm=progress(p);const random=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296;const outcome=action==='open_locker'?(b.count===undefined?openLocker(pm,b.id,b.requestId,random):openLockers(pm,b.id,b.count,b.requestId,random)):buyBundle(pm,b.id);result={state:await save(p,pm),outcome};}
   else if(action==='claim_achievement'){const pm=progress(p),outcome=pm.claimAchievement(b.id);result={state:await save(p,pm),outcome};}
   else if(action==='save_map'){requireEditor(progress(p));const layout=validateMap(b.map),existing=(await table('maps','user_id=eq.'+p.id+'&name=eq.'+encodeURIComponent(layout.name)))[0];if(existing)await update('maps','id=eq.'+existing.id,{layout,updated_at:new Date().toISOString()});else{const count=await table('maps','user_id=eq.'+p.id+'&select=id');if(count.length>=30)throw Error('Your account holds up to 30 maps. Reuse a name to update one.');await insert('maps',{user_id:p.id,name:layout.name,layout});}result={ok:true};}
   else if(['create_room','join_room','ready_room','start_room','leave_room','room','add_room_bot','fill_room_bots','remove_room_bot'].includes(action))result=await roomAction(action,p,b,{table,rpc,insert,player,submit});

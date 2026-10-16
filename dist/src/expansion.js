@@ -506,7 +506,7 @@ export function installExpansion(ui) {
       if (action === "claim-club-daily") {
         if (ui.cloud.session) await ui.cloud.call("claim_club_daily");
         else claimClubDaily(ui.progress);
-        ui.toast("40 member tokens added.");
+        ui.toast(`${MEMBER_DAILY} member coins added.`);
         ui.render();
         return;
       }

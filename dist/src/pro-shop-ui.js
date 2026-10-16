@@ -1,5 +1,5 @@
-import { shopView, lockerDetail, lockerArt } from "./shop-view.js";
-import { LOCKERS, shopBundles, openLocker, buyBundle, lockerPool } from "./pro-shop.js";
+import { shopView, lockerDetail, lockerArt, selectedLockerCount } from "./shop-view.js";
+import { LOCKERS, shopBundles, openLockers, buyBundle, lockerPool, lockerQuote } from "./pro-shop.js";
 import { ITEM_BY_ID, CATEGORIES, RARITY } from "./catalog.js";
 import { button, esc, coins, rarityClass } from "./views.js";
 import { icon } from "./icons.js";
@@ -81,10 +81,12 @@ function reelCard(ui, item) {
   return `<div class="reel-card ${rarityClass(item)}" style="--rarity:${RARITY[item.rarity]}"><img src="${ui.world.itemThumbnail(item)}" alt=""><span>${esc(item.name)}</span></div>`;
 }
 
-async function runOpening(ui, pack) {
-  const d = ui.progress.data,
-    earned = (d.lockers?.[pack.id] || 0) > 0;
-  if (!earned && d.coins < pack.price) throw Error(`You need ${(pack.price - d.coins).toLocaleString()} more tokens for this locker.`);
+async function runOpening(ui, pack, count = 1) {
+  const quote = lockerQuote(ui.progress.data, pack.id, count);
+  if (ui.pendingLocker && (ui.pendingLocker.id !== pack.id || ui.pendingLocker.count !== count))
+    throw Error('Retry your previous locker opening first so its rewards can be confirmed.');
+  if (!ui.pendingLocker && !quote.affordable) throw Error(quote.available ? `You need ${(quote.cost - ui.progress.data.coins).toLocaleString()} more coins for this opening.` : 'Only Halloween lockers you already own can be opened after the event.');
+  const earned = quote.earned === count;
   ui.lastFocus = document.activeElement;
   ui.closeModal();
   ui.crateOpening = true;
@@ -92,14 +94,15 @@ async function runOpening(ui, pack) {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches,
     stage = document.createElement("div");
   stage.id = "crate-stage";
-  stage.className = "crate-stage";
+  stage.className = "crate-stage" + (count > 1 ? " crate-batch" : "");
+  stage.style.setProperty('--batch-count', count);
   stage.dataset.phase = "unlock";
   stage.setAttribute("role", "dialog");
   stage.setAttribute("aria-modal", "true");
   stage.setAttribute("aria-label", "Opening " + pack.name);
   stage.style.setProperty("--crate", pack.color);
   stage.style.setProperty("--gem", pack.gem);
-  stage.innerHTML = `<div class="crate-backdrop"></div><div class="crate-shell"><header><span class="eyebrow">${earned ? "Earned locker" : "Opening"}</span><h2>${esc(pack.name)}</h2></header><div class="crate-hero"><img class="crate-model" src="${lockerArt(ui, pack)}" alt=""><div class="crate-status" aria-live="polite">Unlocking…</div></div><div class="locker-reel" hidden><div class="reel-window"><div class="reel-strip"></div><div class="reel-marker" aria-hidden="true"></div></div></div><div class="crate-reveal" hidden></div><footer>${button("Skip", "crate-skip", "", "text-button crate-skip")}</footer></div>`;
+  stage.innerHTML = `<div class="crate-backdrop"></div><div class="crate-shell"><header><span class="eyebrow">${earned ? "Earned" : "Opening"} · ${count} locker${count > 1 ? 's' : ''}</span><h2>${esc(pack.name)}</h2></header><div class="crate-hero"><img class="crate-model" src="${lockerArt(ui, pack)}" alt=""><div class="crate-status" aria-live="polite">Unlocking…</div></div><div class="locker-reel" hidden>${Array.from({length:count}, (_,i)=>`<div class="reel-window" aria-label="Locker ${i+1}"><div class="reel-strip"></div><div class="reel-marker" aria-hidden="true"></div></div>`).join('')}</div><div class="crate-reveal" hidden></div><footer>${button("Skip", "crate-skip", "", "text-button crate-skip")}</footer></div>`;
   document.body.append(stage);
   ui.root.inert = true;
   setTimeout(() => stage.isConnected && (ui.world.suspended = true), 320);
@@ -112,8 +115,7 @@ async function runOpening(ui, pack) {
   const prepared = reduce ? Promise.resolve() : ui.world.prepareItemThumbnails?.(fillers, {signal:artLoading.signal});
 
   // Server (or local guest) decides the result before any animation plays.
-  ui.pendingLocker ??= { id: pack.id, requestId: crypto.randomUUID() };
-  if (ui.pendingLocker.id !== pack.id) ui.pendingLocker = { id: pack.id, requestId: crypto.randomUUID() };
+  ui.pendingLocker ??= { id: pack.id, count, requestId: crypto.randomUUID() };
   const request = ui.pendingLocker;
   let result;
   try {
@@ -121,13 +123,13 @@ async function runOpening(ui, pack) {
       ui.cloud.session
         ? ui.cloud.call("open_locker", request).then((r) => r.outcome)
         : Promise.resolve().then(() =>
-            openLocker(ui.progress, request.id, request.requestId, () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296),
+            openLockers(ui.progress, request.id, request.count, request.requestId, () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296),
           ),
       motion.wait(reduce ? 0 : 1100),
     ]);
   } catch (e) {
     artLoading.abort();
-    if (!/timeout|network|fetch|connect/i.test(e.message)) ui.pendingLocker = null;
+    if (!/timeout|network|fetch|connect|reach|took too long/i.test(e.message)) ui.pendingLocker = null;
     stage.dataset.phase = "error";
     const message = /unknown locker/i.test(e.message) ? "This locker isn’t available on the server yet. Please try again later." : e.message;
     stage.querySelector(".crate-status").textContent = "";
@@ -140,28 +142,33 @@ async function runOpening(ui, pack) {
   }
   ui.pendingLocker = null;
   ui.render();
-  const item = finishItem({ ...(ITEM_BY_ID[result.item] || { id: result.item, name: "New item", rarity: "Rare", category: "ball", color: "#dddddd" }), ...(result.seed===undefined?{}:{seed:result.seed}) });
-
-  const cards = Array.from({ length: WINNER + 8 }, (_, i) => (i === WINNER ? item : fillers[Math.floor(Math.random()*fillers.length)]));
+  const receipts = result.items || [result];
+  const items = receipts.map(r => finishItem({ ...(ITEM_BY_ID[r.item] || { id: r.item, name: "New item", rarity: "Rare", category: "ball", color: "#dddddd" }), ...(r.seed===undefined?{}:{seed:r.seed}) }));
+  const winner = count > 1 ? 22 : WINNER;
   stage.querySelector(".crate-status").textContent = "Spinning up…";
-  if (!motion.skipped && !reduce) await motion.race(Promise.all([prepared, ui.world.prepareItemThumbnails?.([item], {signal:artLoading.signal})]));
+  if (!motion.skipped && !reduce) await motion.race(Promise.all([prepared, ui.world.prepareItemThumbnails?.(items, {signal:artLoading.signal})]));
   if (!motion.skipped && !reduce) {
     stage.dataset.phase = "reel";
-    const reel = stage.querySelector(".locker-reel"),
-      strip = stage.querySelector(".reel-strip");
-    strip.innerHTML = cards.map((c) => reelCard(ui, c)).join("");
+    const reel = stage.querySelector(".locker-reel"), strips = [...stage.querySelectorAll('.reel-strip')];
+    strips.forEach((strip, n) => {
+      const cards = Array.from({length:winner+8}, (_,i) => i === winner ? items[n] : fillers[Math.floor(Math.random()*fillers.length)]);
+      strip.innerHTML = cards.map(c => reelCard(ui,c)).join('');
+    });
     reel.hidden = false;
     stage.querySelector(".crate-hero").classList.add("is-open");
     await frame();
-    const windowWidth = stage.querySelector(".reel-window").clientWidth,
-      jitter = (Math.random() - 0.5) * STEP * 0.62,
-      target = WINNER * STEP + STEP / 2 - windowWidth / 2 + jitter,
-      anim = strip.animate([{ transform: "translateX(0)" }, { transform: `translateX(${-target}px)` }], {
-        duration: 6200,
+    const animations = strips.map((strip, n) => {
+      const windowWidth = strip.parentElement.clientWidth, jitter = (Math.random() - 0.5) * STEP * 0.62;
+      const target = winner * STEP + STEP / 2 - windowWidth / 2 + jitter;
+      const anim = strip.animate([{ transform: "translateX(0)" }, { transform: `translateX(${-target}px)` }], {
+        duration: 6200 + n * 70,
         easing: "cubic-bezier(0.08, 0.72, 0.1, 1)",
         fill: "forwards",
       });
-    motion.animate(anim);
+      motion.animate(anim);
+      return anim;
+    });
+    const strip = strips[0], anim = animations[0], windowWidth = strip.parentElement.clientWidth;
     let last = -1;
     const marker = stage.querySelector(".reel-marker");
     const tick = () => {
@@ -178,12 +185,30 @@ async function runOpening(ui, pack) {
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-    await motion.race(anim.finished.catch(() => {}));
-    strip.children[WINNER]?.classList.add("is-winner");
+    await motion.race(Promise.all(animations.map(a => a.finished.catch(() => {}))));
+    strips.forEach(s => s.children[winner]?.classList.add('is-winner'));
     await motion.wait(450);
   }
   artLoading.abort();
-  reveal(ui, stage, pack, item, result);
+  if (count > 1) revealBatch(ui, stage, pack, items, result);
+  else reveal(ui, stage, pack, items[0], receipts[0]);
+}
+
+function revealBatch(ui, stage, pack, items, result) {
+  if (!stage.isConnected) return;
+  stage.dataset.phase = 'reveal';
+  stage.classList.add('revealed');
+  stage.querySelector('.crate-hero').hidden = true;
+  stage.querySelector('footer').hidden = true;
+  const box = stage.querySelector('.crate-reveal');
+  const again = lockerQuote(ui.progress.data, pack.id, items.length).affordable;
+  box.hidden = false;
+  box.innerHTML = `<h2>${items.length} lockers opened</h2><div class="batch-rewards">${items.map((item,i) => {
+    const r = result.items[i];
+    return `<article class="batch-reward" style="--rarity:${RARITY[item.rarity]}"><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><span class="rarity-chip">${item.rarity}</span><h3>${esc(item.name)}</h3>${item.finish ? `<p>Pattern ${String(r.seed).padStart(3,'0')}${item.finish==='case-hardened'?' · '+patternLabel(r.seed):''}</p>` : ''}<small>${r.duplicate ? r.refund ? `${r.refund.toLocaleString()} coins refunded` : 'Already owned' : 'Added to your caddie'}</small></article>`;
+  }).join('')}</div><p>${result.cost.toLocaleString()} coins spent${result.refund ? ' · '+result.refund.toLocaleString()+' refunded' : ''}</p><div class="modal-actions">${button('Open '+items.length+' again','open-locker',`data-id="${pack.id}" data-count="${items.length}" ${again?'':'disabled'}`,'button secondary')}${button('Done','crate-close','','button yellow')}</div>`;
+  ui.audio.play(items.some(i => ['Legendary','Black Market'].includes(i.rarity)) ? 'level' : 'reward');
+  box.querySelector('button:not(:disabled)')?.focus();
 }
 
 function reveal(ui, stage, pack, item, result) {
@@ -214,6 +239,12 @@ function reveal(ui, stage, pack, item, result) {
 
 export async function proShopAction(ui, name, data) {
   listen(ui);
+  if (name === 'locker-quantity') {
+    ui.lockerCount = Number(data.count);
+    ui.render();
+    if (data.id) ui.modal(lockerDetail(ui, data.id), {wide:true});
+    return true;
+  }
   if (name === "shop-shelf") {
     ui.shopShelf = data.id;
     ui.shopCategory = "all";
@@ -267,7 +298,7 @@ export async function proShopAction(ui, name, data) {
       if (!pack) throw Error("This locker is unavailable.");
       document.getElementById("crate-stage")?.remove();
       ui.crateOpening = false;
-      await runOpening(ui, pack);
+      await runOpening(ui, pack, Number(data.count) || selectedLockerCount(ui));
     } else {
       if (ui.cloud.session) await ui.cloud.call("buy_bundle", { id: data.id });
       else buyBundle(ui.progress, data.id);

@@ -24,7 +24,7 @@ test('no locker roll for incomplete, skipped, practice, custom or sudden-death r
 });
 test('round locker saves across reload and opens free without changing completion bonus',()=>{
   const repo=new LocalSaveRepository(storage()),p=new ProgressionManager(repo),before=p.data.coins;
-  const reward=p.completeCourse(full,[4,3,4],()=>0);assert.equal(reward.locker,'forge');assert.equal(p.data.coins,before+110);
+  const reward=p.completeCourse(full,[4,3,4],()=>0);assert.equal(reward.locker,'forge');assert.equal(p.data.coins,before+300);
   const reload=new ProgressionManager(repo);assert.equal(reload.data.lockers.forge,1);
   const coins=reload.data.coins;const r=openLocker(reload,'forge','round-drop-opening-001',()=>.5);
   assert.equal(r.earned,true);assert.equal(reload.data.coins,coins);assert.equal(reload.data.lockers.forge,0);

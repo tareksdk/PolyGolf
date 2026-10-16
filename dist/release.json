@@ -27,5 +27,24 @@
     "normal",
     "night",
     "rainy"
-  ]
+  ],
+  "multiLockerOpening": true,
+  "lockerLevelLimits": {
+    "1": 1,
+    "5": 2,
+    "10": 3,
+    "15": 5,
+    "20": 10
+  },
+  "dailyRewardCoins": [
+    300,
+    400,
+    500,
+    650,
+    800,
+    1000,
+    1250
+  ],
+  "holeRewardCoins": 100,
+  "courseBonusCoinsPerHole": 100
 }

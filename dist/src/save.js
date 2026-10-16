@@ -227,7 +227,7 @@ export function challengesFor(now = new Date()) {
       desc: `Complete ${n % 2 ? 9 : 18} holes`,
       target: n % 2 ? 9 : 18,
       value: (d) => d.holes,
-      coins: 180,
+      coins: 750,
       xp: 200,
     },
     {
@@ -236,7 +236,7 @@ export function challengesFor(now = new Date()) {
       desc: "Make 3 birdies or better",
       target: 3,
       value: (d) => d.birdies,
-      coins: 220,
+      coins: 800,
       xp: 250,
     },
     n % 2
@@ -246,7 +246,7 @@ export function challengesFor(now = new Date()) {
           desc: "Finish a hole in under 20 seconds",
           target: 1,
           value: (d) => d.quick,
-          coins: 150,
+          coins: 500,
           xp: 180,
         }
       : {
@@ -255,12 +255,12 @@ export function challengesFor(now = new Date()) {
           desc: "Finish 2 different courses",
           target: 2,
           value: (d) => d.courses.length,
-          coins: 300,
+          coins: 1000,
           xp: 300,
         },
   ];
 }
-export const DAILY_REWARDS = Object.freeze([60, 75, 90, 110, 135, 165, 225]);
+export const DAILY_REWARDS = Object.freeze([300, 400, 500, 650, 800, 1000, 1250]);
 
 export class ProgressionManager {
   constructor(repository, onNotify = () => {}) {
@@ -341,7 +341,7 @@ export class ProgressionManager {
     this.refreshDaily();
     const d = this.data,
       diff = result.strokes - result.par,
-      coins = 26 + (diff < 0 ? 12 : 0) + (result.strokes === 1 ? 32 : 0),
+      coins = 100 + (diff < 0 ? 50 : 0) + (result.strokes === 1 ? 125 : 0),
       xp = 100 + (diff < 0 ? 40 : 0) + (result.strokes === 1 ? 100 : 0);
     d.stats.holes++;
     d.stats.strokes += result.strokes;
@@ -382,7 +382,8 @@ export class ProgressionManager {
       date: dayKey(),
     });
     d.history = d.history.slice(0, 30);
-    this.award(110, 400);
+    const coins = 100 * pars.length;
+    this.award(coins, 400);
     const locker = rollRoundLocker(round, random);
     if (locker) {
       d.lockers ??= {};
@@ -390,12 +391,12 @@ export class ProgressionManager {
     }
     this.checkAchievements();
     this.save();
-    return { coins: 110, xp: 400, ...(locker ? { locker } : {}) };
+    return { coins, xp: 400, ...(locker ? { locker } : {}) };
   }
   collectible(practice) {
     if (practice) return;
     this.data.stats.collectibles++;
-    this.award(10, 25);
+    this.award(40, 25);
     this.checkAchievements();
     this.save();
   }
