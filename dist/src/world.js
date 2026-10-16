@@ -775,6 +775,11 @@ export class World {
         this.hole.mode === "golf" ? terrainHeight(this.hole, ball.x, ball.z) + 0.16 : ball.y - 0.2,
         ball.z,
       );
+      if(this.waterMoment){
+        this.ball.visible=false;this.ballHalo.visible=false;
+        if(this.flightTrail)this.flightTrail.visible=false;
+        if(this.groundShadow)this.groundShadow.visible=false;
+      }
     } else {
       this.ball.visible = true;
       if (this.groundShadow) this.groundShadow.visible = false;

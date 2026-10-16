@@ -470,8 +470,7 @@ export function installExpansion(ui) {
   };
   ui.action = async (action, data = {}) => {
     if(action==='course-collection'){
-      if(ui.mode==='golf'&&['featured','classic'].includes(data.id))ui.courseCollection=data.id;
-      else if(ui.mode==='mini'&&['0','1'].includes(data.id))ui.miniCoursePage=Number(data.id);
+      if(ui.mode==='mini'&&['0','1'].includes(data.id))ui.miniCoursePage=Number(data.id);
       ui.render();return;
     }
     if(action==='club-welcome-done'){ui.closeModal();ui.navigate('club-pass');return;}

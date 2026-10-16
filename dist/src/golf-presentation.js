@@ -192,8 +192,9 @@ export function installGolfPresentation(world) {
     landing.material.color.set(putt ? "#fff5c9" : "#f7cc66");
   }
   world.update = (dt, ball, physics) => {
-    const golf = world.mode === "play" && world.hole.mode === "golf" && ball;
+    const golf = world.mode === "play" && world.hole.mode === "golf" && ball && !world.waterMoment;
     world.updateGolfer(dt, ball, physics);
+    if(world.waterMoment){world.cameraHold=world.waterMoment;golfer.visible=false;}
     if (world.cupMoment) {
       const moment = world.cupMoment;
       moment.time += dt;

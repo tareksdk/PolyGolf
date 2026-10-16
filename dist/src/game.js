@@ -5,6 +5,7 @@ import { getGolfHole, terrainAt, golfHoleCount } from "./golf-courses.js";
 import { GolfPhysics, CLUBS } from "./golf-physics.js";
 import { PhysicsManager, FIXED_STEP } from "./physics.js";
 import { miniStats, golfGear } from "./equipment.js";
+import { waterContact } from './water-effects.js';
 export class GameManager {
   constructor(world, callbacks = {}) {
     Object.assign(this, {
@@ -116,7 +117,7 @@ export class GameManager {
     this.displayedAccuracy = 0;
   }
   beginPower() {
-    if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging) return;
+    if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging || this.world.waterMoment) return;
     this.charging = true;
     this.shotPhase = 'power';
     this.chargeTime = 0;
@@ -407,6 +408,7 @@ export class GameManager {
         for (const event of this.physics.events.splice(0)) {
           if (event === "cup") this.finishHole();
           else if (event === "water") {
+            this.world.waterSplash?.(waterContact(this.hole,this.physics.ball));
             if (this.round.sudden) {
               this.finishSudden();
               break;
@@ -469,6 +471,7 @@ export class GameManager {
       this.power,
       this.state === "playing" &&
         !this.pendingSwing &&
+        !this.world.waterMoment &&
         !this.physics.active &&
         this.world.settings?.aimGuide !== false,
     );

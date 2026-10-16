@@ -3,6 +3,7 @@ import { buildSky } from './sky.js';
 import { COURSE_WEATHER, weatherProfile } from './weather-config.js';
 import { terrainAt } from './golf-courses.js';
 import { SandEffects } from './sand-effects.js';
+import { WaterEffects } from './water-effects.js';
 
 export function weatherControls(world) {
   const labels={normal:'Normal',night:'Night',rainy:'Rainy'},symbols={normal:'☀',night:'☾',rainy:'☂'};
@@ -11,7 +12,7 @@ export function weatherControls(world) {
 
 export class CourseAtmosphere {
   constructor(world) {
-    this.world=world;this.wetMaterials=new Map();this.sand=new SandEffects(world);
+    this.world=world;this.wetMaterials=new Map();this.sand=new SandEffects(world);this.water=new WaterEffects(world);
     this.rainRoot=new THREE.Group();this.rainRoot.name='course-rain';world.scene.add(this.rainRoot);
     this.rainPositions=new Float32Array(500*6);
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(this.rainPositions,3).setUsage(THREE.DynamicDrawUsage));
@@ -24,6 +25,7 @@ export class CourseAtmosphere {
   restoreMaterials(){for(const [m,r] of this.wetMaterials)m.roughness=r;this.wetMaterials.clear();}
   load(h) {
     this.sand.reset();
+    this.water.reset();
     if(!this.world.sky)buildSky(this.world,h);
     this.world.group.traverse(o=>{
       if(o.material?.isMeshStandardMaterial&&!this.wetMaterials.has(o.material))this.wetMaterials.set(o.material,o.material.roughness);
@@ -51,6 +53,7 @@ export class CourseAtmosphere {
     const visible=w.mode!=='garage'&&!w.suspended;
     for(const p of w.scenicFloaters||[]){p.object.position.y=p.y+(w.settings?.reducedMotion?0:Math.sin(w.clock*1.1+p.phase)*.055);p.object.rotation.z=w.settings?.reducedMotion?0:Math.sin(w.clock*.8+p.phase)*.025;}
     this.sand.update(dt,ball,physics);
+    this.water.update(dt);
     this.rainRoot.visible=visible&&w.weather==='rainy';if(!this.rainRoot.visible)return;
     const golf=w.hole.mode==='golf',width=golf?76:36,height=golf?42:28;
     const count=w.settings?.reducedMotion?60:w.settings?.graphics==='low'?150:w.settings?.graphics==='high'?500:310;
@@ -77,6 +80,7 @@ export class CourseAtmosphere {
 export function installCourseAtmosphere(ui) {
   const w=ui.world,atmosphere=new CourseAtmosphere(w),load=w.load.bind(w),action=ui.action.bind(ui);
   w.atmosphere=atmosphere;w.sandBurst=contact=>atmosphere.sand.burst(contact);
+  w.waterSplash=contact=>atmosphere.water.splash(contact);
   w.setWeather=mode=>atmosphere.set(mode);
   w.load=h=>{
     atmosphere.restoreMaterials();w.sky=null;w.nightWindows=[];w.lanternLights=[];w.scenicFloaters=[];

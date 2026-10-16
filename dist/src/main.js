@@ -43,7 +43,7 @@ try {
         if (!ui?.cloud?.session) progress.collectible(game.round.practice);
         ui.toast(game.round.practice ? "Hidden coin found!" : "A little discovery! +10 coins · +25 XP");
       }
-      if (event === "water") ui.toast("A splash! Back to your last shot · +1 stroke");
+      if (event === "water") ui.toast("Water hazard · +1 stroke · Returning to your last shot");
       if (event === "penalty") ui.toast("Back to your last shot · +1 stroke");
       if (event === "interact") audio.start();
       else audio.play(event);
