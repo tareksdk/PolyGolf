@@ -75,7 +75,7 @@ export class GameManager {
     this.normalizeAim();
     this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
     this.world.zoom = this.mode === "golf" ? 13 : 18;
-    this.world.pitch = 0.32;
+    this.world.pitch = 0.24;
     this.shape = this.spin = 0;
     this.autoAim();
     this.onUpdate();
@@ -95,7 +95,7 @@ export class GameManager {
     this.aimTarget = null;
     this.shape = this.spin = 0;
     this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
-    this.world.pitch = 0.32;
+    this.world.pitch = 0.24;
   }
   shotOptions() {
     return {
@@ -416,6 +416,7 @@ export class GameManager {
             this.autoAim();
             this.onUpdate();
           } else {
+            if (event === 'sand-impact' || event === 'sand-shot') this.world.sandBurst?.(this.physics.sandContact);
             this.onEvent(event);
             if (event === "rest") {
               if (this.round.sudden) {

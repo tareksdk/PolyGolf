@@ -1,3 +1,7 @@
+## Living skies and bunker feel · v0.4 (local review)
+
+Do not publish this branch without a release request. Bunker physics now use `polygolf-v9`: deploy the complete packaged `little-links` Edge Function, then reapply `backend/ranked-bots.sql`, before publishing `dist/` to either existing site. The bot migration now safely preserves its already-installed opponent constraint when reapplied. Existing v8 rounds need a fresh start after a future release. Weather is local presentation only and resets to Normal on every hole; no weather columns, account changes or new database objects are needed.
+
 ## Willow Park nine-hole landscape update · v0.3
 
 This branch is a local preview. Before a future release, deploy the packaged Edge Function with the matching shared course modules, then apply `backend/ranked-bots.sql` (updates the matchmaking version guard, per-course round sizes and saved bot plans), then publish `dist/`. Fresh installations use the updated `competitive-schema.sql`, followed by `ranked-bots.sql`. Willow Park is nine holes / par 36; the other full-golf courses stay three holes / par 12. Replay version is `polygolf-v8`; old in-progress rounds need a fresh start. Existing accounts, items and historical scores are preserved.

@@ -30,3 +30,7 @@ Settings → Appearance switches between Dark and Light (muted sage), saved on t
 The October 4 launch update separates power and direction into two inputs, sharpens grass boundaries, repairs coastal seams, adds optional shot-panel minimization and cleans up both themes. The Halloween event ends November 1, 2026 at midnight America/New_York. Earned items and unopened earned lockers stay usable. The first 100 accounts receive OG; exclusive Developer and Staff nameplates use separate gift codes. See DEPLOY.md for the editable home message.
 
 Settings uses custom appearance/quality cards and sliders. Choose Majestic, Upbeat or Calm original synthesized music; switching fades between scores and the choice is saved locally. All three scores are generated in the browser without audio downloads. Closing dialogs retain their theme throughout the fade.
+
+### Local v0.4 preview
+
+Normal, Night and Rainy controls appear at the top right during a round. Each new hole starts in Normal. Optional atmospheres affect presentation only. Willow Park has refined ridgelines, cabins, balancing rocks and pond rafts; bunker impacts and wedge shots throw sand, and landings skid before settling. This update is held on `codex/atmosphere-weather-sand` for review.

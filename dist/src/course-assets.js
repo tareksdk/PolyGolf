@@ -316,7 +316,10 @@ export function courseAssets(w, h) {
     if (terrainAt(h, x, z).hazard || pathDistance(h, x, z) < h.width / 2 + 4 || Math.hypot(x - h.cup.x, z - h.cup.z) < 24) continue;
     add(i % 4 === 0 ? (h.courseIndex === 2 ? "autumn-flowers" : h.courseIndex === 1 ? "dune-grass" : "flowers") : "bush", x, z, 0.7 + (i % 3) * 0.18, i * 2.4);
   }
-  for (const p of scenicLayout(h)) add(p.name,p.x,p.z,p.scale,p.angle,p.y);
+  for (const p of scenicLayout(h)) {
+    if (['alpine-massif','alpine-ridge'].includes(p.name)) continue;
+    add(p.name,p.x,p.z,p.scale,p.angle,p.y);
+  }
 
   const pumpkin = pumpkinFor(h);
   if(pumpkin) add("halloween-pumpkin",pumpkin.x,pumpkin.z,1,0,ground(pumpkin.x,pumpkin.z));

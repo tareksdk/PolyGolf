@@ -1,8 +1,10 @@
 import * as THREE from "../vendor/three.module.js";
 import { buildOcean } from './ocean.js';
+import { buildMountainRanges } from './mountain-ranges.js';
 import { terrainHeight, coastBounds } from "./golf-courses.js";
 
 export function buildBackdrop(w, h) {
+  buildMountainRanges(w,h);
   if (h.courseIndex === 1) {
     buildOcean(w,h);
     // Shared rings have no cracks: one top boundary, one vertex per adjoining band.

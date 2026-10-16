@@ -28,11 +28,12 @@ const params = {
   fairway: [0.25, 0.35, 1.0],
   tee: [0.28, 0.35, 1.0],
   rough: [0.12, 0.55, 2.5],
-  sand: [0.05, 0.75, 5],
+  sand: [0.06, 0.48, 2.8],
 };
 export class GolfPhysics {
   constructor() {
     this.events = [];
+    this.sandContact = null;
     this.clock = 0;
   }
   load(h) {
@@ -94,6 +95,10 @@ export class GolfPhysics {
     this.still = 0;
     this.shotTime = 0;
     this.previous = { ...this.ball };
+    if (lie === 'sand') {
+      this.sandContact = {kind:'shot',x:this.ball.x,y:this.ball.y-GOLF_RADIUS,z:this.ball.z,vx:this.ball.vx,vz:this.ball.vz,speed};
+      this.events.push('sand-shot');
+    }
     return true;
   }
   update(dt) {
@@ -208,6 +213,10 @@ export class GolfPhysics {
         [e, mu] = params[t.surface],
         v = { x: b.vx, y: b.vy, z: b.vz },
         vn = dot(v, n);
+      if (t.surface === 'sand' && vn < -.5) {
+        this.sandContact = {kind:'impact',x:b.x,y:t.height,z:b.z,vx:v.x,vz:v.z,speed:Math.hypot(v.x,v.y,v.z)};
+        this.events.push('sand-impact');
+      }
       if (vn < 0) {
         const r = { x: -GOLF_RADIUS * n.x, y: -GOLF_RADIUS * n.y, z: -GOLF_RADIUS * n.z },
           rot = cross(this.omega, r),
@@ -231,8 +240,8 @@ export class GolfPhysics {
         const normalSpeed = Math.abs(vn),
           tangentSpeed = Math.hypot(v.x - vn * n.x, v.y - vn * n.y, v.z - vn * n.z);
         const retention = Math.exp(
-            -{ green: 0.07, fairway: 0.025, tee: 0.025, rough: 0.05, sand: 0.09 }[t.surface] * normalSpeed -
-              0.035 * Math.max(0, tangentSpeed - normalSpeed),
+            -{ green: 0.07, fairway: 0.025, tee: 0.025, rough: 0.05, sand: 0.045 }[t.surface] * normalSpeed -
+              (t.surface === 'sand' ? .009 : .035) * Math.max(0, tangentSpeed - normalSpeed),
           ),
           outN = b.vx * n.x + b.vy * n.y + b.vz * n.z;
         b.vx = outN * n.x + (b.vx - outN * n.x) * retention;

@@ -48,7 +48,7 @@ export const GOLF_COURSES = [
     color: "#c5a887",
   },
 ];
-export const RULES_VERSION = "polygolf-v8";
+export const RULES_VERSION = "polygolf-v9";
 export function golfHoleCount(courseIndex = 0) {
   const course = layouts[courseIndex];
   if (!course) throw Error("Unknown golf course");

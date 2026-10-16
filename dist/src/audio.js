@@ -89,7 +89,8 @@ export class AudioManager {
     if (name === "hit") {
       this.tone(290, 0.11, "triangle", 0.8);
       this.noise(0.055, 0.3);
-    } else if (name === "bounce") this.tone(175, 0.07, "sine", 0.3);
+    } else if (name === 'sand-impact' || name === 'sand-shot') this.noise(name === 'sand-shot' ? .19 : .28,.3);
+    else if (name === "bounce") this.tone(175, 0.07, "sine", 0.3);
     else if (name === "water") {
       this.noise(0.6, 0.55);
       this.tone(140, 0.4, "sine", 0.4);

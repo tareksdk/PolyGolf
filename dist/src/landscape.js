@@ -1,6 +1,7 @@
 import { buildBackdrop } from "./golf-environment.js";
 import { turfMaterial } from './turf.js';
 import { buildSky } from './sky.js';
+import { buildCourseVignettes } from './course-vignettes.js';
 import { CUP_RADIUS } from "./golf-physics.js";
 import { courseAssets } from "./course-assets.js";
 import { golfTrees, signatureDetails } from "./golf-scenery.js";
@@ -24,6 +25,7 @@ export function batchScenery(world) {
     world.coin,
     ...world.obstacleMeshes,
     ...world.animations.map((a) => a.mesh),
+    ...(world.scenicFloaters || []).map(p=>p.object),
   ]);
   const buckets = new Map();
   world.group.updateMatrixWorld(true);
@@ -67,6 +69,7 @@ export function buildGolf(world, h) {
   world.scene.fog = new THREE.Fog(h.atmosphere?.horizon || c.sky, 750, 2400);
   // Golf cameras stay metres away. Preserve depth precision across the forest.
   world.camera.near = 0.5;
+  world.camera.fov = 45;
   world.camera.far = 3000;
   world.camera.updateProjectionMatrix();
   world.renderer.toneMappingExposure = 1.05;
@@ -168,6 +171,7 @@ export function buildGolf(world, h) {
   }
   courseAssets(world, h);
   buildBackdrop(world, h);
+  buildCourseVignettes(world,h);
   const cup = h.cup,
     y = world.surfaceHeight(cup.x, cup.z);
   world.mesh("cylinder", "#223c2b", cup.x, y + 0.012, cup.z, CUP_RADIUS + 0.025, 0.015, CUP_RADIUS + 0.025);

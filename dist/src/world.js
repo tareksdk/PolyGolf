@@ -102,6 +102,7 @@ export class World {
   load(h) {
     if (h.mode === "golf") return buildGolf(this, h);
     this.camera.near = 0.1;
+    this.camera.fov = 39;
     this.camera.far = 250;
     this.camera.updateProjectionMatrix();
     this.renderer.toneMappingExposure = 1.24;
@@ -848,6 +849,7 @@ export class World {
     // Full-screen overlays (such as the locker stage) suspend the 3D view to save power.
     if (this.suspended) return;
     this.updateRibbon?.(dt, ball, physics);
+    this.atmosphere?.update(dt,ball,physics);
     if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
     renderFrame(this.renderer, this.scene, this.camera, innerWidth, innerHeight, stage);
     this.drawCalls = this.renderer.info.render.calls;

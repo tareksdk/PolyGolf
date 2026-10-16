@@ -1,4 +1,5 @@
 import { installInterface } from './interface.js';
+import { installCourseAtmosphere } from './course-weather.js';
 import { installItemThumbnails } from './item-thumbnails.js';
 import { installLiveRound } from './live-round.js';
 import { installSeason } from './season.js';
@@ -57,6 +58,7 @@ try {
   installInterface(ui);
   installSeason(ui);
   installLiveRound(ui);
+  installCourseAtmosphere(ui);
   ui.render();
   registerTools(ui);
   document.querySelector("#loading").remove();

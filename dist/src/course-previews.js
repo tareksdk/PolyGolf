@@ -5,7 +5,7 @@ import { getGolfHole } from "./golf-courses.js";
 import { getHole } from "./courses.js";
 import { coursePreview } from "./landscape.js";
 import { halloweenActive } from './season.js';
-const PREVIEW_PREFIX = "little-links.preview.v24."+(halloweenActive()?'october.':'standard.');
+const PREVIEW_PREFIX = "little-links.preview.v25."+(halloweenActive()?'october.':'standard.');
 function prunePreviewCache() {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {

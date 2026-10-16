@@ -1,7 +1,7 @@
 {
-  "version": "polygolf-v8",
-  "contentVersion": "willow-landscapes-0.3",
-  "date": "2026-10-14",
+  "version": "polygolf-v9",
+  "contentVersion": "living-skies-0.4",
+  "date": "2026-10-15",
   "items": 629,
   "lockers": 10,
   "patternSeeds": 1000,
@@ -20,5 +20,10 @@
     "calm"
   ],
   "bots": true,
-  "appVersion": "0.3"
+  "appVersion": "0.4",
+  "weatherModes": [
+    "normal",
+    "night",
+    "rainy"
+  ]
 }

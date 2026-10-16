@@ -1,3 +1,12 @@
+## v0.4 · Living skies and bunker feel
+
+- Refined cloud layers, soft sun glow, stars and moonlight; layered mountain ridges with snow caps, wooded shoulders and distance haze.
+- Added Willow Park hillside cabins, warm tee lanterns, balancing-rock towers, duck families and parasol rafts. All are scenery outside play or in existing water hazards.
+- Sand landings retain a short skid before settling. Impact plumes, rolling sand and wedge sprays use bounded particle pools and respect the particle setting.
+- Every full-golf and mini-golf hole begins in Normal mode. Normal, Night and Rainy controls change presentation only; optional modes never change wind, collisions, shot simulation or scores. Rain adds falling streaks, wet surfaces and ground ripples; Night adds readable moonlight and warm cabin/lantern lights.
+- Slightly wider full-golf framing leaves room for the horizon; mini-golf framing is unchanged.
+- App version 0.4; replay version polygolf-v9 because sand response changed. This branch is for local review and has not been published.
+
 # PolyGolf · v0.3 · October 14, 2026
 
 Rebuilt Willow Park holes 4–9 around different shot decisions and landscapes. Willow Bend cuts around a bunker-guarded hillside; Lily Reach plays downhill through a sunken garden; Foxglove Rise climbs three shelves to an elevated green; Twin Ponds narrows between two shores; The Lookout drops from a high tee across a dry hollow; Lakeside Home finishes beside open water, islands and boats.

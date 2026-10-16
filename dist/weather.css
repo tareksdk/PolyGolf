@@ -1,0 +1,10 @@
+.play-hud{overflow:hidden;overflow:clip}
+.course-weather{position:absolute;top:max(14px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));display:flex;gap:3px;pointer-events:auto;padding:4px;background:#173e38e8;border:1px solid #b3c6ad66;border-radius:7px;box-shadow:0 3px 12px #102f2f24}
+.course-weather button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:33px;padding:6px 11px;border:0;border-radius:4px;font:600 11px "DM Sans",sans-serif;color:#ecf0de;background:transparent;cursor:pointer;white-space:nowrap}
+.course-weather button span{font-size:16px;line-height:1}
+.course-weather button:hover{background:#365e51}
+.course-weather button[aria-pressed="true"]{background:#e7cd7c;color:#233e35}
+.course-weather button:focus-visible{outline:2px solid #fff4b7;outline-offset:2px}
+@media(max-width:600px){.course-weather{top:calc(max(10px,env(safe-area-inset-top)) + 50px);right:max(10px,env(safe-area-inset-right))}.course-weather button{min-height:32px;padding:6px 9px;font-size:10px;gap:4px}}
+@media(max-height:480px){.course-weather{top:8px;right:8px;padding:3px}.course-weather button{min-height:28px;padding:4px 8px}}
+@media(max-width:600px) and (max-height:480px){.course-weather{top:56px}}
