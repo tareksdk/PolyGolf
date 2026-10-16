@@ -103,7 +103,7 @@ create or replace function public.golf_ranked_join(p_user uuid,p_equipment jsonb
 language plpgsql security invoker set search_path='' as $$
 declare opponent public.golf_match_queue;m uuid;ar uuid;br uuid;c integer;v_status jsonb;bot_data jsonb;human_elo integer;roll double precision;offset_score integer;pars integer[];strokes integer[];slot integer;
 begin
- if p_version is distinct from 'polygolf-v9' then raise exception 'Reload PolyGolf before matchmaking';end if;
+ if p_version is distinct from 'polygolf-v10' then raise exception 'Reload PolyGolf before matchmaking';end if;
  if not exists(select 1 from public.golf_players p where p.id=p_user and (p.state->>'xp')::numeric>=18375) then raise exception 'Competitive unlocks at level 15';end if;
  perform pg_advisory_xact_lock(310415);
  v_status:=public.golf_ranked_status(p_user);

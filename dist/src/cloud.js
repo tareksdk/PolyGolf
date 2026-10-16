@@ -1,5 +1,6 @@
 import { normalizeInventory } from "./save.js";
 import { SESSION_KEY, readSession, writeSession, clearSession, invalidRefresh } from './session-store.js';
+import { courseRotationKey } from "./rotating-courses.js";
 import { RULES_VERSION, golfHoleCount } from "./golf-courses.js";
 export const SUPABASE_URL = "https://khbmuaitysznyxxefhou.supabase.co";
 export const PUBLISHABLE_KEY = "sb_publishable_Xm4rfU4lZ2vBnrfy-p8utw_Dp11cOqR";
@@ -33,6 +34,9 @@ export class GolfCloud {
   }
   get room() {
     return this._room;
+  }
+  get isGuest() {
+    return !!this.session?.user?.app_metadata?.polygolf_guest;
   }
   set room(value) {
     this._room = value;
@@ -93,7 +97,7 @@ export class GolfCloud {
     } catch {}
     this.username = data.username;
     this.profile = data.profile || this.profile;
-    this.status = "Account synced";
+    this.status = this.isGuest ? "Guest online · saved in this browser" : "Account synced";
     if (data.maps)
       for (const editor of [this.ui.miniEditor, this.ui.golfEditor]) {
         if (!editor) continue;
@@ -142,7 +146,7 @@ export class GolfCloud {
     return this.refreshing;
   }
   async call(action, data = {}) {
-    if (!["login", "signup"].includes(action)) await this.refresh();
+    if (!["login", "signup", "guest"].includes(action)) await this.refresh();
     const actor=this.session?.user.id;
     const response = await request(SUPABASE_URL + "/functions/v1/little-links", {
       method: "POST",
@@ -161,10 +165,24 @@ export class GolfCloud {
     return result;
   }
   async signIn(action, username, password, policyAccepted = false) {
+    if (this.room) throw Error('Leave your multiplayer room before switching accounts.');
     const result = await this.call(action, { username, password, policyAccepted });
     this.session = result.session;
     writeSession(this.session);
     this.attach(await this.call("me"));
+  }
+  async ensureGuest() {
+    if (this.session) return;
+    if (this.joiningGuest) return this.joiningGuest;
+    const connect = async () => {
+      const saved = readSession();
+      this.session = saved || (await this.call('guest')).session;
+      writeSession(this.session);
+      this.attach(await this.call('me'));
+    };
+    this.joiningGuest = (navigator.locks ? navigator.locks.request('polygolf-guest-connect', connect) : connect())
+      .finally(() => { this.joiningGuest = null; });
+    return this.joiningGuest;
   }
   async logout() {
     if (this.room) await this.call("leave_room", { roomId: this.room.id }).catch(() => {});
@@ -216,7 +234,7 @@ export class GolfCloud {
         this.ui.syncRoom(room);
       }
       // Position, gear and animation updates use private Realtime broadcasts.
-      this.status = "Account synced";
+      this.status = this.isGuest ? "Guest online · saved in this browser" : "Account synced";
     } catch (e) {
       this.status = "Reconnecting…";
       this.ui.connectionError = e.message;
@@ -239,8 +257,7 @@ export class GolfCloud {
         course +
         "&hole_count=eq." +
         (mode === "golf" ? golfHoleCount(course) : 9) +
-        "&rules_version=eq." +
-        RULES_VERSION +
+        "&rules_version=in.(polygolf-v7,polygolf-v8,polygolf-v9," + RULES_VERSION + ")" + (mode === "golf" && course >= 3 ? "&rotation_key=eq."+encodeURIComponent(courseRotationKey(course)) : "") +
         "&order=" +
         column +
         ".asc&limit=100",

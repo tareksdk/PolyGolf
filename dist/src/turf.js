@@ -24,7 +24,7 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
     ? `turfShapedOval(vTurfXZ,vec2(${number(p.x)},${number(p.z)}),vec2(${number(p.rx*scale)},${number(p.rz*scale)}),vec2(${number(Math.cos(p.angle||0))},${number(Math.sin(p.angle||0))}),${number(p.scallop||0)})`
     : `turfOval(vTurfXZ,vec2(${number(p.x)},${number(p.z)}),vec2(${number(p.rx*scale)},${number(p.rz*scale)}))`;
   const fill=(coverage,color)=>`turf=mix(turf,${rgb(color)},${coverage});`;
-  const layers=[fill(oval(h.green,1.12),'#648f43'),fill(oval(h.green,1),'#add174'),fill('turfInside(max(abs(vTurfXZ.x)-4.0,abs(vTurfXZ.y)-6.0))','#97bd65')];
+  const layers=[fill(oval(h.green,1.12),h.course.stripe||'#648f43'),fill(oval(h.green,1),h.course.green||'#a9d66b'),fill('turfInside(max(abs(vTurfXZ.x)-4.0,abs(vTurfXZ.y)-6.0))',h.course.green||'#97bd65')];
   for(const b of h.bunkers)layers.push(fill(oval(b,1.035),'#bca16f'),fill(oval(b,1),'#e3c990'));
   for(const p of h.water)layers.push(fill(oval(p,1.07),'#a2a76d'),fill(oval(p,1),h.course.water));
   const fragment=`
@@ -32,7 +32,7 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
     float aa=max(fwidth(coverage)*0.5,0.001);
     float fairway=smoothstep(0.5-aa,0.5+aa,coverage);
     float stripe=turfInside(abs(mod(-vTurfXZ.y-5.5,22.0)-11.0)-5.5);
-    vec3 turf=mix(${rgb(h.courseIndex===2?'#738d43':h.courseIndex===1?'#72934f':'#648e48')},mix(${rgb('#91b65e')},${rgb('#87ac54')},stripe),fairway);
+    vec3 turf=mix(${rgb(h.course.eventTheme?h.course.grass:h.courseIndex===2?'#718e3b':h.courseIndex===1?'#6d9645':'#5f923e')},mix(${rgb(h.course.fairway||'#8db954')},${rgb(h.course.stripe||'#80af49')},stripe),fairway);
     ${layers.join('\n')}
     diffuseColor.rgb*=turf;
   `;

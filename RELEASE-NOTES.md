@@ -1,3 +1,9 @@
+## Living adventures · v0.5 · October 16, 2026
+
+Recovered the complete October 15 production adventure update and merged it with the refined skies, mountains, Willow Park vignettes, bunker skids and sand spray, and Normal/Night/Rainy controls. Hollow Lanterns retains its haunted manor, pumpkins, graveyard, moonlit palette and three-hole layout. Weekly and daily adventures, guest multiplayer, guest rankings and room invite links are preserved. Willow Park remains nine holes.
+
+Featured and classic courses use compact collection buttons so all course choices fit without page scrolling. Every loaded hole starts in Normal; themed courses keep their intended atmosphere in Normal. Replay rules are `polygolf-v10` and the visible app version is 0.5.
+
 ## v0.4 · Living skies and bunker feel
 
 - Refined cloud layers, soft sun glow, stars and moonlight; layered mountain ridges with snow caps, wooded shoulders and distance haze.
@@ -126,4 +132,3 @@ No payment processor was enabled. Basic product policies are not a legal complia
 Latest refinements: PolyTrack-inspired compact home menu; dedicated competitive lobby and rank ladder; red-dot indicators for friends, tiers, new equipment and achievements; Blender headlands, sea arches, harbor stores, sailboats, lodge and mountain ranges; filtered, stable fairway edges.
 
 High-quality Saltwind browser check at 1280 × 720 on the development machine: 118 draw calls, 16.7 ms median / 16.8 ms p95 frame time. Device performance varies. Automated playthroughs completed all 9 golf and 45 mini-golf holes.
-

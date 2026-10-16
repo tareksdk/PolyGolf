@@ -1,3 +1,5 @@
+import { installInvites } from './room-invites.js';
+import { loadAdventureAssets } from './event-scenery.js';
 import { installInterface } from './interface.js';
 import { installCourseAtmosphere } from './course-weather.js';
 import { installItemThumbnails } from './item-thumbnails.js';
@@ -20,7 +22,7 @@ import { installShopExtras } from "./pro-shop-ui.js";
 import { installSharing } from "./map-share.js";
 let ui;
 try {
-  await loadCourseAssets();
+  await Promise.all([loadCourseAssets(),loadAdventureAssets()]);
   const repository = new LocalSaveRepository();
   const progress = new ProgressionManager(repository, (message, type) => {
     ui?.toast(message);
@@ -60,6 +62,7 @@ try {
   installLiveRound(ui);
   installCourseAtmosphere(ui);
   ui.render();
+  installInvites(ui);
   registerTools(ui);
   document.querySelector("#loading").remove();
   if (repository.error) ui.toast(repository.error);

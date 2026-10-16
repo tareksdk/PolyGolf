@@ -34,3 +34,4 @@ Settings uses custom appearance/quality cards and sliders. Choose Majestic, Upbe
 ### Local v0.4 preview
 
 Normal, Night and Rainy controls appear at the top right during a round. Each new hole starts in Normal. Optional atmospheres affect presentation only. Willow Park has refined ridgelines, cabins, balancing rocks and pond rafts; bunker impacts and wedge shots throw sand, and landings skid before settling. This update is held on `codex/atmosphere-weather-sand` for review.
+Current combined release: **v0.5**, `polygolf-v10`. Hollow Lanterns, weekly/daily adventures, guest multiplayer and invite links are preserved alongside nine-hole Willow Park, refined scenery, sand effects and per-hole Normal/Night/Rainy modes. Full-golf course collections and mini-golf pages fit the viewport without scrolling.

@@ -367,7 +367,7 @@ export class ProgressionManager {
     d.stats.courses++;
     if (!d.completed.includes(key)) d.completed.push(key);
     if (!d.daily.courses.includes(key)) d.daily.courses.push(key);
-    const recordKey = courseRecordKey(round.mode || "mini", round.courseIndex),
+    const recordKey = courseRecordKey(round.mode || "mini", round.courseIndex, round.rotationKey),
       best = d.bests[recordKey];
     d.bests[recordKey] = {
       score: Math.min(best?.score ?? Infinity, relative),

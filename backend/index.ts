@@ -1,9 +1,10 @@
+import {courseAvailable,courseRotationKey} from './shared/rotating-courses.js';
 import {roomAction} from './rooms.ts';
 import {rankFor,awardRankPlates} from './shared/ranks.js';
 import {halloweenActive} from './shared/season.js';
 import {grantPattern,rollPattern} from './shared/finishes.js';
 import {claimSocialReward} from './shared/community-rewards.js';
-import {openLocker,buyBundle} from './shared/pro-shop.js';
+import {openLocker,buyBundle,LOCKERS} from './shared/pro-shop.js';
 import {tradingAction} from './trading.ts';
 import {socialAction} from './social.ts';
 import {competitiveAction} from './competitive.ts';
@@ -12,12 +13,12 @@ import {defaultSave,ProgressionManager,levelInfo} from './shared/save.js';
 import {ITEM_BY_ID,ITEMS,ALPHA_ITEMS} from './shared/catalog.js';
 import {GOLF_COURSES,getGolfHole,golfHoleCount,RULES_VERSION} from './shared/golf-courses.js';
 import {COURSES,getHole} from './shared/courses.js';
-import {joinClub,claimTier,claimClubDaily,requireEditor,buyMemberItem} from './shared/equipment.js';
+import {joinClub,claimTier,claimClubDaily,requireEditor,buyMemberItem,membership} from './shared/equipment.js';
 import {validateMap} from './shared/maps.js';
 import {verifyHole} from './shared/replay.js';
 
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const origins=new Set(['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol','https://dapper-mochi-14469a.netlify.app','https://little-links-golf-room310.tarekgreenfield.chatgpt.site','https://little-links-golf.netlify.app','http://127.0.0.1:5173','http://localhost:5173']);
+const origins=new Set(['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol','https://room-310.com','https://www.room-310.com','https://papaya-gecko-9391bd.netlify.app','https://dapper-mochi-14469a.netlify.app','https://little-links-golf-room310.tarekgreenfield.chatgpt.site','https://little-links-golf.netlify.app','http://127.0.0.1:5173','http://localhost:5173']);
 async function api(path:string,body?:unknown,method=body?'POST':'GET',token=KEY){const r=await fetch(URL+path,{method,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=representation'},...(body?{body:JSON.stringify(body)}:{})});const data=await r.json().catch(()=>null);if(!r.ok)throw Error(data?.msg||data?.message||data?.error_description||'The server could not complete that request.');return data;}
 const table=(name:string,q='')=>api('/rest/v1/golf_'+name+'?'+q);
 const rpc=(name:string,body:unknown)=>api('/rest/v1/rpc/golf_'+name,body);
@@ -36,6 +37,18 @@ async function roundRandom(roundId:string,userId:string){
  const view=new DataView(digest);let offset=0;return()=>view.getUint32((offset++%8)*4)/4294967296;
 }
 async function auth(action:string,b:any,req:Request){
+ if(action==='guest'){
+  const ip=req.headers.get('x-forwarded-for')?.split(',')[0]||'unknown';
+  await limited('guest-ip:'+await hash(ip),20,3600);
+  const username='guest_'+crypto.randomUUID().replaceAll('-','').slice(0,12),email=username+'@guests.littlelinks.invalid',password=crypto.randomUUID()+crypto.randomUUID();
+  const user=await api('/auth/v1/admin/users',{email,password,email_confirm:true,app_metadata:{polygolf_guest:true}});
+  try{
+   const state=defaultSave();state.name=username;
+   await insert('players',{id:user.id,username,state,is_guest:true});
+   const session=await api('/auth/v1/token?grant_type=password',{email,password});
+   return{session,username,state};
+  }catch(e){await api('/auth/v1/admin/users/'+user.id,undefined,'DELETE').catch(()=>{});throw e;}
+ }
  const username=String(b.username||'').trim().toLowerCase(),password=String(b.password||'');if(!/^[a-z0-9_]{3,20}$/.test(username))throw Error('Use 3–20 letters, numbers or underscores for your username.');if(password.length<6||password.length>128)throw Error('Password must contain 6–128 characters.');
  const ip=req.headers.get('x-forwarded-for')?.split(',')[0]||'unknown';await limited('auth-ip:'+await hash(ip),20,600);await limited('auth-name:'+await hash(username),12,600);
  const email=username+'@players.littlelinks.invalid';
@@ -55,7 +68,7 @@ async function submit(p:any,b:any){
  const result=verifyHole(r,b.index,b.transcript,b.endTick);const elapsed=(Date.now()-new Date(r.updated_at).getTime())/1000;if(result.time>elapsed+3)throw Error('Replay time is ahead of the server.');
  result.skipped=b.transcript.some((c:any)=>c.kind==='skip');const pm=progress(p);if(result.pirateHit)pm.discoverPirate();if(result.pumpkinHit)pm.discoverPumpkin();if(b.index===0)pm.data.stats.games++;const reward=result.skipped?{coins:0,xp:0}:pm.completeHole({...result,time:elapsed,round:{practice:false}});if(result.collectible&&!result.skipped)pm.collectible(false);
  const holes=[...r.holes,result],count=r.hole_count,finished=holes.length===count;let record=null,bonus={coins:0,xp:0};
- if(finished){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
+ if(finished){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,rotationKey:r.rotation_key,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
  result.finished=finished;if(finished)result.bonus=bonus;const state=await save(p,pm,{p_round:r.id,p_hole:b.index,p_result:result,p_record:record});return{state,result,reward,bonus,finished};
 }
 const matchPlates=new Map();
@@ -71,7 +84,7 @@ Deno.serve(async req=>{
  const origin=req.headers.get('origin')||'',headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origins.has(origin)?origin:'https://littlelinks.study','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Vary':'Origin'};
  if(req.method==='OPTIONS')return new Response(null,{headers});if(req.method!=='POST')return new Response(JSON.stringify({error:'Use POST.'}),{status:405,headers});
  try{
-  if(Number(req.headers.get('content-length')||0)>64000)throw Error('Request is too large.');const raw=await req.text();if(raw.length>64000)throw Error('Request is too large.');const b=JSON.parse(raw),action=b.action;if(['signup','login'].includes(action))return new Response(JSON.stringify(await auth(action,b,req)),{headers});
+  if(Number(req.headers.get('content-length')||0)>64000)throw Error('Request is too large.');const raw=await req.text();if(raw.length>64000)throw Error('Request is too large.');const b=JSON.parse(raw),action=b.action;if(['signup','login','guest'].includes(action))return new Response(JSON.stringify(await auth(action,b,req)),{headers});
   if(action==='ranked_leaderboard'){
    const ratings=await table('ratings','select=user_id,elo,wins,losses,matches&matches=gt.0&order=elo.desc,wins.desc,user_id.asc&limit=100');
    const players=ratings.length?await table('players','select=id,username&id=in.('+ratings.map((r:any)=>r.user_id).join(',')+')'):[];
@@ -82,12 +95,13 @@ Deno.serve(async req=>{
   // Gateway JWT checks are disabled because signup is public. Every other action
   // verifies the bearer token with Supabase Auth; IDs supplied by clients never authorize access.
   const token=req.headers.get('authorization')?.replace(/^Bearer /i,'');if(!token)throw Error('Sign in to continue.');const user=await api('/auth/v1/user',undefined,'GET',token);const p=await player(user.id);p.state=progress(p).data;await limited('player:'+p.id,100,60);let result:any;if(['start_round','submit_hole','create_room','join_room','start_room'].includes(action)&&b.rulesVersion!==RULES_VERSION)throw Error('The courses have been updated. Reload PolyGolf before starting or continuing a round.');
+  if(p.is_guest&&(['ranked_queue','ranked_status','ranked_shot','ranked_leave','trades','trade_inventory','trade_create','trade_accept','trade_close','redeem_code','publish_map','unpublish_map','like_map','friend_action'].includes(action)))throw Error('Create an account or sign in to use this feature. Guest multiplayer is available with room codes.');
   if(action==='community_maps')result={maps:await rpc('community_v2',{p_user:p.id,p_offset:Number.isInteger(b.offset)?b.offset:0,p_mode:b.mode==='golf'?'golf':'mini'})};
   else if(action==='me'){const rating=(await table('ratings','user_id=eq.'+p.id))[0],pm=progress(p);if(awardRankPlates(pm,rating)){p.state=await save(p,pm);}result={state:p.state,username:p.username,profile:publicProfile(p),maps:await table('maps','user_id=eq.'+p.id)};}
   else if(['trades','trade_inventory','trade_create','trade_accept','trade_close'].includes(action))result=await tradingAction(action,p,b,{table,rpc,insert,limited});
   else if(['profile','update_profile','search_players','friends','friend_action'].includes(action))result=await socialAction(action,p,b,{table,rpc,update});
   else if(['ranked_status','ranked_queue','ranked_leave','ranked_shot'].includes(action))result=await enrichRanked(p,await competitiveAction(action,p,b,{table,rpc}));
-  else if(action==='start_round'){const c=info(b.mode,b.course);if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9}))[0];result={roundId:r.id};}
+  else if(action==='start_round'){const c=info(b.mode,b.course);if(b.mode==='golf'&&!courseAvailable(b.course))throw Error('This featured course has rotated. Choose the current course.');if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9,rotation_key:b.mode==='golf'?courseRotationKey(b.course):''}))[0];result={roundId:r.id,rotationKey:r.rotation_key};}
   else if(action==='submit_hole')result=await submit(p,b);
   else if(action==='claim_ship'||action==='claim_pumpkin'){
    const pumpkin=action==='claim_pumpkin',discovery=pumpkin?'pumpkin':'pirate';
@@ -106,6 +120,8 @@ Deno.serve(async req=>{
    await limited('gift:'+p.id,8,600);
    const digest=typeof b.code==='string'?await hash(b.code.trim()):'';
    const rewards:any={
+    'ad57366865126e55649ecb23ae1d48887544976efea46a48eb5d85a6eeb4d306':{id:'100-ten-thousand-coins-2026',tokens:10000,items:[],message:'10,000 coins added.'},
+    '575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1721f74b':{id:'oliver-everything-2026',tokens:1000000000,items:ITEMS.map(i=>i.id),allCollection:true,lockers:Object.fromEntries(LOCKERS.map(l=>[l.id,1])),message:'Every item, Country Club membership, one of every locker, and 1,000,000,000 coins added.'},
     '1c4e54ee5d38af18f31e3d3053be138dcb77d65e25a415607ea9918939f20a57':{id:'room310-plate-2026',tokens:0,items:['nameplate-room310'],message:'Room310 nameplate unlocked.'},
     '3beeb4070bd955ee402745e021e359e7c9bd0e1d04942feff08a616223b5f793':{id:'oneshotstudios-plate-2026',tokens:0,items:['nameplate-oneshotstudios'],message:'OneShotStudios nameplate unlocked.'},
     '82b2706cdf507848ef25f499d99d7a23d03f671301cdd15604fcedf1cb290a32':{id:'studio-collab-plate-2026',tokens:0,items:['nameplate-studio-collab'],message:'Room310 X OneShotStudios nameplate unlocked.'},
@@ -119,6 +135,12 @@ Deno.serve(async req=>{
    };
    const reward=rewards[digest];if(!reward)throw Error('That gift code is not active. Codes are case-sensitive.');
    const pm=progress(p);pm.data.giftClaims??=[];if(pm.data.giftClaims.includes(reward.id))throw Error('You have already redeemed this gift code.');
+   if(reward.allCollection){
+    // This explicit all-access code includes membership cosmetics. Persist their
+    // entitlement so normal inventory cleanup and equipping keep them available.
+    const pass=membership(pm);pass.member=true;
+    pass.legacyItems=[...new Set([...(pass.legacyItems||[]),...ITEMS.filter(i=>i.source==='membership').map(i=>i.id)])];
+   }
    const unlocked=reward.items.filter((id:string)=>!pm.data.owned.includes(id));pm.data.giftClaims.push(reward.id);pm.data.owned.push(...unlocked);pm.data.coins+=reward.tokens;pm.data.totalEarned+=reward.tokens;
    for(const id of unlocked)if(ITEM_BY_ID[id]?.finish)grantPattern(pm.data,ITEM_BY_ID[id],rollPattern(()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296));
    if(reward.lockers){pm.data.lockers??={};for(const [id,count] of Object.entries(reward.lockers))pm.data.lockers[id]=(pm.data.lockers[id]||0)+Number(count);}

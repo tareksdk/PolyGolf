@@ -1,3 +1,4 @@
+import { eventScenery } from './event-scenery.js';
 import { buildBackdrop } from "./golf-environment.js";
 import { turfMaterial } from './turf.js';
 import { buildSky } from './sky.js';
@@ -169,9 +170,8 @@ export function buildGolf(world, h) {
       world.group.add(ripple);
     }
   }
-  courseAssets(world, h);
-  buildBackdrop(world, h);
-  buildCourseVignettes(world,h);
+  if(c.eventTheme) eventScenery(world,h);
+  else { courseAssets(world,h); buildBackdrop(world,h); buildCourseVignettes(world,h); }
   const cup = h.cup,
     y = world.surfaceHeight(cup.x, cup.z);
   world.mesh("cylinder", "#223c2b", cup.x, y + 0.012, cup.z, CUP_RADIUS + 0.025, 0.015, CUP_RADIUS + 0.025);

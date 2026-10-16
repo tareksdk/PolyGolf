@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../dist/vendor/three.module.js';
-import { getGolfHole, terrainAt } from '../dist/src/golf-courses.js';
+import { GOLF_COURSES, getGolfHole, terrainAt } from '../dist/src/golf-courses.js';
 import { getHole } from '../dist/src/courses.js';
 import { GolfPhysics } from '../dist/src/golf-physics.js';
 import { mountainRangeData } from '../dist/src/mountain-ranges.js';
@@ -17,7 +17,7 @@ function worldFixture() {
 test('every course and next hole starts Normal after either optional atmosphere',()=>{
   const w=worldFixture(),ui={world:w,action(){},root:{querySelectorAll:()=>[]},game:{state:'playing'}};
   installCourseAtmosphere(ui);
-  for(const h of [getGolfHole(0,0),getGolfHole(0,8),getGolfHole(1,0),getGolfHole(2,2),...Array.from({length:5},(_,c)=>getHole(c,0))]){
+  for(const h of [...GOLF_COURSES.map((_,c)=>getGolfHole(c,0)),getGolfHole(0,8),...Array.from({length:5},(_,c)=>getHole(c,0))]){
     w.load(h);assert.equal(w.weather,'normal');
     for(const mode of ['night','rainy']){
       assert.ok(w.setWeather(mode));assert.equal(w.weather,mode);assert.equal(w.atmosphere.rainRoot.visible,mode==='rainy');

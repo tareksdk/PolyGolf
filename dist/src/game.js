@@ -1,3 +1,4 @@
+import { courseRotationKey } from "./rotating-courses.js";
 import { recommendClub } from "./club-distances.js";
 import { getHole, scoreName } from "./courses.js";
 import { getGolfHole, terrainAt, golfHoleCount } from "./golf-courses.js";
@@ -35,6 +36,7 @@ export class GameManager {
     this.customHole = options.customHole;
     this.round = {
       courseIndex,
+      rotationKey:this.mode === "golf"?courseRotationKey(courseIndex):"",
       mode: this.mode,
       practice: practice || !!this.customHole,
       strokes: [],

@@ -17,3 +17,5 @@
 .social-rewards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.social-reward{padding:24px}.social-reward>.button{display:flex;margin:12px 0 0;justify-content:center;text-decoration:none}.social-reward>.money{font-size:24px}@media(max-width:650px){.social-rewards{grid-template-columns:1fr}}
 
 .pass-page .pass-summary{color:#264334;align-items:center;padding:24px;background:#e8eddd}.pass-page .pass-summary h2,.pass-page .pass-summary .eyebrow{color:#264334}.pass-page .pass-summary p{color:#5c6d55}.pass-page .pass-summary>div{max-width:none}.pass-page .pass-summary h2{font-size:34px}.pass-page .pass-column>header span{color:#dce6d3}.pass-page .pass-premium .tier-item img{height:140px}.ranked-queue-card .button.yellow{background:#e5c66a;color:#243e31}.home-tile{font:inherit}.home-tile span{font-weight:700}@media(max-width:760px){.pass-page .pass-summary{align-items:stretch;padding:20px}.pass-page .pass-summary>div{width:100%;max-width:100%}.pass-page .pass-purchase .row{flex-wrap:wrap}.pass-page .pass-purchase .button{flex:1;min-width:120px}}
+
+.home-guest-note{margin:-14px 0 14px;color:#e2ead8;font-size:13px;line-height:1.5}

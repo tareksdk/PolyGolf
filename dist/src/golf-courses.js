@@ -1,5 +1,6 @@
 import { populateForest } from "./forest.js";
 import { samplePath } from "./courses.js";
+import { EVENT_COURSES, eventLayout, courseRotationKey } from './rotating-courses.js';
 // All distances are metres. Layouts are shared by the renderer and score verifier.
 export const GOLF_COURSES = [
   {
@@ -48,15 +49,14 @@ export const GOLF_COURSES = [
     color: "#c5a887",
   },
 ];
-export const RULES_VERSION = "polygolf-v9";
-export function golfHoleCount(courseIndex = 0) {
-  const course = layouts[courseIndex];
-  if (!course) throw Error("Unknown golf course");
-  return course.length;
+GOLF_COURSES.push(...EVENT_COURSES);
+export const RULES_VERSION = "polygolf-v10";
+export function golfHoleCount(index=0) {
+  if(!GOLF_COURSES[index])throw Error("Unknown golf course");
+  return index<3?layouts[index].length:GOLF_COURSES[index].holeCount;
 }
-export function courseRecordKey(mode, index) {
-  // Only Willow's layout changed; preserve the other courses' personal bests.
-  return mode === "golf" ? `golf:${index === 0 ? RULES_VERSION : "polygolf-v7"}:${index}` : `mini:${index}`;
+export function courseRecordKey(mode,index,rotationKey=courseRotationKey(index)) {
+  return mode==="golf" ? index<3?`golf:${index===0?RULES_VERSION:"polygolf-v7"}:${index}`:`golf:${RULES_VERSION}:${index}:${rotationKey}` : `mini:${index}`;
 }
 // Willow keeps its original opening loop, then explores two more parkland loops.
 const layouts = [
@@ -419,7 +419,7 @@ const layouts = [
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export function getGolfHole(courseIndex = 0, index = 0) {
   const course = GOLF_COURSES[courseIndex],
-    layout = layouts[courseIndex]?.[index];
+    layout = courseIndex>=3&&course&&index>=0&&index<golfHoleCount(courseIndex)?eventLayout(course,index):layouts[courseIndex]?.[index];
   if (!course || !Number.isInteger(index) || !layout) throw Error("Unknown golf hole");
   return buildGolfLayout(courseIndex, index, layout);
 }
@@ -450,7 +450,7 @@ export function buildGolfLayout(courseIndex, index, layout) {
     green: oval(layout.green),
     landmark: layout.landmark,
     scenery: (layout.scenery || []).map((p) => ({ ...p })),
-    wind: layout.wind ? { ...layout.wind } : { x: courseIndex === 0 ? 0.9 : 2.4 + courseIndex * 0.6, z: (index - 1) * 1.2 },
+    wind: layout.wind ? { ...layout.wind } : { x: course.eventTheme ? 1.4 + (index%2)*.7 : courseIndex === 0 ? 0.9 : 2.4 + courseIndex * 0.6, z: (index - 1) * 1.2 },
     seed: index + courseIndex * 19,
     ob: [],
     moving: [],

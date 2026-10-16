@@ -33,7 +33,7 @@ export class CourseAtmosphere {
   set(mode) {
     if(!COURSE_WEATHER.includes(mode))return false;
     const w=this.world,p=weatherProfile(w.hole,mode);w.weather=mode;
-    w.sky.uniforms.zenith.value.set(p.zenith);w.sky.uniforms.horizon.value.set(p.horizon);w.sky.uniforms.night.value=Number(mode==='night');w.sky.uniforms.rain.value=Number(mode==='rainy');
+    w.sky.uniforms.zenith.value.set(p.zenith);w.sky.uniforms.horizon.value.set(p.horizon);w.sky.uniforms.night.value=Number(mode==='night'||p.night);w.sky.uniforms.rain.value=Number(mode==='rainy');
     w.scene.background=new THREE.Color(p.horizon);w.scene.fog=new THREE.Fog(p.fog,p.near,p.far);
     w.sun.color.set(p.sun);w.sun.intensity=p.sunIntensity;w.hemi.color.set(p.skyLight);w.hemi.groundColor.set(p.groundLight);w.hemi.intensity=p.hemi;w.renderer.toneMappingExposure=p.exposure;
     for(const [material,roughness] of this.wetMaterials)material.roughness=mode==='rainy'?Math.min(.62,roughness):roughness;

@@ -9,6 +9,7 @@ import {PhysicsManager,FIXED_STEP} from '../dist/src/physics.js';
 import {getHole,nearestPoint} from '../dist/src/courses.js';
 import {miniStats} from '../dist/src/equipment.js';
 import {RULES_VERSION} from '../dist/src/golf-courses.js';
+import {courseAvailable} from '../dist/src/rotating-courses.js';
 import {newMap} from '../dist/src/maps.js';
 import {newGolfMap} from '../dist/src/golf-maps.js';
 
@@ -54,6 +55,17 @@ let rooms=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');
 source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(rooms)).toString('base64')));
 await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
 async function call(action,data={},id='a'){const response=await handler(new Request('http://game.local',{method:'POST',headers:{'Content-Type':'application/json',...(id?{Authorization:'Bearer '+id}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})}));const result=await response.json();if(!response.ok)throw Error(result.error);return result;}
+
+test('restored guest play starts Halloween rounds but keeps account-only ranked features protected',async()=>{
+ const original=structuredClone(players.get('a'));const p=players.get('a');p.is_guest=true;p.state=defaultSave();
+ try{
+  await assert.rejects(call('ranked_queue'),/Create an account or sign in/);
+  await call('start_round',{mode:'golf',course:3});
+  const round=rounds.get('round-test');assert.equal(round.hole_count,3);assert.equal(round.rotation_key,'halloween-2026');assert.equal(round.rules_version,RULES_VERSION);
+  const inactive=Array.from({length:11},(_,i)=>i+3).find(i=>!courseAvailable(i));
+  await assert.rejects(call('start_round',{mode:'golf',course:inactive}),/rotated/);
+ }finally{players.set('a',original);rounds.delete('round-test');}
+});
 
 test('staff and studio codes award their cosmetic nameplates once and reject altered codes and unsigned requests',async()=>{
  const p=players.get('a');p.state=defaultSave();p.revision=0;

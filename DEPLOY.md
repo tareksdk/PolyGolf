@@ -1,3 +1,7 @@
+## Living adventures · v0.5
+
+This release combines the recovered October 15 production adventure build with v0.4's scenery, weather and bunker improvements. Deploy the complete packaged `little-links` function (including `shared/rotating-courses.js`), apply `backend/ranked-bots.sql` for the `polygolf-v10` guard and nine-hole Willow matchmaking, then publish the identical `dist/` snapshot to both existing sites. Keep the existing production guest/rotation database columns and functions. Do not replace the live adventure update with an older branch snapshot. Verify Hollow Lanterns, weekly/daily cards, guest room entry, invite links, nine-hole Willow and all three weather controls before declaring release complete.
+
 ## Living skies and bunker feel · v0.4 (local review)
 
 Do not publish this branch without a release request. Bunker physics now use `polygolf-v9`: deploy the complete packaged `little-links` Edge Function, then reapply `backend/ranked-bots.sql`, before publishing `dist/` to either existing site. The bot migration now safely preserves its already-installed opponent constraint when reapplied. Existing v8 rounds need a fresh start after a future release. Weather is local presentation only and resets to Normal on every hole; no weather columns, account changes or new database objects are needed.
@@ -57,4 +61,3 @@ Public support is room310support@gmail.com. Room310 Discord: https://discord.gg/
 For existing Supabase installs, apply `backend/trading-coins.sql` and `backend/live-opponents.sql`, then deploy the function bundle from `node scripts/package-backend.mjs`. Publish `dist/` after the backend. The connected production project has both migrations and function version 19. `backend/realtime-bootstrap.sql` records the one-time repair of its missing Realtime message partitions; ongoing daily partitions are managed by Supabase.
 
 The frontend uses authenticated private Broadcast channels for player visuals in both room and ranked matches. No extra position polling or per-frame database writes are needed. Keep Realtime enabled. The visibility preference is local and defaults to on. Physics/replay version remains `polygolf-v7` because networking changes only presentation.
-

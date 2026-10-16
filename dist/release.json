@@ -1,7 +1,7 @@
 {
-  "version": "polygolf-v9",
-  "contentVersion": "living-skies-0.4",
-  "date": "2026-10-15",
+  "version": "polygolf-v10",
+  "contentVersion": "living-adventures-0.5",
+  "date": "2026-10-16",
   "items": 629,
   "lockers": 10,
   "patternSeeds": 1000,
@@ -20,7 +20,9 @@
     "calm"
   ],
   "bots": true,
-  "appVersion": "0.4",
+  "guestLeaderboards": true,
+  "inviteLinks": true,
+  "appVersion": "0.5",
   "weatherModes": [
     "normal",
     "night",
