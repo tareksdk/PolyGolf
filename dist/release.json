@@ -1,6 +1,6 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "live-preserving-controls-and-full-guide-0.9",
+  "contentVersion": "original-shop-layout-1.0",
   "date": "2026-10-17",
   "items": 635,
   "lockers": 10,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "0.9",
+  "appVersion": "1.0",
   "classicCourseHoles": 3,
   "longWillowHoles": 9,
   "newAccountCoins": 5000,

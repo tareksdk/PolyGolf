@@ -287,7 +287,7 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
  .clubhouse-menu .topbar .nav{gap:2px}.clubhouse-menu .topbar .nav button{padding:7px 8px;font-size:10px}
 }
 
-/* Collections and shop shelves use bounded pages, retaining their existing cards. */
+/* The Caddie collection keeps its bounded pages. The Shop uses its original shelves. */
 .menu-pager{display:flex;align-items:center;justify-content:center;gap:14px;flex:none;padding:8px 0 0;min-height:40px}
 .menu-pager .button{padding:7px 12px;min-height:32px;font-size:11px}.menu-pager>span{font-size:11px;white-space:nowrap}
 .compact-menu-select{display:none}
@@ -305,32 +305,6 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
 .garage-items .pg-foot .button{min-height:30px;padding:6px 9px;font-size:11px}
 .clubhouse-menu .garage-inventory>.garage-bottom{order:10;flex:none;margin-top:5px;padding-top:6px;gap:8px;font-size:10px}
 .clubhouse-menu .garage-inventory>.menu-pager{order:9}
-.clubhouse-menu .shop-page{display:flex;flex-direction:column;overflow:hidden;inset:var(--header-height,110px) 0 0;padding:16px var(--page-gutter)}
-.shop-page>.page-heading{flex:none;margin-bottom:8px}.shop-page>.shop-toolbar{flex:none;margin-bottom:10px!important;padding-top:0}
-.shop-page>.shop-shelf{display:flex;flex-direction:column;flex:1;min-height:0;width:100%;overflow:hidden}
-.shop-page .menu-page-content{flex:1;min-height:0;overflow:hidden}
-.shop-page .menu-page-content> :not([hidden]){max-height:100%;margin-block:0}
-.shop-page .paged-card-grid{display:grid;grid-template-columns:repeat(var(--page-columns,3),minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:12px;height:100%;min-height:0}
-.shop-page .paged-card-grid>.pg-card{display:flex;flex-direction:column;min-height:0}
-.shop-page .paged-card-grid .pg-art{flex:1;min-height:30px;max-height:160px;aspect-ratio:auto}
-.shop-page .paged-card-grid .pg-art img{object-fit:contain}
-.shop-page .pg-body{padding:10px}.shop-page .pg-body h3{font-size:15px;margin:6px 0}.shop-page .pg-foot{margin-top:7px}
-.shop-page .pg-foot .button{font-size:11px;min-height:32px;padding:6px 9px}
-.shop-page .shop-rail{height:100%;display:flex;flex-direction:column}.shop-page .rail-head{flex:none;margin-bottom:8px}.shop-page .rail-head h2{font-size:20px}
-.shop-page .shop-rail .paged-card-grid{flex:1;min-height:0}
-.shop-page .shop-featured{height:100%;min-height:0}.shop-page .shop-hero{min-height:0;height:100%}
-.shop-page .promo-card{min-height:0;display:flex;flex-direction:column}.shop-page .promo-card>img{min-height:50px;max-height:150px;flex:1;object-fit:contain}.shop-page .promo-card>div{padding:14px}
-.shop-page .shelf-caption{flex:none;font-size:11px;margin:0 0 7px;line-height:1.35}
-.shop-page .shop-filters{flex:none;margin-bottom:8px;gap:8px}.shop-page .shop-filters .chip-row{gap:5px}
-.shop-page .shop-filters .chip{font-size:10px;padding:5px 8px;min-height:29px}
-.shop-page .shop-filters .sort-select{font-size:11px}.shop-page .shop-filters select{font-size:11px;padding:6px}
-.shop-page .crate-card{display:flex;flex-direction:column;min-height:0}.shop-page .crate-art{flex:1;min-height:35px;max-height:150px}.shop-page .crate-art img{height:100%;object-fit:contain}
-.shop-page .crate-body{padding:10px}.shop-page .crate-body h3{font-size:17px;margin:5px 0}.shop-page .crate-body p{font-size:11px;margin:4px 0}.shop-page .crate-best{font-size:10px;margin:7px 0}
-.shop-page .crate-foot{gap:7px;margin-top:8px;flex-wrap:wrap}.shop-page .crate-foot .button{min-height:30px;padding:6px 8px;font-size:10px}
-.shop-page .bundle-card{min-height:0;padding:14px}.shop-page .bundle-card h2{font-size:20px}.shop-page .bundle-images{max-height:140px;overflow:hidden}
-.shop-page .achievement-reward{min-height:0;padding:12px;display:flex;flex-direction:column}.shop-page .achievement-reward>img{height:75px;min-height:30px;width:100%;object-fit:contain}.shop-page .achievement-reward h2{font-size:18px}.shop-page .achievement-reward h3{font-size:14px}.shop-page .achievement-reward p{font-size:11px;margin:5px 0}
-.shop-page .membership-offer{height:auto;min-height:0;padding:18px}.shop-page .membership-offer h2{font-size:25px}.shop-page .community-menu-content{padding:10px}.shop-page .community-menu-content h2{font-size:24px;margin:0 0 6px}
-.shop-page .community-menu-content p{font-size:11px;margin:7px 0;line-height:1.4}.shop-page .community-link{padding:10px;min-height:0}.shop-page .community-links{gap:8px;margin:10px 0}
 @media(max-width:700px),(max-height:600px){
  .compact-menu-select{display:block;width:100%;min-width:0;min-height:32px;padding:6px 10px;font-size:12px;margin:5px 0;background:var(--ui-field,#173e32);color:var(--ui-text,#edf0dc);border:1px solid var(--ui-border,#719a6b);border-radius:4px}
  .compact-menu-source{display:none!important}
@@ -348,18 +322,6 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
  .caddie-toolbar{gap:6px;margin-block:6px}.caddie-toolbar input{min-height:30px;padding:6px 8px;font-size:11px}.caddie-toolbar .button{min-height:30px;font-size:10px;padding:6px 8px}
  .caddie-toolbar #caddie-result-count{font-size:9px}.caddie-filters{padding:5px!important;margin:0!important}.caddie-filters>.compact-menu-select{margin:3px 0;min-height:28px}
  .menu-pager{min-height:34px;padding-top:5px;gap:8px}.menu-pager .button{min-height:28px;padding:5px 9px;font-size:10px}
- .shop-page>.page-heading{margin-bottom:5px}.shop-page>.page-heading h1{font-size:24px}.shop-page>.page-heading p{display:none}.shop-page .shop-wallet{padding:4px 7px}.shop-page .shop-wallet small{display:none}
- .shop-page .shop-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:6px!important}.shop-page .shop-toolbar>.compact-menu-select{flex:1;margin:0}.shop-page .shop-toolbar>.text-button{font-size:10px;white-space:nowrap}
- .shop-page .shop-filters{display:flex;flex-wrap:wrap;gap:5px}.shop-page .shop-filters>.compact-menu-select{flex:1;min-width:85px;width:auto;margin:0}.shop-page .shop-sorts{flex:1;gap:5px}
- .shop-page .hero-copy{padding:16px}.shop-page .hero-copy h2{font-size:23px}.shop-page .hero-copy p{font-size:12px;margin-block:8px}
- .shop-page .shop-hero{grid-template-columns:1.4fr 1fr}.shop-page .hero-tags{font-size:10px;gap:6px}.shop-page .hero-actions{margin-top:12px;gap:10px}.shop-page .hero-actions .button{padding:7px 10px;min-height:32px;font-size:11px}
- .shop-page .promo-card{height:100%;max-height:100%}.shop-page .promo-card h3{font-size:20px}.shop-page .promo-card p{font-size:11px;margin:7px 0}
- .shop-page .rail-head h2{font-size:17px}.shop-page .rail-head span{font-size:10px}.shop-page .rail-head .text-button{font-size:10px}
- .shop-page .pg-art{max-height:110px!important}.shop-page .pg-body{padding:8px}.shop-page .pg-body h3{font-size:13px;margin:5px 0}.shop-page .pg-meta{font-size:9px}.shop-page .pg-category{display:none}
- .shop-page .crate-art{max-height:100px}.shop-page .crate-body .eyebrow{font-size:9px}.shop-page .crate-body h3{font-size:15px}.shop-page .crate-best{margin:5px 0}.shop-page .crate-foot{margin-top:6px}
- .shop-page .locker-quantity{padding:5px;margin:0 0 6px}.shop-page .locker-quantity span{font-size:9px}.shop-page .locker-quantity strong{font-size:11px}
- .shop-page .achievement-reward>img{height:50px}.shop-page .achievement-reward h2{font-size:16px;margin:4px 0}.shop-page .achievement-reward h3{font-size:12px;margin:4px 0}.shop-page .achievement-reward .challenge-track{margin:5px 0}
- .shop-page .bundle-card{padding:9px}.shop-page .bundle-images{max-height:80px}.shop-page .bundle-card h2{font-size:18px;margin:6px 0}.shop-page .bundle-card p{font-size:11px}
 }
 @media(max-width:600px){
  .clubhouse-menu .garage-page{grid-template-columns:minmax(0,1fr);grid-template-rows:82px minmax(0,1fr);gap:7px;padding:7px 10px}
@@ -367,67 +329,21 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
  .clubhouse-menu .garage-preview .caddie-stage{height:82px!important}
  .garage-inventory .pg-art{max-height:120px}.garage-inventory .pg-body{padding:7px}.garage-inventory .pg-meta{font-size:9px}.garage-inventory .pg-body h3{font-size:13px;margin:4px 0}
  .garage-inventory .pg-foot{margin-top:4px}.garage-inventory .pg-foot .button{min-height:27px;padding:5px 8px;font-size:10px}.garage-inventory .garage-bottom .text-button{font-size:10px}
- .clubhouse-menu .shop-page{padding:10px 12px}.shop-page .community-menu-content{padding:0}.shop-page .community-link{padding:8px;gap:7px}.shop-page .community-link strong{font-size:12px}.shop-page .community-link small{font-size:10px}.shop-page .community-link b{font-size:10px}
- .shop-page .community-menu-content>h2{font-size:21px}.shop-page .membership-offer{padding:12px}.shop-page .membership-offer h2{font-size:23px}.shop-page .membership-offer p{font-size:12px;line-height:1.4}
 }
 @media(max-height:600px){
  .clubhouse-menu .garage-page{padding-block:7px}.clubhouse-menu .garage-inventory{padding:7px 10px}.garage-inventory .caddie-toolbar{margin:4px 0}
  .garage-inventory .pg-art{max-height:75px}.garage-inventory .pg-body{padding:6px}.garage-inventory .pg-meta{font-size:8px}.garage-inventory .pg-body h3{font-size:12px;margin:3px 0}.garage-inventory .pg-foot{margin-top:3px}
  .garage-inventory .garage-bottom{padding-top:3px!important;margin-top:2px!important}.garage-inventory .garage-bottom .text-button{font-size:9px;padding:3px}
- .shop-page .crate-art{max-height:65px}.shop-page .crate-body p,.shop-page .crate-best{font-size:10px}.shop-page .crate-body{padding:7px}.shop-page .crate-foot .button{padding:4px 6px;min-height:27px}
- .shop-page .paged-card-grid .pg-art{max-height:65px!important}.shop-page .pg-body h3{font-size:12px}.shop-page .pg-body{padding:6px}.shop-page .pg-meta{font-size:8px}
- .shop-page .promo-card>img{max-height:70px}.shop-page .promo-card>div{padding:9px}.shop-page .promo-card h3{font-size:18px;margin:5px 0}
- .shop-page .hero-copy{padding:12px}.shop-page .hero-copy h2{font-size:21px}.shop-page .hero-copy p{font-size:10px}.shop-page .hero-tags{font-size:9px}.shop-page .hero-actions{margin-top:7px}
- .shop-page .achievement-reward>img{height:35px}.shop-page .achievement-reward p{font-size:10px;margin:3px 0}.shop-page .achievement-reward h2{font-size:14px}.shop-page .achievement-reward small{font-size:9px}
- .shop-page .bundle-images{max-height:60px}.shop-page .bundle-card .eyebrow{font-size:9px}.shop-page .bundle-card h2{font-size:15px;margin:4px 0}.shop-page .bundle-card .button{min-height:28px;padding:5px 8px;font-size:10px}
- .shop-page .membership-offer{padding:10px}.shop-page .membership-offer h2{font-size:20px;margin:6px 0}.shop-page .membership-offer p{font-size:10px}.shop-page .membership-offer .button{min-height:28px;padding:5px 8px;font-size:10px}
 }
 @media(max-width:600px) and (max-height:600px){.clubhouse-menu .garage-page{grid-template-rows:48px minmax(0,1fr)}.clubhouse-menu .garage-preview,.clubhouse-menu .garage-preview .caddie-stage{height:48px!important}}
 /* Override legacy mobile document flow and card gaps inside the bounded panels. */
-.clubhouse-menu .shop-page{position:absolute!important;height:calc(100dvh - var(--header-height,110px))!important;min-height:0!important;inset:var(--header-height,110px) 0 0!important;margin:0!important}
-.shop-page .shop-shelf,.shop-page .menu-page-content{min-height:0!important}
-.shop-page .crate-card{height:100%;gap:0}.shop-page .crate-body{gap:4px;min-height:0;flex:none}
-.shop-page .crate-body p{min-height:0;line-height:1.35}.shop-page .crate-art{flex:1 1 80px;min-height:20px;aspect-ratio:auto}
-.shop-page .crate-art img{aspect-ratio:auto}.shop-page .crate-best{min-height:0;margin:4px 0}.shop-page .crate-foot{margin-top:4px}
-.shop-page .achievement-reward{gap:5px;height:100%}.shop-page .achievement-reward>img{flex:0 1 55px;min-height:20px}
-.shop-page .achievement-reward .button{min-height:30px;padding:6px 9px;font-size:11px;margin-top:5px}
-.shop-page .achievement-reward p{line-height:1.35}.shop-page .achievement-reward h3{margin-top:5px}
-.shop-page .community-menu-content{margin:0!important;max-width:100%;height:auto}
-.shop-page .community-link{min-height:0;gap:10px;padding:9px 12px}.shop-page .community-link i{font-size:22px;width:24px}
-.shop-page .community-link strong{font-size:14px}.shop-page .community-link small{margin-top:2px;font-size:10px}
-.shop-page .community-menu-content .community-terms{line-height:1.35;font-size:10px;margin:7px 0}
-.shop-page .community-menu-content>.arcade-button{min-height:30px;padding:6px 12px;font-size:11px}
 @media(max-width:700px),(max-height:600px){
  .clubhouse-menu .topbar{display:flex;flex-wrap:wrap;min-height:0;height:auto}
- .shop-page .achievement-reward{gap:3px}.shop-page .achievement-reward>img{height:35px;flex-basis:35px}
- .shop-page .community-link strong{font-size:12px}.shop-page .community-link b{font-size:10px}
 }
 @media(max-height:600px){
- .shop-page .shelf-caption{display:none}
- .garage-items .pg-card,.shop-page .paged-card-grid>.pg-card{display:grid;grid-template-columns:minmax(50px,30%) minmax(0,1fr);gap:0;height:100%}
- .garage-items .pg-art,.shop-page .paged-card-grid .pg-art{height:100%;max-height:none!important;min-height:0}
- .garage-items .pg-body,.shop-page .pg-body{min-height:0;align-self:center}
- .shop-page .crate-card{display:grid;grid-template-columns:minmax(45px,27%) minmax(0,1fr);height:100%}
- .shop-page .crate-art{height:100%;max-height:none;min-height:0}.shop-page .crate-body{align-self:center;gap:3px;padding:6px}
- .shop-page .crate-body h3{font-size:14px;margin:3px 0}.shop-page .crate-body p{font-size:9px;margin:3px 0}.shop-page .crate-body .eyebrow{font-size:8px}
- .shop-page .crate-best{font-size:9px}.shop-page .crate-foot{gap:4px}.shop-page .crate-foot>.money{font-size:12px}.shop-page .crate-foot .row{gap:4px}
- .shop-page .crate-foot .button{font-size:9px;padding:4px 5px;min-height:25px}
- .shop-page .achievement-reward{display:grid;grid-template-columns:minmax(30px,22%) minmax(0,1fr);gap:7px;padding:7px}
- .shop-page .achievement-reward>img{height:60px;align-self:center}.shop-page .achievement-reward h2{font-size:13px;margin:3px 0}.shop-page .achievement-reward h3{font-size:11px;margin:3px 0}
- .shop-page .achievement-reward p{font-size:9px;line-height:1.25;margin:3px 0}.shop-page .achievement-reward .button{min-height:26px;font-size:9px;margin-top:3px;padding:4px 6px}
- .shop-page .bundle-images{max-height:42px}.shop-page .bundle-card h2{font-size:14px;margin:4px 0}.shop-page .bundle-card p{font-size:10px;margin:4px 0}.shop-page .bundle-card .row{gap:5px}
- .shop-page .membership-offer{padding:9px}.shop-page .membership-offer h2{font-size:18px;margin:4px 0}.shop-page .membership-offer p{font-size:9px;line-height:1.3;margin:5px 0}.shop-page .membership-prices{margin:6px 0}.shop-page .membership-prices strong{font-size:19px}
-}
-@media(max-height:480px){
- .shop-page .community-menu-content>p:not(.community-terms){display:none}.shop-page .community-menu-content>h2{font-size:18px}
- .shop-page .community-links{margin:6px 0}.shop-page .community-link{padding:6px 9px}.shop-page .community-menu-content .community-terms{font-size:9px}
-}
-.clubhouse-menu .shop-page{padding:16px var(--page-gutter)!important;align-items:stretch}
-.shop-page>.page-heading,.shop-page>.shop-toolbar{width:100%;margin-inline:0}
-@media(max-width:700px),(max-height:600px){
- .clubhouse-menu .shop-page{padding:8px 12px!important}
- .shop-page .achievement-reward>img{height:30px;min-height:0}
- .shop-page .achievement-reward p{margin:2px 0}
+ .garage-items .pg-card{display:grid;grid-template-columns:minmax(50px,30%) minmax(0,1fr);gap:0;height:100%}
+ .garage-items .pg-art{height:100%;max-height:none!important;min-height:0}
+ .garage-items .pg-body{min-height:0;align-self:center}
 }
 @media(max-height:480px) and (min-width:601px){
  .clubhouse-menu .garage-inventory{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:32px 30px 34px minmax(0,1fr) 32px 22px;gap:4px 8px;height:100%}
@@ -442,12 +358,6 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
  .garage-inventory .collection-tools .favorite-button{width:24px;height:24px;min-height:24px}
  .garage-inventory .pg-foot .button{min-height:27px!important;padding:5px 7px!important;font-size:10px!important}
  .garage-inventory .pg-body{gap:3px}.garage-inventory .pg-foot .favorite-button{width:27px;height:27px;min-height:27px}
- .shop-page .locker-quantity{height:30px;min-height:0;gap:6px;padding:3px;margin:0 0 4px}
- .shop-page .locker-quantity>div:first-child{display:flex;align-items:center;gap:5px}.shop-page .locker-quantity span{display:none}
- .shop-page .locker-quantity .chip{min-height:24px;height:24px;padding:3px 6px;font-size:10px}
- .shop-page .crate-body{gap:2px;padding:5px}.shop-page .crate-body h3{font-size:12px;line-height:1.15;margin:2px 0}
- .shop-page .crate-body p{font-size:9px;line-height:1.2;margin:2px 0}.shop-page .crate-body .eyebrow{font-size:8px}
- .shop-page .crate-body .odds-bar{height:5px}.shop-page .crate-best{font-size:8.5px;line-height:1.2;margin:2px 0}
 }
 @media(max-width:480px){
  .modal:has(.result){padding:20px;max-height:calc(100dvh - 24px);overflow:hidden}
@@ -543,3 +453,9 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
 }
 /* The centered menu must not cover the account/settings buttons on small screens. */
 .arcade-home>.home-account{position:relative;z-index:2}
+/* Restore the original Shop shelves and cards; scroll the Shop below its header. */
+.clubhouse-menu[data-screen=shop] .shop-page{position:absolute!important;inset:var(--header-height,110px) 0 0!important;height:auto!important;min-height:0!important;margin:0;overflow-y:auto;overflow-x:hidden}
+@media(max-width:600px){
+ .clubhouse-menu[data-screen=shop] .bundle-grid{grid-template-columns:minmax(0,1fr)}
+ .clubhouse-menu[data-screen=shop] .bundle-card>.row{flex-wrap:wrap;gap:12px}
+}

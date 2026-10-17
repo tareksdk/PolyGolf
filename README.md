@@ -2,7 +2,9 @@
 
 A low-poly browser golf game by **Room310 × OneShotStudios**, playable at [polygolf.lol](https://polygolf.lol).
 
-Play nine detailed holes at Willow Park and three each at Saltwind Links and Autumn Pines, or 45 mini-golf holes. Create and share courses, collect equipment, complete achievements, play friends and enter competitive matchmaking at level 15. Map editors unlock at level 10.
+Current release: **v1.0**. The Shop uses its original scrolling shelves and full-size cards. See [START-HERE.md](START-HERE.md) for the game-file archive and local launch instructions.
+
+Play the three-hole classics at Willow Park, Saltwind Links and Autumn Pines, the separate nine-hole Willow Park Long Course, or 45 mini-golf holes. Create and share courses, collect equipment, complete achievements, play friends and enter competitive matchmaking at level 15. Map editors unlock at level 10.
 
 The item shop includes daily and weekly rotations, bundles, novelty clubs and ten lockers during Halloween (nine year-round) with disclosed odds. Forge and Workshop Lockers contain 18 original patterned drivers, putters and balls. Every drop saves a pattern numbered 000–999; different patterns of an item stay in the Caddie. Country Club costs 50,000 earned coins and contains 30 tiers with one free reward and one member item per tier, plus a separate members-only collection. Real-money prices are Coming Soon previews only. Opening each Room310 community link awards 1,000 coins once per account; no follow verification is required.
 
@@ -34,7 +36,7 @@ Settings uses custom appearance/quality cards and sliders. Choose Majestic, Upbe
 ### Local v0.4 preview
 
 Normal, Night and Rainy controls appear at the top right during a round. Each new hole starts in Normal. Optional atmospheres affect presentation only. Willow Park has refined ridgelines, cabins, balancing rocks and pond rafts; bunker impacts and wedge shots throw sand, and landings skid before settling. This update is held on `codex/atmosphere-weather-sand` for review.
-Current combined release: **v0.6**, `polygolf-v10`. Featured adventures and the three classics share one course screen, with a moonlit Halloween backdrop for Featured. Water hazards have a splash crown, airborne droplets, expanding ripples and a brief camera hold before returning to the last shot. Hollow Lanterns, rotating adventures, guest multiplayer, nine-hole Willow Park, sand effects and Normal/Night/Rainy modes are preserved. Course menus fit the viewport without scrolling. The existing multi-locker openings, increased coin rewards, and rotating home scenery are preserved, with the matching live backend source included.
+Earlier combined release: **v0.6**, `polygolf-v10`. Featured adventures and the three classics share one course screen, with a moonlit Halloween backdrop for Featured. Water hazards have a splash crown, airborne droplets, expanding ripples and a brief camera hold before returning to the last shot. Hollow Lanterns, rotating adventures, guest multiplayer, nine-hole Willow Park, sand effects and Normal/Night/Rainy modes are preserved. Course menus fit the viewport without scrolling. The existing multi-locker openings, increased coin rewards, and rotating home scenery are preserved, with the matching live backend source included.
 
 ## Local v0.8 preview
 
