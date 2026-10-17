@@ -41,3 +41,7 @@ Current combined release: **v0.6**, `polygolf-v10`. Featured adventures and the 
 The current working branch adds continuous aiming, a short rising arrow that leaves the landing uncertain, optional Flow direction/hold-power controls, and Saltwind hole 1’s larger cartoon TNT ship with an explosion and sinking animation. The first cove has a lower drop and sloping cliffs. Rendering work includes reused camera/input vectors, deferred thumbnails, and suspension of covered locker scenery.
 
 Run `PORT=5176 node server.mjs` and open http://127.0.0.1:5176/. Localhost uses a separate v0.7 preview save and disables live account and multiplayer calls. Choose **Shot meter** during a round to switch between Classic and Flow. This candidate has not been pushed or deployed. See [the v0.8 regression audit](LOCAL-QA-0.8-REPORT.md) for fixes, browser checks, evidence, and limitations. The original temporary-update report remains available in `LOCAL-UPDATE-0.7-REPORT.md`.
+
+## Production 0.9
+
+The 0.9 integration preserves the newer production 0.7.2 features while adding the controls/UI fixes and restoring the full predicted shot path by default. See [RELEASE-0.9-REPORT.md](RELEASE-0.9-REPORT.md) for the production comparison, fixes and verification. Run `node server.mjs` for a localhost preview with separate saves.

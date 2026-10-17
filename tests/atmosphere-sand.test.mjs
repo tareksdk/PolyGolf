@@ -5,8 +5,10 @@ import { GOLF_COURSES, getGolfHole, terrainAt } from '../dist/src/golf-courses.j
 import { getHole } from '../dist/src/courses.js';
 import { GolfPhysics } from '../dist/src/golf-physics.js';
 import { mountainRangeData } from '../dist/src/mountain-ranges.js';
-import { installCourseAtmosphere, weatherControls } from '../dist/src/course-weather.js';
+import { installCourseAtmosphere } from '../dist/src/course-weather.js';
 import { weatherProfile } from '../dist/src/weather-config.js';
+import {settingsDialog} from '../dist/src/dialogs.js';
+import {defaultSave} from '../dist/src/save.js';
 import { verifyHole } from '../dist/src/replay.js';
 
 function worldFixture() {
@@ -17,7 +19,7 @@ function worldFixture() {
 test('every course and next hole starts Normal after either optional atmosphere',()=>{
   const w=worldFixture(),ui={world:w,action(){},root:{querySelectorAll:()=>[]},game:{state:'playing'}};
   installCourseAtmosphere(ui);
-  for(const h of [...GOLF_COURSES.map((_,c)=>getGolfHole(c,0)),getGolfHole(0,8),...Array.from({length:5},(_,c)=>getHole(c,0))]){
+  for(const h of [...GOLF_COURSES.map((_,c)=>getGolfHole(c,0)),getGolfHole(14,8),...Array.from({length:5},(_,c)=>getHole(c,0))]){
     w.load(h);assert.equal(w.weather,'normal');
     const normalNight=Number(['halloween','space','cyberpunk'].includes(h.course?.eventTheme));
     assert.equal(w.sky.uniforms.night.value,normalNight);
@@ -32,7 +34,7 @@ test('every course and next hole starts Normal after either optional atmosphere'
     }
   }
   assert.equal(w.setWeather('invalid'),false);assert.equal(w.weather,'normal');
-  assert.equal((weatherControls(w).match(/aria-pressed="true"/g)||[]).length,1);
+  assert.equal((settingsDialog(defaultSave().settings).match(/name="setting-courseWeather"/g)||[]).length,3);
 });
 test('atmosphere switches restore materials, preserve gameplay state, and leave only bounded effect pools',()=>{
   const w=worldFixture(),ui={world:w,action(){},root:{querySelectorAll:()=>[]},game:{state:'playing'}};
@@ -44,7 +46,7 @@ test('atmosphere switches restore materials, preserve gameplay state, and leave 
   assert.equal(w.atmosphere.rainPositions.length,500*6);assert.equal(w.atmosphere.sand.grains.instanceMatrix.count,180);
 });
 test('mountain ridges are deterministic, varied, continuous at the seam and bounded at both qualities',()=>{
-  const h=getGolfHole(0,5);
+  const h=getGolfHole(14,5);
   for(const quality of ['low','high'])for(let layer=0;layer<3;layer++){
     const data=mountainRangeData(h,layer,quality);assert.deepEqual(data,mountainRangeData(h,layer,quality));
     assert.equal(data.positions.length,data.colors.length);assert.ok(data.positions.length<60000);
@@ -67,5 +69,5 @@ test('sand landing keeps a visible skid then settles, and emits one impact conta
 test('sand wedge leaves the bunker with a sand-shot event, and skips still verify on all nine holes',()=>{
   const h=getGolfHole(0,0),b=h.bunkers[0],p=new GolfPhysics();p.load(h);p.lastSafe={x:b.x,z:b.z};p.reset();
   assert.ok(p.shoot(0,-1,.65,{club:'sw'}));assert.ok(p.ball.vy>0);assert.ok(p.events.includes('sand-shot'));assert.equal(p.sandContact.kind,'shot');
-  for(let index=0;index<9;index++)assert.equal(verifyHole({mode:'golf',course:0,equipment:{}},index,[{kind:'skip',tick:0}],0).strokes,getGolfHole(0,index).par+6);
+  for(let index=0;index<9;index++)assert.equal(verifyHole({mode:'golf',course:14,equipment:{}},index,[{kind:'skip',tick:0}],0).strokes,getGolfHole(14,index).par+6);
 });

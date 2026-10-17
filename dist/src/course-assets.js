@@ -7,12 +7,14 @@ import { scenicLayout } from "./scenic-layout.js";
 import { halloweenActive } from './season.js';
 import { buildPirateShip } from './pirate-effects.js';
 import { coastWaterLevel } from './golf-courses.js';
+import { treeModel } from './tree-detail.js';
+import { treeSilhouette } from './tree-silhouettes.js';
 
 // Places the Blender-authored course kit (assets/source/build_course_kit.py) around each
 // full-golf hole. Everything here is visual only: collisions, terrain and replays use
 // the shared course modules. Props are placed only on ground that is clear of tree
 // trunks, and never on greens, tees or hazards unless a prop is meant for the water.
-const TREE = /^(oak|pine|willow|juniper|larch|autumn-oak|fruit-tree)(-low)?$/;
+const TREE = /^(oak|pine|willow|juniper|larch|autumn-oak|fruit-tree)(-(low|far))?$/;
 let kit;
 
 export async function loadCourseAssets() {
@@ -34,6 +36,7 @@ export async function loadCourseAssets() {
 }
 
 function geometryFor(name) {
+  if(kit&&name.endsWith('-far'))kit[name]??=treeSilhouette(name.slice(0,-4));
   const data = kit?.[name];
   if (!data) return null;
   data.geometry ??= (() => {
@@ -86,12 +89,8 @@ export function courseAssets(w, h) {
   const water = (p) => terrainAt(h, p.x, p.z).height;
 
   // ---- Forest: far trees use low-detail models; The Orchard swaps in fruit trees.
-  const orchard = h.courseIndex === 0 && h.index === 2 && !h.custom;
   for (const t of h.trees) {
-    const far = w.settings?.graphics === "low" || t.far || Math.abs(t.x) > 85;
-    let type = t.type;
-    if (orchard && t.type !== "pine" && pathDistance(h, t.x, t.z) < 70) type = far ? "fruit-tree-low" : "fruit-tree";
-    else if (far) type = t.type === "larch" ? "larch-low" : t.type === "autumn-oak" ? "autumn-oak-low" : t.type === "pine" ? "pine-low" : "oak-low";
+    const type=treeModel(h,t,w.settings?.graphics);
     add(type, t.x, t.z, t.size, (t.x + t.z) * 0.31);
   }
 
@@ -349,7 +348,7 @@ export function courseAssets(w, h) {
     if (!geo) continue;
     const mesh = new THREE.InstancedMesh(geo, material, places.length);
     if(name.startsWith('halloween-'))mesh.userData.halloween=true;
-    mesh.castShadow = !name.endsWith("-low") && !["lily-pads", "mushrooms", "rake", "alpine-massif", "alpine-ridge", "coastal-headland", "gull"].includes(name);
+    mesh.castShadow = !name.endsWith("-low") && !name.endsWith('-far') && !["lily-pads", "mushrooms", "rake", "alpine-massif", "alpine-ridge", "coastal-headland", "gull"].includes(name);
     mesh.receiveShadow = true;
     places.forEach((p, i) => {
       p.y = p.fixedY ?? ground(p.x, p.z);

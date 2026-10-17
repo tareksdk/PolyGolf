@@ -2,6 +2,7 @@ import { courseRecordKey } from "./golf-courses.js";
 import { halloweenActive } from './season.js';
 import { rollRoundLocker } from './round-rewards.js';
 import { normalizePatterns, validSeed } from './finishes.js';
+import { normalizeLockerHistory, LOCKER_LEGEND_ID, LOCKER_LEGEND_ITEM, LOCKER_LEGEND_TARGET } from './locker-milestones.js';
 import { unlockLevels, memberEntitled, migratePass } from "./equipment.js";
 import { DEFAULT_EQUIPMENT, ITEMS, ITEM_BY_ID, dayKey, dayNumber, shopAvailable } from "./catalog.js";
 export const SAVE_KEY = "little-links.save.v1";
@@ -10,7 +11,8 @@ export const DEFAULT_SETTINGS = {
   music: 0.25,
   musicStyle: "calm",
   sfx: 0.65,
-  graphics: "medium",
+  graphics: "auto",
+  courseWeather: "normal",
   theme: "dark",
   shadows: true,
   particles: true,
@@ -18,6 +20,7 @@ export const DEFAULT_SETTINGS = {
   zoomSensitivity: 1,
   aimGuide: true,
   shotMeter: "classic",
+  shotGuide: "full",
   showOpponents: true,
 };
 export function defaultSave() {
@@ -95,6 +98,7 @@ export class LocalSaveRepository {
       result.name = String(result.name).slice(0, 20);
       for (const k of ["master", "music", "sfx"])
         result.settings[k] = Math.max(0, Math.min(1, Number(result.settings[k]) || 0));
+      result.settings.shotGuide = result.settings.shotGuide === 'directional' ? 'directional' : 'full';
       result.settings.shotMeter = result.settings.shotMeter === "fluid" ? "fluid" : "classic";
       return normalizeInventory(result);
     } catch (e) {
@@ -113,6 +117,7 @@ export class LocalSaveRepository {
   }
 }
 export const ACHIEVEMENTS = [
+  { id:LOCKER_LEGEND_ID,item:LOCKER_LEGEND_ITEM,name:'Just One More',desc:'Open more than 1,000 lockers.',icon:'gift',target:LOCKER_LEGEND_TARGET,value:s=>s.stats.lockersOpened||0,coins:0,xp:0,secret:true },
   { id:'pumpkin',item:'ball-pumpkin-find',items:['ball-pumpkin-find','nameplate-pumpkin-find'],name:'A Little Pumpkin Hunt',desc:'Hit the pumpkin beneath a tree beside the first Autumn Pines fairway.',icon:'gift',target:1,value:s=>s.stats.pumpkinHits||0,coins:350,xp:450 },
   { id: 'pirate', item: 'ball-pirate', items: ['ball-pirate', 'nameplate-pirate'], name: 'Broadside!', desc: 'Hit the pirate ship in the water at Saltwind Links.', icon: 'flag', target: 1, value: s => s.stats.shipHits || 0, coins: 350, xp: 450 },
   {
@@ -469,6 +474,7 @@ export class ProgressionManager {
 }
 
 export function normalizeInventory(d) {
+  normalizeLockerHistory(d);
   migratePass(d);
   d.owned = [
     ...new Set([

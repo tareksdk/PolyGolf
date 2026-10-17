@@ -10,6 +10,8 @@ export const FINISHES = [
 ];
 export const validSeed = n => Number.isInteger(n) && n >= 0 && n < 1000;
 export function patternLabel(seed) {
+  if (seed === 0) return 'Gold Gem';
+  if (seed === 999) return 'Blue Gem';
   return seed < 10 ? 'Gold finish' : seed >= 990 ? 'Blue finish' : seed < 250 ? 'Gold dominant' : seed > 749 ? 'Blue dominant' : 'Blue & gold';
 }
 export function rollPattern(random) {

@@ -10,11 +10,11 @@ test('Willow keeps playing after hole three and produces a nine-hole round', () 
   const world = { canvas: { addEventListener() {} }, equipment: {}, settings: {}, load() {}, setAim() {}, update() {}, burst() {} };
   let completed;
   const game = new GameManager(world, { onCourse: round => completed = round });
-  for (const course of [0, 1, 2]) {
+  for (const course of [0, 1, 2, 14]) {
     completed = null;
     game.start(course, true, { mode: 'golf' });
     const count = golfHoleCount(course);
-    assert.equal(count, course === 0 ? 9 : 3);
+    assert.equal(count, course === 14 ? 9 : 3);
     for (let i = 0; i < count; i++) {
       assert.equal(game.index, i);
       game.skip();
@@ -32,10 +32,10 @@ test('nine-hole Willow bests keep the old short-loop record and other course rec
   data.bests['golf:polygolf-v7:1'] = { score: -1, strokes: 11, time: 180 };
   const old = structuredClone(data.bests);
   const progress = new ProgressionManager({ load: () => data, save: () => true });
-  const pars = Array.from({ length: golfHoleCount(0) }, (_, i) => getGolfHole(0, i).par);
+  const pars = Array.from({ length: golfHoleCount(14) }, (_, i) => getGolfHole(14, i).par);
   assert.equal(pars.reduce((a, b) => a + b), 36);
-  progress.completeCourse({ mode: 'golf', courseIndex: 0, strokes: pars, time: 600 }, pars);
-  assert.equal(data.bests[courseRecordKey('golf', 0)].strokes, 36);
+  progress.completeCourse({ mode: 'golf', courseIndex: 14, strokes: pars, time: 600 }, pars);
+  assert.equal(data.bests[courseRecordKey('golf', 14)].strokes, 36);
   for (const [key, record] of Object.entries(old)) assert.deepEqual(data.bests[key], record);
   assert.equal(courseRecordKey('golf', 1), 'golf:polygolf-v7:1');
   assert.equal(courseRecordKey('golf', 2), 'golf:polygolf-v7:2');
@@ -43,7 +43,7 @@ test('nine-hole Willow bests keep the old short-loop record and other course rec
 
 test('shaped bunker rims match the sand lie and recessed physical terrain', () => {
   for (let i = 3; i < 9; i++) {
-    const h = getGolfHole(0, i), plain = { ...h, bunkers: [] };
+    const h = getGolfHole(14, i), plain = { ...h, bunkers: [] };
     for (const bunker of h.bunkers) {
       assert.ok(terrainHeight(plain, bunker.x, bunker.z) - terrainHeight(h, bunker.x, bunker.z) > 1.3);
       for (let n = 0; n < 16; n++) {
@@ -58,12 +58,12 @@ test('shaped bunker rims match the sand lie and recessed physical terrain', () =
 });
 
 test('the ascent, downhill hole and lake bank have real elevation with stable tees and greens', () => {
-  const climb = getGolfHole(0, 5), downhill = getGolfHole(0, 7), lake = getGolfHole(0, 8);
+  const climb = getGolfHole(14, 5), downhill = getGolfHole(14, 7), lake = getGolfHole(14, 8);
   assert.ok(climb.cup.y - climb.start.y > 15);
   assert.ok(downhill.start.y - downhill.cup.y > 10);
   assert.ok(terrainHeight(lake, 205, -200) < -5.8);
   for (let i = 3; i < 9; i++) {
-    const h = getGolfHole(0, i);
+    const h = getGolfHole(14, i);
     for (const p of [h.start, h.cup]) {
       const ground = terrainAt(h, p.x, p.z);
       assert.equal(ground.hazard, null);

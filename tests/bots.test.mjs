@@ -17,7 +17,7 @@ test('bot scores follow the specified weighted round totals without zero-stroke 
 });
 function fixture(){
  const host={id:'host',username:'Host',state:defaultSave()},guest={id:'guest',username:'Guest',state:defaultSave()};host.state.xp=20000;
- let room={id:'room',code:'ABC234',revision:1,state:{host:host.id,phase:'waiting',mode:'golf',course:0,rulesVersion:RULES_VERSION,hole:0,members:[{id:host.id,name:host.username,ready:true,seen:Date.now()}]}};
+ let room={id:'room',code:'ABC234',revision:1,state:{host:host.id,phase:'waiting',mode:'golf',course:14,rulesVersion:RULES_VERSION,hole:0,members:[{id:host.id,name:host.username,ready:true,seen:Date.now()}]}};
  let rounds=[];const api={table:async(name)=>name==='rooms'?[structuredClone(room)]:name==='players'?[host]:name==='rounds'?structuredClone(rounds):[],insert:async(name,rows)=>{assert.equal(name,'rounds');assert.ok(rows.every(r=>r.user_id==='host'));rounds=rows.map((r,i)=>({...r,id:'round'+i,holes:[],next_hole:0}));return rounds;},rpc:async(name,p)=>{assert.equal(name,'room_cas');assert.equal(p.p_revision,room.revision);room={...room,revision:room.revision+1,state:structuredClone(p.p_state)};return room.revision;},player:async()=>host,submit:async()=>{throw Error('Unexpected timeout');}};
  return {host,guest,api,get room(){return room;},set room(v){room=v;},get rounds(){return rounds;},set rounds(v){rounds=v;}};
 }
@@ -41,7 +41,7 @@ test('bot rooms create rounds only for humans and server clocks control bot scor
  f.rounds[0].holes=[{strokes:4}];f.rounds[0].next_hole=1;await roomAction('room',f.host,{roomId:'room'},f.api);assert.equal(f.room.state.hole,1);
  await roomAction('room',f.host,{roomId:'room'},f.api);assert.deepEqual(f.room.state.members[1].scores,[strokes]);
 });
-test('a Willow bot room progresses through nine holes before ending',async()=>{
+test('a Long Willow bot room progresses through nine holes before ending',async()=>{
  const f=fixture();await roomAction('add_room_bot',f.host,{roomId:'room'},f.api);await roomAction('start_room',f.host,{roomId:'room'},f.api);
  for(let i=0;i<9;i++){
   f.rounds[0].holes.push({strokes:4});f.rounds[0].next_hole=i+1;

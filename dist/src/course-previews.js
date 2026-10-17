@@ -1,8 +1,8 @@
 import { buildMap } from "./maps.js";
 import { keepMiniSceneryClear } from "./course-detail.js";
 import * as THREE from "../vendor/three.module.js";
-import { getGolfHole } from "./golf-courses.js";
-import { getHole } from "./courses.js";
+import { getGolfHole, GOLF_COURSES } from "./golf-courses.js";
+import { getHole, COURSES } from "./courses.js";
 import { coursePreview } from "./landscape.js";
 import { halloweenActive } from './season.js';
 const PREVIEW_PREFIX = "polygolf.preview.v28."+(halloweenActive()?'october.':'standard.');
@@ -46,6 +46,8 @@ export function installCoursePreviews(world) {
   let processing = false,
     studio = null;
   world.thumbnail = (index, mode = "mini") => {
+    if(Number.isInteger(index)&&index>=0&&index<(mode==='golf'?GOLF_COURSES:COURSES).length)
+      return `/assets/course-cards/${mode}-${index}.webp`;
     const key = mode + ":" + index;
     if (world.thumbCache.has(key)) return world.thumbCache.get(key);
     try {
@@ -149,6 +151,7 @@ export function installCoursePreviews(world) {
           camera: new THREE.PerspectiveCamera(40, 720 / 440, 0.1, 1800),
           materials: world.materials,
           geometries: world.geometries,
+          settings: {...world.settings,graphics:'low',shadows:false},
           ball: new THREE.Group(),
           sun: new THREE.DirectionalLight("#ffedd0", 2.3),
         });

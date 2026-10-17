@@ -1,4 +1,6 @@
 import * as THREE from '../vendor/three.module.js';
+import { adventurePlanting } from './adventure-planting.js';
+import { buildMountainRanges } from './mountain-ranges.js';
 let kit;
 export async function loadAdventureAssets() {
   const r=await fetch(new URL('../assets/adventure-kit.json',import.meta.url));
@@ -14,6 +16,8 @@ export function eventScenery(w,h) {
   const theme=h.course.eventTheme,night=['space','halloween','cyberpunk'].includes(theme);
   const ground=(x,z)=>w.surfaceHeight(x,z),groups=new Map();
   const add=(id,x,z,scale=1,y=null,angle=0)=>{if(!groups.has(id))groups.set(id,[]);groups.get(id).push({x,z,scale,y:y??ground(x,z),angle});};
+  for(const p of adventurePlanting(h,w.settings?.graphics))add(p.id,p.x,p.z,p.scale,null,p.angle);
+  if(['halloween','medieval','future'].includes(theme))buildMountainRanges(w,h);
   w.sun.intensity=night?1.6:2.5;w.hemi.intensity=night?1.35:1.8;
   w.scene.fog=new THREE.Fog(h.course.sky,night?550:800,2400);
   // The island skirt uses the terrain's exact edge, so there are no seams.

@@ -1,3 +1,4 @@
+import { createFullShotGuide } from './full-shot-guide.js';
 import { createGolfer } from "./golfer.js";
 import * as THREE from "../vendor/three.module.js";
 import { GOLF_RADIUS } from "./golf-physics.js";
@@ -64,6 +65,8 @@ export function installGolfPresentation(world) {
   const guide = new THREE.Group();
   world.scene.add(guide);
   world.shotGuide = guide;
+  const fullGuide = createFullShotGuide(world);
+  guide.add(fullGuide.group);
   const positions = new Float32Array(GUIDE_SAMPLES * 3);
   const lineMat = new THREE.MeshBasicMaterial({ color:'#fff2bc', transparent:true, opacity:.82, depthWrite:false });
   const segments = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 6), lineMat, GUIDE_SAMPLES - 1);
@@ -79,6 +82,7 @@ export function installGolfPresentation(world) {
   const guideGround = (x,z) => terrainHeight(world.hole,x,z);
   world.load = (h) => {
     oldLoad(h);
+    fullGuide.reset();
     world.swingPose = null;
     world.cupMoment = null;
     celebration.visible = false;
@@ -88,13 +92,17 @@ export function installGolfPresentation(world) {
   world.setAim = (ball, dir, power, visible) => {
     if (world.hole.mode !== 'golf') {
       guide.visible = false;
+      fullGuide.reset();
       oldAim(ball, dir, power, visible);
       return;
     }
     world.aim.visible = world.arrow.visible = false;
     guide.visible = visible;
-    if (!visible) return;
     world.aimDirection = dir;
+    const full = world.settings?.shotGuide !== 'directional';
+    fullGuide.setAim(ball, dir, power, visible && full);
+    segments.visible = arrow.visible = !full;
+    if (!visible || full) return;
     const options = world.shotOptions || {club:world.activeClub};
     const {putting} = directionalGuideSpec(power,options);
     fillDirectionalGuide(positions,ball,dir,power,options,guideGround);

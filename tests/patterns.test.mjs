@@ -32,10 +32,11 @@ test('Case Hardened seeds persist independently; rerolls, unowned equips and ret
  assert.equal(publicProfile({state:pm.data}).equipment.patterns[a.item],999);
  assert.equal(driverYards(pm.data.equipment),350);
 });
-test('all 1,000 seeds are reachable, with one percent full gold and one percent full blue',()=>{
+test('all 1,000 seeds are reachable, with one percent gold and blue including their unique gem seeds',()=>{
  const seeds=Array.from({length:1000},(_,n)=>rollPattern(()=>(n+.5)/1000));
  assert.equal(new Set(seeds).size,1000);assert.ok(seeds.every(validSeed));
- assert.equal(seeds.filter(n=>patternLabel(n)==='Gold finish').length,10);
- assert.equal(seeds.filter(n=>patternLabel(n)==='Blue finish').length,10);
+ assert.equal(seeds.filter(n=>patternLabel(n)==='Gold finish').length,9);
+ assert.equal(seeds.filter(n=>patternLabel(n)==='Blue finish').length,9);
+ assert.equal(patternLabel(0),'Gold Gem');assert.equal(patternLabel(999),'Blue Gem');
  for(const r of [-1,1,NaN,Infinity])assert.throws(()=>rollPattern(()=>r));
 });

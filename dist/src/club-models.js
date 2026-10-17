@@ -291,9 +291,18 @@ export function buildClub(w, item, parent, { lie = 0, gameplay = false } = {}) {
     m("round", "#fbf8ef", 0.0, 0.34, -0.035, 0.2, 0.16, 0.02, head);
     m("round", accent, 0.03, 0.36, -0.05, 0.075, 0.075, 0.035, head, { emissive: accent, emissiveIntensity: 0.15 });
   }
-  if (item?.finish) head.traverse(mesh => {
-    if (mesh.isMesh && mesh.material.color.getHexString() === new THREE.Color(color).getHexString()) applyFinish(mesh, item);
-  });
+  if (item?.finish) {
+    const hardened = item.finish === 'case-hardened';
+    const gem = hardened && (item.seed === 0 || item.seed === 999);
+    const blueFace = hardened && shape === 'putter' && item.seed >= 990 && item.seed <= 998;
+    const bodyColor = new THREE.Color(color).getHexString();
+    const faceColor = new THREE.Color(accent).getHexString();
+    (gem ? root : head).traverse(mesh => {
+      if (!mesh.isMesh) return;
+      const original = mesh.material.color.getHexString();
+      if (gem || original === bodyColor || (blueFace && original === faceColor)) applyFinish(mesh, item);
+    });
+  }
   return root;
 }
 

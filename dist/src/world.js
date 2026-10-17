@@ -1,4 +1,4 @@
-import { renderScale } from './render-quality.js';
+import { renderScale, effectiveGraphics } from './render-quality.js';
 import { renderFrame } from './render-frame.js';
 import { halloweenActive } from './season.js';
 import { ballFinish } from "./item-designs.js";
@@ -697,6 +697,9 @@ export class World {
     this.club.visible = true;
   }
   settingsChanged(s) {
+    const automatic=s.graphics==='auto'||!s.graphics;
+    s={...s,graphics:effectiveGraphics(s.graphics,navigator)};
+    if(automatic&&s.graphics==='low')s.shadows=false;
     this.settings = s;
     this.dynamicRatio = null;
     this.renderer.setPixelRatio(

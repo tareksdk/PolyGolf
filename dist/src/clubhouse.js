@@ -1,9 +1,10 @@
+import { profileAccolades, profileMedals, profileBests } from './honors-view.js';
 import { nameplate } from "./nameplates.js";
 import { achievementsView } from "./collection-ui.js";
 import { creditsDialog } from "./credits.js";
 import { proShopView, proShopAction } from "./pro-shop-ui.js";
 import { itemDescription, driverYards, MINI_EFFECTS } from "./equipment.js";
-import { finishItem } from './finishes.js';
+import { finishItem, validSeed, patternLabel } from './finishes.js';
 import { page, button, esc, coins, itemCard, rarityClass, profileView } from "./views.js";
 import { ITEMS, ITEM_BY_ID, CATEGORIES, RARITY, shopRotation, itemSource, shopAvailable } from "./catalog.js";
 import { levelInfo, ACHIEVEMENTS, challengesFor } from "./save.js";
@@ -23,9 +24,9 @@ function relationshipButtons(ui, p, relation) {
         : button("Cancel request", "friend-action", attrs + ' data-operation="remove"', "button secondary")
       : button("Add friend", "friend-action", attrs + ' data-operation="request"', "button yellow");
 }
-function golferCard(ui, p, relation) {
+export function golferCard(ui, p, relation) {
   const level = levelInfo(p.xp);
-  return `<div class="public-profile"><div class="profile-cover"><span>POLYGOLF / GOLFER</span><span>${p.member ? "COUNTRY CLUB" : "EST. " + (p.joined ? new Date(p.joined).getFullYear() : 2026)}</span></div><div class="public-profile-head">${avatar(p, "large")}<div>${nameplate(p.username,p.equipment?.nameplate)}<span>Level ${level.level}${p.member ? " · Country Club member" : ""}</span></div></div><p class="golfer-bio">${p.bio ? esc(p.bio) : "No bio yet."}</p><div class="social-stats">${[
+  return `<div class="public-profile"><div class="profile-cover"><span>POLYGOLF / GOLFER</span><span>${p.member ? "COUNTRY CLUB" : "EST. " + (p.joined ? new Date(p.joined).getFullYear() : 2026)}</span>${profileAccolades(p)}</div><div class="public-profile-head">${avatar(p, "large")}<div class="public-profile-identity">${nameplate(p.username,p.equipment?.nameplate)}<span>Level ${level.level}${p.member ? " · Country Club member" : ""}</span><p class="golfer-bio">${p.bio ? esc(p.bio) : "No bio yet."}</p></div>${profileMedals(p)}</div><div class="social-stats">${[
     ["Rounds", p.stats.games || 0], ["Courses", p.stats.courses || 0], ["Strokes", p.stats.strokes || 0], ["Time", Math.floor((p.stats.playTime || 0)/60) + " min"],
     ["Holes", p.stats.holes],
     ["Birdies", p.stats.birdies],
@@ -36,13 +37,15 @@ function golferCard(ui, p, relation) {
     .join("")}</div><div class="profile-equipment">${["ball", "club", "driver"]
     .map((c) => {
       const item = finishItem(ITEM_BY_ID[p.equipment[c]], p.equipment);
+      const seed = item?.finish && p.equipment.patterns?.[item.id];
+      const pattern = validSeed(seed) ? `<span class="profile-pattern">Seed ${String(seed).padStart(3,'0')}${item.finish === 'case-hardened' ? ' · ' + patternLabel(seed) : ''}</span>` : '';
       return item
-        ? `<div><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><small>${esc(item.name)}</small></div>`
+        ? `<div><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><small>${esc(item.name)}</small>${pattern}</div>`
         : "";
     })
     .join(
       "",
-    )}</div><div class="row profile-friend-actions">${relationshipButtons(ui, p, relation)}</div></div>`;
+    )}</div>${profileBests(p)}<div class="row profile-friend-actions">${p.honors?.canGive?.length ? button("Give an accolade", "accolade-options", `data-user="${esc(p.id)}"`, "button secondary") : ""}${relationshipButtons(ui, p, relation)}</div></div>`;
 }
 function ownProfile(ui) { return profileView(ui); }
 function editProfile(ui) {

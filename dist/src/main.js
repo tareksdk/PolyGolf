@@ -1,3 +1,4 @@
+import { installHonors } from './honors-ui.js';
 import { installInvites } from './room-invites.js';
 import { isLocalPreview, previewStorage, installLocalPreview } from './local-preview.js';
 import { installPirateEffects } from './pirate-effects.js';
@@ -65,6 +66,7 @@ try {
   installCourseAtmosphere(ui);
   installPirateEffects(world);
   installLocalPreview(ui);
+  installHonors(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);

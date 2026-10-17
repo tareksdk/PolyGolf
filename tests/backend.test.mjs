@@ -122,13 +122,14 @@ test('shop rejects unavailable or exclusive items even with sufficient balance',
 });
 test('old clients cannot start a mismatched replay version; each course stores its full round length',async()=>{
  await assert.rejects(call('start_round',{mode:'golf',course:0,rulesVersion:'legacy-v1'}),/Reload/);const r=await call('start_round',{mode:'golf',course:0});assert.equal(r.roundId,'round-test');
- assert.equal(rounds.get(r.roundId).hole_count,9);
+ assert.equal(rounds.get(r.roundId).hole_count,3);
+ await call('start_round',{mode:'golf',course:14});assert.equal(rounds.get('round-test').hole_count,9);
  players.get('a').state.xp=20000;
  for(const course of [1,2]){await call('start_round',{mode:'golf',course});assert.equal(rounds.get('round-test').hole_count,3);}
  await call('start_round',{mode:'mini',course:0});assert.equal(rounds.get('round-test').hole_count,9);
 });
-test('Willow submissions continue after hole three and finish only after hole nine',async()=>{
- await call('start_round',{mode:'golf',course:0});
+test('Long Willow submissions continue after hole three and finish only after hole nine',async()=>{
+ await call('start_round',{mode:'golf',course:14});
  for(let index=0;index<9;index++){
   const r=await call('submit_hole',{roundId:'round-test',index,transcript:[{kind:'skip',tick:0}],endTick:0});
   assert.equal(r.finished,index===8);assert.equal(rounds.get('round-test').next_hole,index+1);

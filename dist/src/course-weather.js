@@ -5,11 +5,6 @@ import { terrainAt } from './golf-courses.js';
 import { SandEffects } from './sand-effects.js';
 import { WaterEffects } from './water-effects.js';
 
-export function weatherControls(world) {
-  const labels={normal:'Normal',night:'Night',rainy:'Rainy'},symbols={normal:'☀',night:'☾',rainy:'☂'};
-  return `<div class="course-weather" role="group" aria-label="Course weather">${COURSE_WEATHER.map(mode=>`<button type="button" data-action="course-weather" data-id="${mode}" aria-pressed="${(world.weather||'normal')===mode}" title="${labels[mode]} mode"><span aria-hidden="true">${symbols[mode]}</span>${labels[mode]}</button>`).join('')}</div>`;
-}
-
 export class CourseAtmosphere {
   constructor(world) {
     this.world=world;this.wetMaterials=new Map();this.sand=new SandEffects(world);this.water=new WaterEffects(world);
@@ -30,7 +25,7 @@ export class CourseAtmosphere {
     this.world.group.traverse(o=>{
       if(o.material?.isMeshStandardMaterial&&!this.wetMaterials.has(o.material))this.wetMaterials.set(o.material,o.material.roughness);
     });
-    this.set('normal');
+    this.set(this.world.settings?.courseWeather||'normal');
   }
   set(mode) {
     if(!COURSE_WEATHER.includes(mode))return false;
@@ -78,23 +73,13 @@ export class CourseAtmosphere {
 }
 
 export function installCourseAtmosphere(ui) {
-  const w=ui.world,atmosphere=new CourseAtmosphere(w),load=w.load.bind(w),action=ui.action.bind(ui);
+  const w=ui.world,atmosphere=new CourseAtmosphere(w),load=w.load.bind(w);
   w.atmosphere=atmosphere;w.sandBurst=contact=>atmosphere.sand.burst(contact);
   w.waterSplash=contact=>atmosphere.water.splash(contact);
   w.setWeather=mode=>atmosphere.set(mode);
   w.load=h=>{
     atmosphere.restoreMaterials();w.sky=null;w.nightWindows=[];w.lanternLights=[];w.scenicFloaters=[];
     load(h);atmosphere.load(h);
-  };
-  ui.action=async(name,data)=>{
-    if(name==='course-weather'&&['playing','paused','complete'].includes(ui.game.state)){
-      if(w.setWeather(data.id)){
-        // Keep a currently focused weather button in place, and leave charge/aim alone.
-        for(const b of ui.root.querySelectorAll('.course-weather button'))b.setAttribute('aria-pressed',String(b.dataset.id===w.weather));
-      }
-      return;
-    }
-    return action(name,data);
   };
   atmosphere.load(w.hole);
 }

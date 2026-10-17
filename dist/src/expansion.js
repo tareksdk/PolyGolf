@@ -2,7 +2,6 @@ import { APP_VERSION } from './version.js';
 import { flowDirectionGauge } from './shot-meter-ui.js';
 import { LOCKERS } from "./pro-shop.js";
 import { homeMenu } from "./home-menu.js";
-import { weatherControls } from './course-weather.js';
 import { nameplate } from "./nameplates.js";
 import { clubPassView } from "./collection-ui.js";
 import { clubYards } from "./club-distances.js";
@@ -35,6 +34,7 @@ import {
 import { MapEditor } from "./editor.js";
 import { GolfCloud } from "./cloud.js";
 import { welcomeToClub } from './club-welcome.js';
+import { usernameAction } from './username-ui.js';
 import { header, page, button, coins, esc, minutes } from "./views.js";
 import { holeDialog } from "./dialogs.js";
 import { icon } from "./icons.js";
@@ -74,7 +74,7 @@ function rankings(ui) {
   return page(
     ui,
     "The clubhouse leaderboard.",
-    ranked ? "Competitive standings by Elo. Finish a ranked match to join the board." : "Complete rounds from players and guests. Classic scorecards are back. Skipped rounds are not ranked.",
+    ranked ? "Competitive standings by Elo. Finish a ranked match to join the board." : "Complete rounds from players and guests. One best round per golfer, with no top-20 cutoff. Skipped rounds are not ranked.",
     (ranked ? "" : modeTabs(ui)) +
       `<div class="panel ranking-panel"><div class="ranking-filters"><div class="category-tabs">${button("Ranked · Elo", "ranking-metric", 'data-id="elo"', "category-tab " + (ranked ? "active" : ""))}${button("Lowest score", "ranking-metric", 'data-id="score"', "category-tab " + (ui.rankingMetric === "score" ? "active" : ""))}${button("Fastest round", "ranking-metric", 'data-id="time"', "category-tab " + (ui.rankingMetric === "time" ? "active" : ""))}</div><select id="ranking-course" aria-label="Leaderboard course" ${ranked ? "hidden" : ""}>${list(
         ui,
@@ -82,7 +82,7 @@ function rankings(ui) {
         .map((c, i) => ui.mode==='golf'&&!courseAvailable(i)?'':`<option value="${i}" ${i === ui.rankingCourse ? "selected" : ""}>${c.name}</option>`)
         .join(
           "",
-        )}</select></div><div class="table-scroll"><table class="ranking-table"><thead><tr><th>PLACE</th><th>GOLFER</th>${ranked ? "<th>RANK</th><th>ELO</th><th>W / L</th>" : "<th>LEVEL</th><th>TO PAR</th><th>TIME</th>"}</tr></thead><tbody id="rankings-body"><tr><td colspan="5" class="board-message">Loading shared scorecards…</td></tr></tbody></table></div>${button("Refresh board", "refresh-rankings", "", "text-button")}</div>`,
+        )}</select></div><div class="table-scroll"><table class="ranking-table"><thead><tr><th>PLACE</th><th>GOLFER</th>${ranked ? "<th>RANK</th><th>ELO</th><th>W / L</th>" : "<th>LEVEL</th><th>TO PAR</th><th>TIME</th>"}</tr></thead><tbody id="rankings-body"><tr><td colspan="5" class="board-message">Loading shared scorecards…</td></tr></tbody></table></div><div class="rankings-sentinel" id="rankings-sentinel" role="status"></div>${button("Refresh board", "refresh-rankings", "", "text-button")}</div>`,
   );
 }
 function multiplayer(ui) {
@@ -167,7 +167,7 @@ function hud(ui) {
   const shotCard = golf
     ? `<label class="ph-field">Club<select id="shot-club">${CLUBS.map((c) => `<option value="${c.id}" ${c.id === g.club ? "selected" : ""}>${c.name} · ${clubYards(c.id, d.equipment)} yd</option>`).join("")}</select></label><label class="ph-field">Draw / fade<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}"></label><label class="ph-field">Spin · low / high<input id="shot-spin" type="range" min="-1" max="1" step=".05" value="${g.spin}"></label>${button(icon("camera") + "Overview", "overview", "", "ph-chip")}${meterChoice}`
     : `<div class="ph-equip"><span>Equipment</span><strong>${esc(ITEM_BY_ID[d.equipment.club]?.name || "Putter")}</strong><small>${esc(itemDescription(ITEM_BY_ID[d.equipment.ball]).split(" Full golf")[0])}</small></div><label class="ph-field">Curve<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}" ${!miniStats(d.equipment).curve ? "disabled" : ""}></label>${meterChoice}`;
-  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}" aria-label="Round controls">${weatherControls(ui.world)}<span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span><div class="ball-nameplate" id="ball-nameplate" >${nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right">${ui.cloud.room ? `<div class="ph-card ph-live" id="live-players">Live room · ${ui.cloud.room.code}</div>` : ""}<div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
+  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}" aria-label="Round controls"><span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span><div class="ball-nameplate" id="ball-nameplate" >${nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right">${ui.cloud.room ? `<div class="ph-card ph-live" id="live-players">Live room · ${ui.cloud.room.code}</div>` : ""}<div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
 }
 function scorecard(ui, round, reward) {
   const pars = round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
@@ -237,25 +237,43 @@ export function installExpansion(ui) {
       ui.tick();
     } else originalRender();
   };
-  ui.loadRankings = async () => {
+  ui.loadRankings = async (append=false) => {
+    ui.rankingObserver?.disconnect();
+    const offset=append?(ui.rankingRows?.length||0):0;
     const request = (ui.rankingRequest = (ui.rankingRequest || 0) + 1),
       mode = ui.mode,
       course = ui.rankingCourse, metric = ui.rankingMetric;
     try {
-      const rows = await ui.cloud.rankings(mode, course, metric),
+      const rows = await ui.cloud.rankings(mode, course, metric, offset),
         el = document.querySelector("#rankings-body");
       if (!el || request !== ui.rankingRequest || mode !== ui.mode || course !== ui.rankingCourse || metric !== ui.rankingMetric) return;
-      el.innerHTML = rows.length
-        ? rows
+      ui.rankingRows=append?[...(ui.rankingRows||[]),...rows]:rows;
+      const sentinel=ui.root.querySelector("#rankings-sentinel");
+      if(sentinel)sentinel.textContent="";
+      el.innerHTML = ui.rankingRows.length
+        ? ui.rankingRows
             .map(
               (r, i) =>
                 `<tr class="${r.user_id === ui.cloud.session?.user.id ? "your-ranking" : ""}"><td>${i + 1}</td><td>${button(esc(r.username), "view-profile", `data-user="${r.user_id}"`, "profile-link")}${r.username?.startsWith("guest_")?'<span class="guest-label">Guest</span>':""}</td>${metric === "elo" ? `<td>${esc(r.rank)}</td><td><strong>${r.elo}</strong></td><td>${r.wins} / ${r.losses}</td>` : `<td>${r.level}</td><td><strong>${relative(r.score)}</strong></td><td>${minutes(r.seconds)}</td>`}</tr>`,
             )
             .join("")
         : `<tr><td colspan="5" class="board-message"><h3>${metric === 'elo' ? 'The ranked board starts here.' : 'The first scorecard could be yours.'}</h3>${metric === 'elo' ? 'Complete a competitive match to earn your place.' : 'Finish this course as a player or guest to join the board.'}</td></tr>`;
+      if(sentinel && metric!=='elo' && rows.length===100){
+        sentinel.textContent='More golfers load as you scroll';
+        ui.rankingObserver=new IntersectionObserver(entries=>{
+          if(entries.some(e=>e.isIntersecting) && request===ui.rankingRequest && sentinel.isConnected){
+            ui.rankingObserver.disconnect();sentinel.textContent='Loading golfers…';ui.loadRankings(true);
+          }
+        },{rootMargin:'200px'});
+        ui.rankingObserver.observe(sentinel);
+      }
     } catch (e) {
+      if (request !== ui.rankingRequest || mode !== ui.mode || course !== ui.rankingCourse || metric !== ui.rankingMetric) return;
       const el = document.querySelector("#rankings-body");
-      if (el) el.innerHTML = `<tr><td colspan="5" class="board-message">${esc(e.message)}</td></tr>`;
+      if (append) ui.toast(e.message);
+      else if (el) el.innerHTML = `<tr><td colspan="5" class="board-message">${esc(e.message)}</td></tr>`;
+      const sentinel=ui.root.querySelector("#rankings-sentinel");
+      if(sentinel)sentinel.textContent="Could not load the board. Use Refresh board to try again.";
     }
   };
   ui.launch = async (index, practice = false) => {
@@ -573,6 +591,13 @@ export function installExpansion(ui) {
         if (ui.pendingResult) await ui.holeComplete(ui.pendingResult);
         return;
       }
+      if (action === "more-rankings") {
+        const more=ui.root.querySelector('[data-action="more-rankings"]');
+        if(more?.disabled)return;
+        if(more)more.disabled=true;
+        await ui.loadRankings(true);
+        return;
+      }
       if (action === "refresh-rankings") {
         await ui.loadRankings();
         return;
@@ -674,10 +699,7 @@ export function installExpansion(ui) {
         }
         return;
       }
-      if (action === "save-name" && ui.cloud.session) {
-        ui.toast("Your account username is permanent.");
-        return;
-      }
+      if (await usernameAction(ui, action)) return;
       if (action === "help") {
         ui.pauseForDialog();
         ui.modal(
@@ -727,7 +749,7 @@ function accountDialog(ui) {
   const signup = ui.authMode === "signup";
   ui.modal(
     (ui.cloud.isGuest ? `<p class="small-note">Playing as ${esc(ui.cloud.username)}. This guest golfer is saved in this browser. Leave your room before signing in. Account progress stays separate.</p>${button('End guest session', 'logout', '', 'text-button')}` : '') +
-    `<div class="eyebrow">YOUR PLACE AT THE CLUBHOUSE</div><h2>${signup ? "Create your golfer." : "Welcome back."}</h2><form id="account-form"><label>Username<input name="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" required placeholder="Your golfer name"></label><label>Password<input name="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" minlength="6" maxlength="128" required placeholder="At least 6 characters"></label>${signup ? `<label class="account-consent"><input type="checkbox" name="policyAccepted" required> <span>I am at least 13 and meet the age requirements where I live. I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and have read the <a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>` : ""}<p id="auth-error" class="form-error" role="alert"></p><button class="button yellow wide" type="submit">${signup ? "Create account" : "Sign in"}</button></form>${button(signup ? "Already a member? Sign in" : "New here? Create an account", "auth-mode", `data-id="${signup ? "login" : "signup"}"`, "text-button")}<p class="small-note">Username and password only. Keep your password safe; there is no email recovery. Online progress starts separately from guest progress.</p>`,
+    `<nav class="auth-tabs" aria-label="Account access">${[['login','Sign in'],['signup','Create account']].map(([id,label])=>button(label,'auth-mode',`data-id="${id}" aria-pressed="${(signup?'signup':'login')===id}"`,'auth-tab')).join('')}</nav><h2>${signup ? "Create account" : "Sign in"}</h2><p>${signup ? "Start your golfer with 5,000 coins. Save your collection and scores." : "Welcome back. Your golfer and collection are waiting."}</p><form id="account-form"><label>Username<input name="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" required placeholder="Your golfer name"></label><label>Password<input name="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" minlength="6" maxlength="128" required placeholder="At least 6 characters"></label>${signup ? `<label class="account-consent"><input type="checkbox" name="policyAccepted" required> <span>I am at least 13 and meet the age requirements where I live. I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and have read the <a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>` : ""}<p id="auth-error" class="form-error" role="alert"></p><button class="button yellow wide" type="submit">${signup ? "Create account" : "Sign in"}</button></form>${button(signup ? "Already a member? Sign in" : "New here? Create an account", "auth-mode", `data-id="${signup ? "login" : "signup"}"`, "text-button")}<p class="small-note">Username and password only. Keep your password safe; there is no email recovery. Online progress starts separately from guest progress.</p>`,
   );
 }
 function bindShotControls(ui) {

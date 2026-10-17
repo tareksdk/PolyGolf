@@ -50,13 +50,14 @@ export const GOLF_COURSES = [
   },
 ];
 GOLF_COURSES.push(...EVENT_COURSES);
-export const RULES_VERSION = "polygolf-v10";
+GOLF_COURSES.push({...GOLF_COURSES[0], id:"willow-long", name:"Willow Park · Long Course", subtitle:"Nine holes across the full parkland collection.", tag:"THE LONG ROUND", layoutCourse:0, holeCount:9});
+export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");
-  return index<3?layouts[index].length:GOLF_COURSES[index].holeCount;
+  return index<3?3:GOLF_COURSES[index].holeCount;
 }
 export function courseRecordKey(mode,index,rotationKey=courseRotationKey(index)) {
-  return mode==="golf" ? index<3?`golf:${index===0?RULES_VERSION:"polygolf-v7"}:${index}`:`golf:${RULES_VERSION}:${index}:${rotationKey}` : `mini:${index}`;
+  return mode==="golf" ? index<3?`golf:${"polygolf-v7"}:${index}`:`golf:${RULES_VERSION}:${index}:${rotationKey}` : `mini:${index}`;
 }
 // Willow keeps its original opening loop, then explores two more parkland loops.
 const layouts = [
@@ -417,13 +418,21 @@ const layouts = [
   ],
 ];
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-export function getGolfHole(courseIndex = 0, index = 0) {
-  const course = GOLF_COURSES[courseIndex],
-    layout = courseIndex>=3&&course&&index>=0&&index<golfHoleCount(courseIndex)?eventLayout(course,index):layouts[courseIndex]?.[index];
-  if (!course || !Number.isInteger(index) || !layout) throw Error("Unknown golf hole");
-  return buildGolfLayout(courseIndex, index, layout);
+function golfLayout(courseIndex,index) {
+  const course=GOLF_COURSES[courseIndex];
+  if(!course||!Number.isInteger(index)||index<0||index>=golfHoleCount(courseIndex))throw Error("Unknown golf hole");
+  return course.eventTheme?eventLayout(course,index):layouts[course.layoutCourse??courseIndex][index];
 }
-export function buildGolfLayout(courseIndex, index, layout) {
+// Card summaries must not build terrain or thousands of collision trees.
+export function golfPar(courseIndex,index) { return golfLayout(courseIndex,index).par; }
+export function getGolfHole(courseIndex = 0, index = 0, scenery = true) {
+  const course = GOLF_COURSES[courseIndex],
+    layout = golfLayout(courseIndex,index);
+  if (!course || !Number.isInteger(index) || !layout) throw Error("Unknown golf hole");
+  const h=buildGolfLayout(course.layoutCourse??courseIndex,index,layout,scenery);
+  h.course=course;h.courseIndex=courseIndex;return h;
+}
+export function buildGolfLayout(courseIndex, index, layout, scenery = true) {
   const course = GOLF_COURSES[courseIndex];
   const points = layout.points.map((p) => [...p]),
     length = -points.at(-1)[1],
@@ -460,7 +469,7 @@ export function buildGolfLayout(courseIndex, index, layout) {
     if (layout[key] !== undefined) h[key] = structuredClone(layout[key]);
   h.route = samplePath(points, 64).map((p) => [p.x, p.z]);
   h.trees = [];
-  populateForest(h, layout.density ?? 1);
+  if(scenery)populateForest(h, layout.density ?? 1);
   h.start.y = terrainHeight(h, 0, 0);
   h.cup.y = terrainHeight(h, cup.x, cup.z);
   return h;

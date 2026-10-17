@@ -1,8 +1,8 @@
 {
-  "version": "polygolf-v10",
-  "contentVersion": "regression-fixes-local-0.8",
-  "date": "2026-10-16",
-  "items": 629,
+  "version": "polygolf-v11",
+  "contentVersion": "live-preserving-controls-and-full-guide-0.9",
+  "date": "2026-10-17",
+  "items": 635,
   "lockers": 10,
   "patternSeeds": 1000,
   "passTiers": 30,
@@ -22,8 +22,12 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "0.8",
-  "localPreview": true,
+  "appVersion": "0.9",
+  "classicCourseHoles": 3,
+  "longWillowHoles": 9,
+  "newAccountCoins": 5000,
+  "tradingMinimumLevel": 5,
+  "automaticGraphics": true,
   "weatherModes": [
     "normal",
     "night",
@@ -47,5 +51,27 @@
     1250
   ],
   "holeRewardCoins": 100,
-  "courseBonusCoinsPerHole": 100
+  "courseBonusCoinsPerHole": 100,
+  "usernameChangeCosts": [
+    0,
+    10000,
+    100000,
+    1000000
+  ],
+  "gemSeeds": {
+    "999": "Blue Gem",
+    "000": "Gold Gem"
+  },
+  "secretLockerMilestone": 1001,
+  "profileMedals": true,
+  "accolades": true,
+  "playerAccoladeCoins": 1000000,
+  "championMedals": true,
+  "medalTypes": 20,
+  "compactProfileMedals": true,
+  "shotMeters": [
+    "classic",
+    "fluid"
+  ],
+  "defaultShotGuide": "full"
 }

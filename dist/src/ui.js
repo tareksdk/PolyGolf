@@ -237,8 +237,9 @@ export class UIManager {
     this.progress.data.settings[key] = value;
     this.progress.save();
     this.audio.apply(this.progress.data.settings);
+    if(key==="courseWeather"){this.world.settings.courseWeather=value;this.world.setWeather?.(value);}
     if (
-      ["graphics", "shadows", "particles", "cameraSensitivity", "zoomSensitivity", "aimGuide"].includes(key)
+      ["graphics", "shadows", "particles", "cameraSensitivity", "zoomSensitivity", "aimGuide", "shotGuide"].includes(key)
     )
       this.world.settingsChanged(this.progress.data.settings);
     if (input.nextElementSibling?.tagName === "OUTPUT")

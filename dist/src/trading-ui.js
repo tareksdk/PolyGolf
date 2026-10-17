@@ -73,7 +73,8 @@ export function installTrading(ui) {
   ui.action=async(name,data={})=>{
     if(!['trades','trades-refresh','trade-start','trade-add','trade-remove','trade-send','trade-review','trade-accept','trade-close'].includes(name))return action(name,data);
     try {
-      if(!ui.cloud.session){ui.toast('Sign in to trade items and coins.');return action('account');}
+      if(!ui.cloud.session||ui.cloud.isGuest){ui.toast('Sign in to trade items and coins.');return action('account');}
+      if(name!=='trade-close'&&ui.progress.level.level<5){ui.toast('Trading unlocks at level 5. Both golfers must reach level 5.');return;}
       if(busy)return;
       if(name==='trades'||name==='trades-refresh'){ui.closeModal();ui.navigate('trades');await load();return;}
       if(name==='trade-start'){busy=true;const actor=ui.cloud.session.user.id,inventory=await ui.cloud.call('trade_inventory',{userId:data.user});if(actor!==ui.cloud.session?.user.id)return;draft={...inventory,yourCoins:inventory.yourCoins??ui.progress.data.coins,give:[],take:[],giveCoins:0,takeCoins:0,requestId:crypto.randomUUID()};compose();return;}

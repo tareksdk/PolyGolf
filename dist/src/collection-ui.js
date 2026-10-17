@@ -16,7 +16,7 @@ export function achievementsView(ui) {
 
 export function achievementCards(ui) {
   const d=ui.progress.data;
-  return `<div class="achievement-rewards">${ACHIEVEMENTS.filter(a=>a.id!=='pumpkin'||halloweenActive()||d.achievements.includes(a.id)).map((a) => {
+  return `<div class="achievement-rewards">${ACHIEVEMENTS.filter(a=>(!a.secret||d.achievements.includes(a.id))&&(a.id!=='pumpkin'||halloweenActive()||d.achievements.includes(a.id))).map((a) => {
       const item = ITEM_BY_ID[a.item],
         n = Math.min(a.target, a.value(d)),
         ready = d.achievements.includes(a.id) || n >= a.target,

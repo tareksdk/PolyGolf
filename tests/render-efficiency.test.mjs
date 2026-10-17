@@ -100,7 +100,7 @@ test('releasing a preview frees its own GPU assets while preserving shared game 
   assert.equal(w.scene.children.length,0);assert.equal(w.canvas.width,1);assert.equal(w.canvas.height,1);
 });
 
-test('thumbnail jobs reuse placeholders, purge obsolete cache generations and skip abandoned cards',async()=>{
+test('pre-rendered course cards avoid new GPU jobs and purge obsolete cache generations',async()=>{
   const originals={localStorage:globalThis.localStorage,document:globalThis.document,setTimeout:globalThis.setTimeout,requestIdleCallback:globalThis.requestIdleCallback};
   const cache=new Map([['little-links.preview.old','old'],['polygolf.preview.v27.october.golf:0','old'],['polygolf-save-v1','save']]);
   const timers=[];
@@ -109,9 +109,9 @@ test('thumbnail jobs reuse placeholders, purge obsolete cache generations and sk
   globalThis.setTimeout=fn=>timers.push(fn);globalThis.requestIdleCallback=undefined;
   try {
     const world={thumbCache:new Map(),mode:'menu'};installCoursePreviews(world);
-    const first=world.thumbnail(0,'golf');assert.equal(world.thumbnail(0,'golf'),first);assert.equal(timers.length,1);
+    const first=world.thumbnail(0,'golf');assert.equal(world.thumbnail(0,'golf'),first);assert.equal(timers.length,0);assert.equal(first,'/assets/course-cards/golf-0.webp');
     assert.deepEqual([...cache.keys()],['polygolf-save-v1']);
     while(timers.length){timers.shift()();await Promise.resolve();}
-    world.thumbnail(0,'golf');assert.equal(timers.length,1,'an abandoned job can be queued again on returning to Courses');
+    world.thumbnail(0,'golf');assert.equal(timers.length,0,'returning to Courses reuses a shipped card without rendering');
   } finally {Object.assign(globalThis,originals);}
 });

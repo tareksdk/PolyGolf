@@ -198,7 +198,7 @@ export function buildGolf(world, h) {
 }
 
 export function coursePreview(index, mode = "mini") {
-  const h = mode === "golf" ? getGolfHole(index, 0) : getHole(index, 0),
+  const h = mode === "golf" ? getGolfHole(index, 0, false) : getHole(index, 0),
     c = h.course;
   let path;
   if (mode === "golf") {

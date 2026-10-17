@@ -2,6 +2,7 @@ import { ITEMS, ITEM_BY_ID, dayNumber } from "./catalog.js";
 import { grantPattern, rollPattern } from './finishes.js';
 import { halloweenActive } from './season.js';
 import { levelInfo } from './save.js';
+import { recordLockerOpening } from './locker-milestones.js';
 // Every locker discloses complete odds. Rarity is rolled first, then each item inside that
 // rarity has an equal chance. Lockers never contain Country Club, bundle or Alpha items.
 export const LOCKERS = [
@@ -194,6 +195,7 @@ export function openLocker(progress, id, requestId, random, now=Date.now()) {
   if (earned) d.lockers[id]--;
   else d.coins -= pack.price - refund;
   if (!d.owned.includes(item.id)) d.owned.push(item.id);
+  recordLockerOpening(d);
   const receipt = { requestId, pack: id, item: item.id, duplicate, refund, earned, ...(item.finish ? { seed } : {}) };
   d.lockerReceipts.push(receipt);
   d.lockerReceipts = d.lockerReceipts.slice(-100);

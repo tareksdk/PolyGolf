@@ -1,9 +1,9 @@
 import * as THREE from '../vendor/three.module.js';
-import { terrainHeight, waterLevel } from './golf-courses.js';
+import { terrainHeight } from './golf-courses.js';
 
 // Little visual stories at the edge of play. No decorative prop is a new obstacle.
 export function buildCourseVignettes(w,h) {
-  if(h.courseIndex!==0)return;
+  if((h.course.layoutCourse??h.courseIndex)!==0)return;
   const group=new THREE.Group();group.name='course-vignettes';w.group.add(group);
   w.nightWindows=[];w.lanternLights=[];w.scenicFloaters=[];
   const mesh=(g,c,x,y,z,sx,sy,sz,parent=group,extra={})=>w.mesh(g,c,x,y,z,sx,sy,sz,parent,extra);
@@ -34,25 +34,6 @@ export function buildCourseVignettes(w,h) {
   mesh('cylinder','#d5c7a0',0,12,0,.09,5,.09,cairn);
   const flag=mesh('box','#d79a66',1,14,0,2,.9,.08,cairn);flag.rotation.z=.15;
 
-  // A family of ridiculous rubber ducks and a tiny sheltered raft in each inland pond.
-  if(h.courseIndex!==1)for(const [i,p] of h.water.entries()){
-    const sign=p.x<0?-1:1,cx=p.x+sign*p.rx*.18,cz=p.z+p.rz*.12,y=waterLevel(h,p);
-    const raft=new THREE.Group();raft.name='duck-raft';raft.position.set(cx,y+.05,cz);group.add(raft);
-    const size=Math.min(1.3,p.rx/15,p.rz/12);raft.scale.setScalar(size);
-    for(let j=0;j<6;j++)mesh('box','#a18659',-2.4+j*.85,.18,0,.8,.3,4,raft);
-    for(const sx of [-2,2])mesh('box','#685c46',sx,-.1,0,.24,.3,4.4,raft);
-    mesh('cylinder','#dbc9a0',0,2,0,.07,4,.07,raft);
-    const parasol=mesh('cone',i%2?'#e0b678':'#b46f55',0,4.2,0,2.9,1.2,2.9,raft);parasol.rotation.y=.3;
-    for(let j=0;j<3;j++){
-      const duck=new THREE.Group();duck.name='pond-duck';duck.position.set(cx+sign*(4+j*2.4)*size,y+.08,cz+(j%2?2:-2)*size);duck.rotation.y=-sign*.7;duck.scale.setScalar(size*(j===0?1.3:.8));group.add(duck);
-      mesh('sphere','#e5c669',0,.5,0,.95,.62,.68,duck);
-      mesh('sphere','#f1d779',.68,1.17,0,.47,.51,.44,duck);
-      mesh('box','#d99150',1.1,1.14,0,.5,.18,.3,duck);
-      for(const eye of [-1,1])mesh('sphere','#304a42',.88,1.35,eye*.35,.065,.07,.045,duck);
-      w.scenicFloaters.push({object:duck,y:y+.08,phase:j*1.8+i});
-    }
-    w.scenicFloaters.push({object:raft,y:y+.05,phase:i+2});
-  }
   // A warm tee lantern makes the night mode feel inhabited without flooding the course.
   const lx=-7,lz=5,ly=w.surfaceHeight?.(lx,lz)??terrainHeight(h,lx,lz);
   mesh('cylinder','#566458',lx,ly+1.2,lz,.07,2.4,.07);

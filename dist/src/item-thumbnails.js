@@ -1,7 +1,7 @@
 import { finishItem } from './finishes.js';
 import { renderItemArt } from './item-art.js';
 
-const VERSION = 'polygolf-item-art-v4';
+const VERSION = 'polygolf-item-art-v5';
 export function thumbnailKey(item) {
   return [item.category, item.id, item.seed ?? '', item.color || '', item.pattern || '', item.badge || '', item.shine || ''].join(':');
 }

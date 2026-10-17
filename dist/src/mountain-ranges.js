@@ -5,7 +5,7 @@ export function mountainRangeData(h,layer,quality='medium') {
   const segments=quality==='low'?96:176,bands=quality==='low'?8:12,positions=[],colors=[];
   const center=-h.length/2,seed=(h.seed||1)*.137+layer*2.7;
   const scale={garden:.65,meadow:.77,wetland:.7,lookout:1.15,'alpine-pass':1.18,lake:.88}[h.backdrop]||1;
-  const inside=[390,750,1120][layer],width=[470,480,470][layer];
+  const inside=[70,490,950][layer],width=[350,490,510][layer];
   const rock=new THREE.Color(['#8b9581','#819397','#91a4b3'][layer]),green=new THREE.Color(h.courseIndex===2?'#747e55':'#68816a'),snow=new THREE.Color(['#e5e6d6','#dce6e3','#ccdde5'][layer]);
   const point=(i,j)=>{
     const a=i/segments*Math.PI*2,t=j/bands,lobes=.7+.17*Math.sin(a*5+seed)+.1*Math.cos(a*9-seed)+.055*Math.sin(a*17+seed);

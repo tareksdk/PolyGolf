@@ -526,3 +526,20 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
 @media(max-width:700px),(max-height:600px){
  .garage-inventory .caddie-filters{position:absolute;left:9px;right:9px;z-index:5;height:auto!important;background:var(--ui-surface,#173e32);border:1px solid var(--ui-border,#719a6b);border-radius:5px;box-shadow:0 8px 24px #001e2a55;padding:6px!important;overflow:visible}
 }
+
+/* Account editing and public pattern details use the active light/dark palette. */
+.username-fields{margin-top:18px;text-align:left}.username-fields .row{gap:10px;align-items:stretch}.username-fields input{min-width:0;flex:1;width:0}.username-fields .small-note{margin:10px 0 0;line-height:1.5}.username-fields .small-note strong{color:var(--ui-text)}
+.username-confirm{max-width:520px}.username-confirm>small{letter-spacing:.12em;color:var(--ui-muted)}.username-confirm h2{overflow-wrap:anywhere}.username-confirm p{line-height:1.6}.username-confirm>.row{justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:22px}.rename-cost{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 0;border-block:1px solid var(--ui-border);color:var(--ui-text)}
+:is(#modal-root,#modal-exit) .profile-equipment .profile-pattern{display:block;margin:6px 8px 12px;padding:6px 8px;border:1px solid var(--ui-border);border-radius:5px;background:var(--ui-raised);color:var(--ui-text);font-size:12px;font-weight:600;line-height:1.5}
+/* Keep the visible release label below the nameplate on narrow game windows. */
+@media(max-width:600px){.play-hud .round-version{top:58px;left:10px}}
+/* Course preferences stay reachable when the full-path selector adds a row. */
+@media(max-width:600px),(max-height:540px){
+ .modal:has(.dialog-tabs) [aria-labelledby=settings-course]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
+ .modal:has(.dialog-tabs) [aria-labelledby=settings-course]>h3,.modal:has(.dialog-tabs) [aria-labelledby=settings-course]>.setting-row:has(select){grid-column:1/-1}
+ .modal:has(.dialog-tabs) [aria-labelledby=settings-course]>.setting-row{min-width:0;gap:7px;min-height:38px;padding-block:7px;font-size:11px}
+ .modal:has(.dialog-tabs) [aria-labelledby=settings-course]>.setting-row>span{min-width:0}
+ .modal:has(.dialog-tabs) [aria-labelledby=settings-course] select{min-width:0;max-width:55%;font:inherit;padding:7px}
+}
+/* The centered menu must not cover the account/settings buttons on small screens. */
+.arcade-home>.home-account{position:relative;z-index:2}

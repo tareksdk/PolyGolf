@@ -101,6 +101,7 @@ export class GolfCloud {
       );
     } catch {}
     this.username = data.username;
+    this.usernameChanges = data.usernameChanges ?? 0;
     this.profile = data.profile || this.profile;
     this.status = this.isGuest ? "Guest online · saved in this browser" : "Account synced";
     if (data.maps)
@@ -168,7 +169,14 @@ export class GolfCloud {
     const result = await response.json();
     if (!response.ok || result.error) throw Error(result.error || "Could not connect. Please try again.");
     if(Number.isFinite(result.serverNow ?? result.server_now))this.serverOffset=(result.serverNow ?? result.server_now)-Date.now();
-    if (result.state && actor && actor===this.session?.user.id) this.accept(result.state);
+    if (actor && actor===this.session?.user.id) {
+      if (result.state) this.accept(result.state);
+      if (['me','change_username'].includes(action)) {
+        this.username = result.username;
+        this.usernameChanges = result.usernameChanges ?? 0;
+        if (this.profile) this.profile.username = result.username;
+      }
+    }
     return result;
   }
   async signIn(action, username, password, policyAccepted = false) {
@@ -252,37 +260,19 @@ export class GolfCloud {
       this.busy = false;
     }
   }
-  async rankings(mode, course, metric = "score") {
+  async rankings(mode, course, metric = "score", offset = 0) {
     if (this.localPreview) throw Error(LOCAL_ONLY);
     if(metric === 'elo'){
       const r=await request(SUPABASE_URL+'/functions/v1/little-links',{method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'ranked_leaderboard'}),signal:AbortSignal.timeout(10000)});
       if(!r.ok)throw Error('Ranked standings are unavailable. Please try again.');
       return (await r.json()).rows;
     }
-    const column = metric === "time" ? "seconds" : "score";
-    const r = await request(
-      SUPABASE_URL +
-        "/rest/v1/golf_records?mode=eq." +
-        mode +
-        "&course=eq." +
-        course +
-        "&hole_count=eq." +
-        (mode === "golf" ? golfHoleCount(course) : 9) +
-        "&rules_version=in.(polygolf-v7,polygolf-v8,polygolf-v9," + RULES_VERSION + ")" + (mode === "golf" && course >= 3 ? "&rotation_key=eq."+encodeURIComponent(courseRotationKey(course)) : "") +
-        "&order=" +
-        column +
-        ".asc&limit=100",
-      { headers: { apikey: PUBLISHABLE_KEY }, signal: AbortSignal.timeout(10000) },
-    );
-    if (!r.ok) throw Error("Rankings are unavailable. Please try again.");
-    const rows = await r.json(),
-      seen = new Set();
-    return rows
-      .filter((r) => {
-        if (seen.has(r.user_id)) return false;
-        seen.add(r.user_id);
-        return true;
-      })
-      .slice(0, 20);
+    const r=await request(SUPABASE_URL+'/rest/v1/rpc/golf_course_rankings',{
+      method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_mode:mode,p_course:course,p_metric:metric,p_rotation:mode==='golf'?courseRotationKey(course):'',p_offset:offset,p_limit:100}),
+      signal:AbortSignal.timeout(10000)
+    });
+    if(!r.ok)throw Error('Rankings are unavailable. Please try again.');
+    return r.json();
   }
 }

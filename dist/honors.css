@@ -1,0 +1,84 @@
+.public-profile-head { display:grid!important; grid-template-columns:auto minmax(0,1fr); align-items:start; gap:20px; }
+.honors-cabinet { padding:16px; border:1px solid var(--ui-border); border-radius:6px; background:var(--ui-field); color:var(--ui-text); margin-bottom:20px; }
+.honors-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.honors-heading>span { font-size:10px; font-weight:700; letter-spacing:.13em; color:var(--ui-muted); }
+.honors-heading .text-button { font-size:11px; padding:4px; white-space:nowrap; color:var(--ui-accent); }
+.honor-shelf { display:flex; flex-wrap:wrap; gap:6px; }
+.honor-shelf+.honor-shelf { border-top:1px solid color-mix(in srgb,var(--ui-border) 35%,transparent); margin-top:10px; padding-top:10px; }
+.honor-tile { position:relative; display:flex; flex:0 0 30px; flex-direction:column; align-items:center; gap:0; background:transparent!important; border:0!important; box-shadow:none!important; padding:0!important; color:var(--ui-text)!important; }
+.honor-tile>span:last-child { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.public-profile .golfer-bio { color:var(--ui-muted); }
+.public-profile-identity { padding-top:8px; padding-right:226px; }
+.public-profile-identity .golfer-bio { margin:16px 0 0; font-size:13px; }
+.honor-emblem { position:relative; display:inline-grid; place-items:center; flex-shrink:0; width:54px; height:62px; color:#27483d; isolation:isolate; }
+.honor-ribbon { position:absolute; top:50%; bottom:0; width:55%; background:#638d85; clip-path:polygon(0 0,100% 0,92% 100%,50% 80%,8% 100%); z-index:-1; }
+.honor-coin { width:48px; height:48px; display:grid; place-items:center; border:0; border-radius:50%; background:var(--honor-color); box-shadow:none; }
+.honor-coin svg { width:27px!important; height:27px!important; color:inherit; }
+.honor-accolade .honor-coin { border-radius:25% 25% 38% 38%; }
+.honor-accolade .honor-ribbon { background:#9a82ad; }
+.honor-tile .honor-emblem { width:30px; height:32px; }
+.honor-tile .honor-coin { width:26px; height:26px; }
+.honor-tile .honor-coin svg { width:17px!important; height:17px!important; }
+.honor-count { position:absolute; top:-1px; right:-2px; padding:1px 3px; font-size:8px; line-height:12px; border-radius:4px; color:#f5f4e9; background:#345c4c; }
+.honors-empty { font-size:12px; line-height:1.5; color:var(--ui-muted); margin:12px 0 4px; }
+.honor-gift-button { width:100%; margin-top:14px; padding:9px 12px!important; font-size:12px!important; background:var(--ui-raised)!important; color:var(--ui-text)!important; }
+/* Accolades fit in the cover. Medals occupy the open space beside the identity. */
+.public-profile .profile-cover { align-items:flex-start; }
+.public-profile .profile-accolades { position:absolute; top:36px; right:20px; width:190px; margin:0; padding:0; }
+.profile-accolades .honors-heading { justify-content:flex-end; }
+.profile-accolades .honor-shelf { justify-content:flex-end; gap:7px; flex-wrap:nowrap; padding:2px 3px 0 0; }
+.profile-accolades .honors-empty { margin:0; white-space:nowrap; letter-spacing:0; }
+.profile-medals { position:absolute; top:34px; right:0; width:206px; }
+.profile-medals .honors-heading,.profile-accolades .honors-heading { height:14px; margin-bottom:4px; }
+.profile-medals .honors-heading>span,.profile-accolades .honors-heading>span { color:var(--ui-muted); font-size:9px; letter-spacing:.09em; }
+.profile-medals .honors-heading .text-button { color:var(--ui-accent); font-size:10px; line-height:14px; padding:0!important; min-height:0; }
+.profile-medal-grid { display:grid; grid-template-columns:repeat(7,26px); gap:4px; }
+.profile-medal-grid .honor-tile { width:26px; }
+.profile-medal-grid .honor-emblem { width:26px; height:26px; }
+.profile-medal-grid .honor-coin { width:23px; height:23px; }
+.profile-medal-grid .honor-coin svg { width:15px!important; height:15px!important; }
+.profile-medal-grid .honors-empty { grid-column:1/-1; font-size:11px; margin:4px 0; }
+.public-profile { container-type:inline-size; }
+@container(max-width:540px) {
+ .public-profile-head { grid-template-columns:minmax(0,1fr) 138px; grid-template-areas:'avatar medals' 'identity medals'; row-gap:8px; column-gap:16px; }
+ .public-profile-head>.golfer-avatar { grid-area:avatar; }
+ .public-profile-identity { grid-area:identity; padding:0; }
+ .public-profile .profile-medals { width:138px; top:34px; }
+ .profile-medal-grid { grid-template-columns:repeat(5,26px); gap:4px 2px; }
+ .public-profile-identity .golfer-nameplate { max-width:100%; }
+}
+.public-profile .golfer-avatar.large { color:#27483d; margin-top:0; }
+.public-profile-head>.public-profile-identity>span:not(.golfer-nameplate) { color:var(--ui-muted); }
+.profile-bests-compact { color:var(--ui-text); margin:24px 0 18px; border-top:1px solid var(--ui-border); padding-top:16px; }
+.profile-bests-compact h3 { margin:0; font-size:16px; }
+.profile-bests-scroll { max-height:230px; overflow:auto; scrollbar-width:thin; }
+.profile-bests-compact table { width:100%; border-collapse:collapse; font-size:13px; }
+.profile-bests-compact th { text-align:left; font-size:10px; color:var(--ui-muted); padding:6px 10px; }
+.profile-bests-compact td { padding:9px 10px; border-top:1px solid color-mix(in srgb,var(--ui-border) 25%,transparent); }
+.profile-bests-compact td:nth-child(n+2),.profile-bests-compact th:nth-child(n+2) { text-align:right; white-space:nowrap; }
+.profile-bests-compact small { display:block; color:var(--ui-muted); font-size:10px; margin-top:2px; }
+.accolade-options { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px; }
+.accolade-option { display:flex; align-items:center; gap:14px; text-align:left; border:1px solid var(--ui-border); border-radius:8px; color:var(--ui-text); background:var(--ui-field); padding:16px; }
+.accolade-option>span:nth-child(2) { flex:1; }
+.accolade-option strong { display:block; font-size:14px; }
+.accolade-option small { display:block; font-size:11px; line-height:1.6; margin-top:5px; color:var(--ui-muted); }
+.accolade-option:disabled { opacity:.6; cursor:default; }
+.honor-confirm { text-align:center; padding:20px; }
+.honor-confirm>.honor-emblem { transform:scale(1.5); margin:15px 0 30px; }
+.honor-confirm h2 { font-size:28px; }
+.medal-guide { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:22px 0; }
+.medal-guide article { display:flex; gap:15px; padding:16px; border:1px solid var(--ui-border); border-radius:6px; }
+.medal-guide h3 { font-size:15px; margin:0 0 5px; }
+.medal-guide p { font-size:12px; margin:0; line-height:1.5; color:var(--ui-muted); }
+.accolade-celebration { position:relative; overflow:hidden; text-align:center; isolation:isolate; padding:40px 20px; color:var(--ui-text); }
+.accolade-celebration>.honor-emblem { transform:scale(2.3); margin:62px 0 68px; animation:honor-arrive .65s cubic-bezier(.2,.8,.25,1.2); }
+.accolade-celebration h2 { font-size:clamp(25px,4vw,46px); margin:12px 0; }
+.accolade-celebration h3 { font-size:21px; color:var(--ui-accent); }
+.accolade-celebration .eyebrow { position:relative; letter-spacing:.2em; font-size:11px; }
+.accolade-celebration .button { margin-top:22px; }
+.honor-rays { position:absolute; z-index:-1; inset:0; opacity:.12; background:repeating-conic-gradient(from 10deg at 50% 35%,transparent 0deg 20deg,#dcc27d 20deg 23deg); mask-image:radial-gradient(ellipse at 50% 35%,#000,transparent 67%); }
+.rankings-sentinel { min-height:24px; text-align:center; font-size:12px; color:var(--ui-muted); margin:10px; }
+@keyframes honor-arrive { from{transform:scale(.6);opacity:0}to{transform:scale(2.3);opacity:1} }
+@media(max-width:900px) { .accolade-options { grid-template-columns:1fr; } }
+@media(max-width:560px) { .public-profile-head { gap:12px; }.honors-cabinet { padding:14px; }.medal-guide { grid-template-columns:1fr; }.honor-confirm { padding:8px; } }
+@media(prefers-reduced-motion:reduce) { .accolade-celebration>.honor-emblem { animation:none; } }
