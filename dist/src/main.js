@@ -1,3 +1,8 @@
+import { installHoleEffects } from './hole-effects.js';
+import { readPreferences, savePreferences } from './device-settings.js';
+import { installOpeningUpdate } from './opening-update.js';
+import { installSmartHud } from './smart-hud.js';
+import { installCourseAdventures } from './course-adventure-render.js';
 import { installHonors } from './honors-ui.js';
 import { installInvites } from './room-invites.js';
 import { isLocalPreview, previewStorage, installLocalPreview } from './local-preview.js';
@@ -31,6 +36,9 @@ try {
     ui?.toast(message);
     audio?.play(type);
   });
+  if (!isLocalPreview()) progress.data.settings = readPreferences(progress.data.settings);
+  const save = progress.save.bind(progress);
+  progress.save = () => { if (!isLocalPreview()) savePreferences(progress.data.settings); return save(); };
   const audio = new AudioManager(progress.data.settings);
   const world = new World(document.querySelector("#world"));
   installItemThumbnails(world);
@@ -65,8 +73,12 @@ try {
   installLiveRound(ui);
   installCourseAtmosphere(ui);
   installPirateEffects(world);
+  installHoleEffects(world);
+  installCourseAdventures(ui);
   installLocalPreview(ui);
   installHonors(ui);
+  installOpeningUpdate(ui);
+  installSmartHud(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);

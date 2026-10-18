@@ -1,3 +1,4 @@
+import { HoleCelebration } from './hole-effects.js';
 import * as THREE from "../vendor/three.module.js";
 import { ballFinish } from "./item-designs.js";
 import { applyFinish } from './finish-material.js';
@@ -221,7 +222,12 @@ export function renderItemArt(w, item, {blob = false} = {}) {
     m("cylinder", "#f4f0dd", 0.15, 0.2, 0, 0.025, 1.75, 0.025, g);
     const flag = m("box", item.color, 0.45, 0.88, 0, 0.58, 0.36, 0.02, g);
     flag.rotation.y = -0.3;
-    for (let i = 0; i < 38; i++) {
+    if(item.effect) {
+      const effect=new HoleCelebration(item,{low:true});effect.update(item.effect==='meteor'?.65:1.3);
+      effect.root.scale.setScalar(.42);effect.root.position.y=-.62;
+      effect.root.traverse(o=>{if(o.material)o.userData.ownedMaterial=true;});g.add(effect.root);
+    }
+    for (let i = 0; i < (item.effect ? 0 : 38); i++) {
       const a = i * 2.399,
         r = 0.3 + (i % 5) * 0.22,
         y = -0.35 + ((i * 7) % 11) * 0.13,

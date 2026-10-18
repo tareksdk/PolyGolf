@@ -47,9 +47,10 @@ export function driverYards(equipment = {}) {
   return DRIVER_YARDS[ITEM_BY_ID[equipment.driver]?.rarity] || 265;
 }
 export function golfGear(equipment = {}) {
-  return { driverYards: driverYards(equipment) };
+  return { driverYards: driverYards(equipment), ...(equipment.driver === 'driver-mystery' ? {mysteryAce:true} : {}) };
 }
 export function itemDescription(item) {
+  if(item.id === 'driver-mystery') return item.flavor;
   const flavor = item.flavor ? item.flavor + " " : "";
   if (item.category === "driver")
     return `${flavor}${DRIVER_YARDS[item.rarity]} yard driver · full-power total on a level fairway. Wind, slope and lie affect distance.`;

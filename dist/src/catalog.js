@@ -1,4 +1,5 @@
 import { HALLOWEEN_ITEMS, DISCOVERY_ITEMS, SPECIAL_PLATES } from "./halloween.js";
+import { NEW_HOLE_EFFECTS } from './hole-effects-catalog.js';
 import { CODE_NAMEPLATES } from './code-nameplates.js';
 import { RANKS, rankPlate } from './ranks.js';
 import { FINISHES } from './finishes.js';
@@ -365,7 +366,8 @@ for (const finish of FINISHES) for (const [category, label] of [['driver','Drive
     flavor: finish.key === 'case-hardened' ? 'Heat-blued steel, brass gold and violet edges. Every drop gets a saved pattern from 000 to 999.' : 'An original numbered finish. Every drop adds its own saved pattern to your collection.' });
 }
 ITEMS.push(...HALLOWEEN_ITEMS, ...DISCOVERY_ITEMS, ...SPECIAL_PLATES);
-ITEMS.push(...CODE_NAMEPLATES);
+ITEMS.push(...CODE_NAMEPLATES, ...NEW_HOLE_EFFECTS);
+ITEMS.push({id:'driver-mystery',name:'???',category:'driver',rarity:'Black Market',color:'#182a40',pattern:'#81ffe3',source:'code',exclusive:true,price:0,design:3,flavor:'A secret with only one destination. Every driver shot flies straight into the cup.'});
 ITEMS.push({id:'nameplate-locker-legend',category:'nameplate',name:'Locker Legend',rarity:'Legendary',color:'#201d36',pattern:'#f0cb78',badge:'vault',shine:'prismatic',design:0,source:'achievement',exclusive:true,price:0,secret:true,flavor:'A secret discovered after opening more than 1,000 lockers.'});
 export const ALPHA_ITEMS = ITEMS.filter((i) => i.source === "alpha").map((i) => i.id);
 export const DEFAULT_EQUIPMENT = {

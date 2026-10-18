@@ -11,7 +11,7 @@ const {tradingAction}=await import('data:text/javascript;base64,'+Buffer.from(st
 const A='00000000-0000-0000-0000-000000000001',B='00000000-0000-0000-0000-000000000002',C='00000000-0000-0000-0000-000000000003',ID='00000000-0000-0000-0000-000000000004';
 function fixture(){
  const items=ITEMS.filter(i=>tradeable(i)&&!i.finish),a={id:A,username:'Golfer A',revision:7,state:defaultSave()},b={id:B,username:'Golfer B',revision:9,state:defaultSave()};
- a.state.owned.push(items[0].id);b.state.owned.push(items[1].id);
+ a.state.xp=b.state.xp=10000;a.state.owned.push(items[0].id);b.state.owned.push(items[1].id);
  const t={id:ID,sender_id:A,receiver_id:B,offered:[{id:items[0].id}],requested:[{id:items[1].id}],status:'pending',expires_at:new Date(Date.now()+86400000).toISOString()};
  let existing=null,friends=true,calls=[];
  const db={limited:async()=>{},table:async(name,q)=>{

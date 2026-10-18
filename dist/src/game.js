@@ -101,7 +101,7 @@ export class GameManager {
   autoAim() {
     if (this.mode !== "golf") return;
     const b = this.physics.ball;
-    this.club = recommendClub(this.hole, b, this.world.equipment);
+    this.club = golfGear(this.world.equipment).mysteryAce ? 'driver' : recommendClub(this.hole, b, this.world.equipment);
     this.power = 0.85;
     this.direction = { x: this.hole.cup.x - b.x, z: this.hole.cup.z - b.z };
     this.normalizeAim();
@@ -147,7 +147,7 @@ export class GameManager {
   }
   meterStyle() { return this.world.settings?.shotMeter === 'fluid' ? 'fluid' : 'classic'; }
   beginPower() {
-    if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging || this.world.waterMoment || this.world.pirateMoment) return;
+    if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging || this.world.waterMoment || (this.world.pirateMoment || this.world.adventureMoment)) return;
     this.charging = true;
     this.shotPhase = 'power';
     this.chargeTime = 0;
@@ -268,8 +268,7 @@ export class GameManager {
     this.clearInput();
     this.world.presentationPaused = false;
     this.round.strokes[this.index] = this.strokes;
-    const y = this.mode === "golf" ? this.hole.cup.y : 0.4;
-    this.world.burst(this.hole.cup.x, y + 0.4, this.hole.cup.z, this.world.holeColor, 35);
+
     this.onEvent("cup");
     const result = {
       index: this.index,
@@ -281,8 +280,8 @@ export class GameManager {
       transcript: this.transcript,
       endTick: this.ticks,
     };
-    this.world.celebrate?.(this.hole.cup, this.world.holeColor);
-    this.holeReveal = { remaining: 1.15, result };
+    const duration = this.physics.sunk ? this.world.celebrate?.(this.hole.cup, this.world.holeColor) : 1.15;
+    this.holeReveal = { remaining: duration || 1.15, result };
     this.onUpdate();
   }
   finishSudden() {
@@ -291,11 +290,12 @@ export class GameManager {
     this.clearInput();
     this.world.presentationPaused = false;
     const result = { round: this.round, index: 0, transcript: this.transcript, endTick: this.ticks };
+    let duration=1.15;
     if (this.physics.sunk) {
-      this.world.celebrate?.(this.hole.cup, this.world.holeColor);
+      duration=this.world.celebrate?.(this.hole.cup, this.world.holeColor) || 1.15;
       this.onEvent("cup");
     }
-    this.holeReveal = { remaining: 1.15, result };
+    this.holeReveal = { remaining: duration, result };
     this.onUpdate();
   }
   bindInput() {
@@ -318,7 +318,7 @@ export class GameManager {
     };
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     canvas.addEventListener("pointerdown", (e) => {
-      if (this.state !== "playing" || this.pendingSwing || this.world.waterMoment || this.world.pirateMoment) return;
+      if (this.state !== "playing" || this.pendingSwing || this.world.waterMoment || (this.world.pirateMoment || this.world.adventureMoment)) return;
       e.preventDefault?.();
       canvas.focus?.({ preventScroll: true });
       this.onEvent("interact");
@@ -336,7 +336,7 @@ export class GameManager {
       }
     });
     canvas.addEventListener("pointermove", (e) => {
-      if (this.state !== 'playing' || this.world.waterMoment || this.world.pirateMoment) return;
+      if (this.state !== 'playing' || this.world.waterMoment || (this.world.pirateMoment || this.world.adventureMoment)) return;
       // A mouse chord sends pointermove, not a second pointerdown. Orbit wins
       // over a held shot so releasing the last button cannot fire accidentally.
       if (!this.rotating && (e.buttons & 2) && !this.pendingSwing) orbit({ pointerId:e.pointerId, clientX:e.clientX, clientY:e.clientY, button:2 });
@@ -461,7 +461,7 @@ export class GameManager {
           this.aimTarget = null;
         }
         this.power = Math.max(.01,Math.min(1,this.power + ((keys.has('ArrowUp')?1:0) - (keys.has('ArrowDown')?1:0)) * dt * .35));
-        if (this.meterStyle() === 'fluid' && !this.world.waterMoment && !this.world.pirateMoment) {
+        if (this.meterStyle() === 'fluid' && !this.world.waterMoment && !(this.world.pirateMoment || this.world.adventureMoment)) {
           this.directionTime = (this.directionTime || 0) + dt;
           this.accuracy = directionAccuracy(this.directionTime);
         }
@@ -563,7 +563,7 @@ export class GameManager {
       this.state === "playing" &&
         !this.pendingSwing &&
         !this.world.waterMoment &&
-        !this.world.pirateMoment &&
+        !(this.world.pirateMoment || this.world.adventureMoment) &&
         !this.physics.active &&
         this.world.settings?.aimGuide !== false,
     );
@@ -585,9 +585,10 @@ export function chargeAccuracy(seconds) {
   const t = (Math.max(0, seconds) / 1.65 + .5) % 2;
   return 1 - 2 * Math.abs(t - 1);
 }
-// 2.2 seconds per full sweep, starting at centre. Gentle reversals at both ends.
+// A continuous 2.2-second sweep. Accelerate through the green centre and ease
+// into the outside turns without changing position discontinuously.
 export function directionAccuracy(seconds) {
-  return Math.sin(Math.max(0, seconds) * Math.PI / 1.1);
+  return Math.tanh(1.25 * Math.sin(Math.max(0, seconds) * Math.PI / 1.1)) / Math.tanh(1.25);
 }
 export function shotDirection(dir, accuracy = 0, putting = false) {
   // A generous central sweet spot; the meter adds a small, visible angular miss.

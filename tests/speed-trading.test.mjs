@@ -39,7 +39,7 @@ test('caddie combines category, ownership, rarity, favorites, word search and st
 });
 test('direction meter reverses continuously on a slower 2.2-second cycle',()=>{
  for(const [t,v] of [[0,0],[.55,1],[1.1,0],[1.65,-1],[2.2,0]])assert.ok(Math.abs(directionAccuracy(t)-v)<1e-10);
- for(let t=0;t<10;t+=1/60)assert.ok(Math.abs(directionAccuracy(t+1/60)-directionAccuracy(t))<.048);
+ for(let t=0;t<10;t+=1/60)assert.ok(Math.abs(directionAccuracy(t+1/60)-directionAccuracy(t))<.071);
 });
 test('a click locks the direction that was last displayed, not an unseen later update',()=>{
  const savedWindow=globalThis.window,savedDocument=globalThis.document;

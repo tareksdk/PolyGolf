@@ -1,3 +1,7 @@
+# Current release · v1.1
+
+Golf course IDs 15 and 16 are separate nine-hole Saltwind/Autumn collections; IDs 1 and 2 remain three holes. Keep the existing `polygolf-v11` rules version and record keys. Apply `long-courses.sql`, then deploy the complete bundle from `scripts/package-backend.mjs`. The migration only extends a check constraint and preserves scores. This backend also retains the recovered live account, profile, item and room-rematch behavior.
+
 # Supabase setup
 
 The ZIP contains the static application and all backend source. The connected project is already configured; running `node server.mjs` from the project root uses it. Only its public URL and publishable key are in `dist/src/cloud.js`. No service key, user password or test session is included.

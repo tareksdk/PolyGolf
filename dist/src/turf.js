@@ -4,6 +4,7 @@ import { fairwayWidth } from './golf-courses.js';
 // Only the fairway silhouette is rasterized. Stripe and hazard edges are drawn
 // in world metres with a one-pixel antialiasing fringe, independent of texture LOD.
 export function turfMaterial(h, width, depth, top, quality='medium') {
+  if(h.meadowcrestRange)return rangeTurfMaterial(h);
   const canvas=document.createElement('canvas');
   canvas.width=quality==='low'?1024:2048;canvas.height=canvas.width;
   const c=canvas.getContext('2d');
@@ -32,7 +33,7 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
     float aa=max(fwidth(coverage)*0.5,0.001);
     float fairway=smoothstep(0.5-aa,0.5+aa,coverage);
     float stripe=turfInside(abs(mod(-vTurfXZ.y-5.5,22.0)-11.0)-5.5);
-    vec3 turf=mix(${rgb(h.course.eventTheme?h.course.grass:h.courseIndex===2?'#718e3b':h.courseIndex===1?'#6d9645':'#5f923e')},mix(${rgb(h.course.fairway||'#8db954')},${rgb(h.course.stripe||'#80af49')},stripe),fairway);
+    vec3 turf=mix(${rgb(h.course.eventTheme?h.course.grass:(h.layoutCourse ?? h.courseIndex) === 2?'#718e3b':(h.layoutCourse ?? h.courseIndex) === 1?'#6d9645':'#5f923e')},mix(${rgb(h.course.fairway||'#8db954')},${rgb(h.course.stripe||'#80af49')},stripe),fairway);
     ${layers.join('\n')}
     diffuseColor.rgb*=turf;
   `;
@@ -51,6 +52,34 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
         return 1.0-smoothstep(-aa,aa,length(q)/edge-1.0);
       }
     `).replace('#include <map_fragment>',fragment);
+  };
+  material.customProgramCacheKey=()=>fragment;
+  return material;
+}
+
+// Broad changes in grass and cut direction, without a noisy grain overlay.
+function rangeTurfMaterial(h){
+  const material=new THREE.MeshStandardMaterial({roughness:1});
+  const rgb=hex=>{const c=new THREE.Color(hex);return `vec3(${c.r},${c.g},${c.b})`;};
+  const targets=[[-22,-54,5],[23,-86,6],[14,-142,6.5],[-17,-193,7],[27,-235,7]];
+  const fragment=`
+    vec2 p=vRangeXZ;
+    float grassVariation=.5+.25*sin(p.x*.065+p.y*.019)+.25*sin(p.y*.046-p.x*.013);
+    vec3 grass=mix(${rgb('#5b873d')},${rgb('#75994a')},grassVariation);
+    float field=1.0-smoothstep(61.0,76.0,abs(p.x+4.0*sin(p.y*.025)));
+    float mow=step(16.0,mod(-p.y+5.0,32.0));
+    grass=mix(grass,mix(${rgb('#72954b')},${rgb('#7c9f52')},mow),field*.5);
+    float lowland=(1.0-smoothstep(1.2,4.0,abs(p.y+111.0-p.x*.07-2.0*sin(p.x*.028))))*(1.0-smoothstep(50.0,74.0,abs(p.x)));
+    grass=mix(grass,${rgb('#50794b')},lowland*.55);
+    ${targets.map(([x,z,r])=>`grass=mix(grass,${rgb('#8aa55c')},(1.0-smoothstep(${r-.35},${r+.35},length(p-vec2(${x.toFixed(1)},${z.toFixed(1)}))))*.7);`).join('\n')}
+    float pond=length((p-vec2(-30.0,-105.0))/vec2(15.0,8.0));
+    grass=mix(grass,${rgb('#80915d')},1.0-smoothstep(1.0,1.18,pond));
+    grass=mix(grass,${rgb(h.course.water)},1.0-smoothstep(.98,1.02,pond));
+    diffuseColor.rgb*=grass;
+  `;
+  material.onBeforeCompile=shader=>{
+    shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vRangeXZ;').replace('#include <begin_vertex>','#include <begin_vertex>\nvRangeXZ=position.xz;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vRangeXZ;').replace('#include <map_fragment>',fragment);
   };
   material.customProgramCacheKey=()=>fragment;
   return material;

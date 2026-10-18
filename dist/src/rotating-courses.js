@@ -22,15 +22,15 @@ export function rotationSlots(now=Date.now()) {
 }
 export function courseRotationKey(index,now=Date.now()) {
   const s=rotationSlots(now);
-  return index===14?'':index===3?'halloween-2026':index>=9?'day-'+s.day:index>=4?'week-'+s.week:'';
+  return index>=14?'':index===3?'halloween-2026':index>=9?'day-'+s.day:index>=4?'week-'+s.week:'';
 }
 export function courseAvailable(index,now=Date.now()) {
   const s=rotationSlots(now);
-  return Number.isInteger(index)&&index>=0&&(index<3||index===14||[s.seasonal,s.weekly,s.daily].includes(index));
+  return Number.isInteger(index)&&index>=0&&(index<3||(index>=14&&index<=16)||[s.seasonal,s.weekly,s.daily].includes(index));
 }
 export function featuredCourses(now=Date.now()) {
   const s=rotationSlots(now);
-  return [{index:s.seasonal,label:'Seasonal course',ends:s.seasonalEnds},{index:s.weekly,label:'Map of the week',ends:s.weeklyEnds},{index:s.daily,label:'Hole of the day',ends:s.dailyEnds},{index:14,label:'Long course'}].filter(x=>x.index!==null);
+  return [{index:s.seasonal,label:'Seasonal course',ends:s.seasonalEnds},{index:s.weekly,label:'Map of the week',ends:s.weeklyEnds},{index:s.daily,label:'Hole of the day',ends:s.dailyEnds},...[14,15,16].map(index=>({index,label:'Nine-hole collection'}))].filter(x=>x.index!==null);
 }
 // Stable layouts: the date selects a course, never changes an in-progress replay.
 export function eventLayout(course,index) {

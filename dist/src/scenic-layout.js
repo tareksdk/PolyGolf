@@ -31,7 +31,7 @@ export function scenicLayout(h) {
     }
     return p;
   }
-  if(h.courseIndex === 1) {
+  if((h.layoutCourse ?? h.courseIndex) === 1) {
     const sea=coastWaterLevel(h),rise=sea+42.6;
     for(const [x,z,s,a] of [[345,-h.length*.86,1.1,.5],[-360,-h.length*.45,1.3,1.8],[510,-h.length-220,1.6,-.6],[-370,170,1.45,.7],[-470,-h.length-250,1.7,2.2],[520,270,1.6,1],[650,center,1.1,.2]])
       add('coastal-headland',x,z,s,a,-44+rise);
@@ -49,7 +49,7 @@ export function scenicLayout(h) {
       add(i%2?'alpine-massif':'alpine-ridge',Math.cos(a)*545,center+Math.sin(a)*(h.length/2+405),.9+(i%3)*.16,a+.7,-14);
     }
     add('waterfall-crag',-252,-h.length*.65,1,-.45,-2);
-    add('alpine-lodge',h.courseIndex===2?190:-174,-h.length*.27,1.25,.9,null);
+    add('alpine-lodge',(h.layoutCourse ?? h.courseIndex) === 2?190:-174,-h.length*.27,1.25,.9,null);
   }
   return p;
 }

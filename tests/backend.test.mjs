@@ -123,7 +123,8 @@ test('shop rejects unavailable or exclusive items even with sufficient balance',
 test('old clients cannot start a mismatched replay version; each course stores its full round length',async()=>{
  await assert.rejects(call('start_round',{mode:'golf',course:0,rulesVersion:'legacy-v1'}),/Reload/);const r=await call('start_round',{mode:'golf',course:0});assert.equal(r.roundId,'round-test');
  assert.equal(rounds.get(r.roundId).hole_count,3);
- await call('start_round',{mode:'golf',course:14});assert.equal(rounds.get('round-test').hole_count,9);
+ await assert.rejects(call('start_round',{mode:'golf',course:15}),/level 3/);players.get('a').state.xp=20000;
+ for(const course of [14,15,16]){await call('start_round',{mode:'golf',course});const round=rounds.get('round-test');assert.equal(round.hole_count,9);assert.equal(round.course,course);assert.equal(round.rules_version,RULES_VERSION);}
  players.get('a').state.xp=20000;
  for(const course of [1,2]){await call('start_round',{mode:'golf',course});assert.equal(rounds.get('round-test').hole_count,3);}
  await call('start_round',{mode:'mini',course:0});assert.equal(rounds.get('round-test').hole_count,9);
@@ -157,7 +158,7 @@ test('custom domain preflight permits the new site and does not reflect unrelate
  for(const origin of ['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol']){const r=await handler(new Request('http://test.local',{method:'OPTIONS',headers:{Origin:origin}}));assert.equal(r.headers.get('Access-Control-Allow-Origin'),origin);}
  const r=await handler(new Request('http://test.local',{method:'OPTIONS',headers:{Origin:'https://unrelated.invalid'}}));assert.notEqual(r.headers.get('Access-Control-Allow-Origin'),'https://unrelated.invalid');
 });
-test('ranked queue authenticates the player, enforces level 15 and snapshots server equipment',async()=>{const p=players.get('a');p.state=defaultSave();await assert.rejects(call('ranked_queue',{},null),/Sign in/);p.state.xp=18374;await assert.rejects(call('ranked_queue'),/level 15/);p.state.xp=18375;await assert.rejects(call('ranked_queue',{rulesVersion:'old'}),/Reload/);const s=await call('ranked_queue',{userId:'b',equipment:{driver:'driver-alpha'}});assert.equal(s.queued,true);});
+test('ranked queue authenticates the player, requires an account and and snapshots server equipment',async()=>{const p=players.get('a');p.state=defaultSave();await assert.rejects(call('ranked_queue',{},null),/Sign in/);p.state.xp=0;await assert.rejects(call('ranked_queue',{rulesVersion:'old'}),/Reload/);const s=await call('ranked_queue',{userId:'b',equipment:{driver:'driver-alpha'}});assert.equal(s.queued,true);});
 
 test('community visits award once without confirmation, including concurrent requests and retries',async()=>{
  const p=players.get('a');p.state=defaultSave();const before=p.state.coins;

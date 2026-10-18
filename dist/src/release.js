@@ -43,6 +43,7 @@ export function installRelease(ui) {
   };
   ui.game.onEvent=(name)=>{
     event(name);
+    if(name==='pumpkin') ui.world.explodePumpkin?.();
     const discovery=name==='pumpkin'?'pumpkin':name==='pirate-ship'?'pirate':null;
     if(!discovery || ui.game.round.practice || ui.game.customHole || ui.progress.data.achievementRewards?.includes(discovery))return;
     const pumpkin=discovery==='pumpkin',items=pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate'];

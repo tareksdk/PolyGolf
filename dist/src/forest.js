@@ -39,20 +39,21 @@ export function populateForest(h, density = 1) {
       if (oval(h.green, px, pz) < 1.5 || [...h.water, ...h.bunkers].some((p) => oval(p, px, pz) < 1.3))
         continue;
       const far = Math.abs(px) > 145 || pz > 60 || pz < -h.length - 65;
+      const species = h.longAdventure ? noise(px, pz, h.seed + 13) : r;
       let type =
         h.courseIndex === 2
-          ? r < 0.65
+          ? species < 0.65
             ? "larch"
-            : r < 0.92
+            : species < 0.92
               ? "pine"
               : "autumn-oak"
           : h.courseIndex === 1
-            ? r < 0.87
+            ? species < 0.87
               ? "pine"
               : "oak"
-            : r < 0.65
+            : species < 0.65
               ? "pine"
-              : r < 0.94
+              : species < 0.94
                 ? "oak"
                 : "willow";
       if (h.treeStyle === "meadow") type = r < 0.2 ? "pine" : r < 0.55 ? "oak" : "willow";

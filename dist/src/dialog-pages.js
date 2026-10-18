@@ -13,7 +13,7 @@ export function installDialogPages(ui) {
     if (locker) { pageLockerContents(root, locker); return; }
     if (!settings && !guide) return;
     const groups = settings
-      ? [['Display', [...settings.querySelectorAll(':scope > .settings-choice')].filter(el => !el.querySelector('[name=setting-courseWeather]'))], ['Weather', [settings.querySelector('[name=setting-courseWeather]')?.closest('.settings-choice')]], ['Sound', [settings.querySelector('[aria-labelledby=settings-sound]')]], ['Camera', [settings.querySelector('[aria-labelledby=settings-camera]')]], ['Course', [settings.querySelector('[aria-labelledby=settings-course]')]]]
+      ? [['Display', [...settings.querySelectorAll(':scope > .settings-choice')].filter(el => !el.querySelector('[name=setting-courseWeather]'))], ['Weather', [settings.querySelector('[name=setting-courseWeather]')?.closest('.settings-choice')]], ['Sound', [settings.querySelector('[aria-labelledby=settings-sound]')]], ['Camera', [settings.querySelector('[aria-labelledby=settings-camera]')]], ['Course', [settings.querySelector('[aria-labelledby=settings-course]')]], ['HUD', [settings.querySelector('[aria-labelledby=settings-hud]')]]]
       : [['Shot', [guide.querySelector(':scope > p'), guide.querySelector('.controls-meters')]], ['Keys', [guide.querySelector('.controls-keys')]], ['Tips', [guide.querySelector('.controls-notes')]]];
     const host = settings || guide;
     const tabs = document.createElement('nav');

@@ -5,7 +5,7 @@ import { coastBandPoint, coastWaterLevel } from "./golf-courses.js";
 
 export function buildBackdrop(w, h) {
   buildMountainRanges(w,h);
-  if (h.courseIndex === 1) {
+  if ((h.layoutCourse ?? h.courseIndex) === 1) {
     buildOcean(w,h);
     // Shared rings have no cracks: one top boundary, one vertex per adjoining band.
     const outline = w.coastOutline, rings=[outline];
@@ -40,7 +40,7 @@ export function buildBackdrop(w, h) {
     return;
   }
   // The surrounding massif meshes come from the Blender scenic kit.
-  const valley = w.mesh('box',h.courseIndex===2?'#6b774d':'#597249',0,-13,-h.length/2,2300,2,2600);
+  const valley = w.mesh('box',(h.layoutCourse ?? h.courseIndex) === 2?'#6b774d':'#597249',0,-13,-h.length/2,2300,2,2600);
   valley.castShadow=false;
   if (h.backdrop === "lake") {
     // Meets the final hole's sloping right bank beyond the out-of-bounds line.

@@ -94,7 +94,14 @@ export function courseAssets(w, h) {
     add(type, t.x, t.z, t.size, (t.x + t.z) * 0.31);
   }
 
+  if(h.meadowcrestRange){
+    for(const [x,z,s] of [[-46,-99,.85],[-43,-114,.65],[-37,-116,.75],[-53,-90,.8],[51,-157,.7],[29,11,.85],[31,12,.8],[52,25,1]])add('bush',x,z,s,x*.1);
+    for(const [x,z] of [[26,13],[27.5,14],[48,26]])add('flowers',x,z,.65,.2);
+  }
+
   // ---- Clubhouse facing the first tee, with a flag, parked cart and planters.
+  if (!h.meadowcrestRange) {
+  if (!h.tutorialGarden) {
   const home = [-26, 24],
     toTee = facing(...home, 0, 0),
     front = (d, side = 0) => [home[0] + Math.sin(toTee) * d + Math.cos(toTee) * side, home[1] + Math.cos(toTee) * d - Math.sin(toTee) * side];
@@ -126,8 +133,9 @@ export function courseAssets(w, h) {
     { play: true, canopy: 2 },
   );
   if (hut) {
-    add(h.courseIndex === 1 ? "beach-hut" : "starter-hut", ...hut, 1, facing(...hut, 0, 0));
+    add((h.layoutCourse ?? h.courseIndex) === 1 ? "beach-hut" : "starter-hut", ...hut, 1, facing(...hut, 0, 0));
     claim(...hut, 2.4);
+  }
   }
 
   // ---- Tee complex: markers, hole sign, bench, ball washer, bin and planter.
@@ -142,10 +150,18 @@ export function courseAssets(w, h) {
     ["bin", -6.4, 2.8, 0, 0.3],
     ["planter", 7.8, 4.8, -0.3, 0.7],
   ])
-    if (clear(x, z, r, { play: true })) {
+    if ((!h.tutorialGarden || name === 'bench') && clear(x, z, r, { play: true })) {
       add(name, x, z, 1, angle);
       claim(x, z, r);
     }
+
+  // The first-swing garden uses the existing Blender kit and shares instanced
+  // geometry with the rest of the course. Keep the entire putting line open.
+  if(h.tutorialGarden){
+    add('flowers',-14,-18,.85,.4);
+    add('flowers',-14.8,-19,.7,1.2);
+    add('bush',-15.5,-18.8,.6,.3);
+  }
 
   // ---- Distance posts: white every 100 m to the green, red at the 50s.
   for (let remaining = 100; remaining < h.length - 40; remaining += 50) {
@@ -161,7 +177,7 @@ export function courseAssets(w, h) {
     len = Math.hypot(g.x - approach[0], g.z - approach[1]) || 1,
     ux = (g.x - approach[0]) / len,
     uz = (g.z - approach[1]) / len;
-  for (const side of [1, -1]) {
+  for (const side of (h.tutorialGarden ? [] : [1, -1])) {
     const bx = g.x + ux * (g.rz + 6) + uz * side * (g.rx + 4),
       bz = g.z + uz * (g.rz + 6) - ux * side * (g.rx + 4);
     if (clear(bx, bz, 1.4)) {
@@ -185,9 +201,9 @@ export function courseAssets(w, h) {
         x = p.x + Math.cos(a) * (p.rx + 1.8),
         z = p.z + Math.sin(a) * (p.rz + 1.8);
       if (pathDistance(h, x, z) < h.width * 0.5 + 3) continue;
-      add(h.courseIndex === 1 && j % 4 === 0 ? "tide-rocks" : j % 5 === 0 ? "boulder" : "reeds", x, z, 0.85 + (j % 4) * 0.15, a);
+      add((h.layoutCourse ?? h.courseIndex) === 1 && j % 4 === 0 ? "tide-rocks" : j % 5 === 0 ? "boulder" : "reeds", x, z, 0.85 + (j % 4) * 0.15, a);
     }
-  if (h.courseIndex !== 1)
+  if ((h.layoutCourse ?? h.courseIndex) !== 1)
     for (const p of h.water)
       for (let i = 0; i < 7; i++) {
         const a = i * 2.399 + h.seed,
@@ -236,7 +252,7 @@ export function courseAssets(w, h) {
         add("heron", x, z, 1.1, a + 2.2, water(p) - 0.04);
       }
   }
-  if (h.courseIndex === 2 && !h.custom) {
+  if ((h.layoutCourse ?? h.courseIndex) === 2 && !h.custom) {
     const logs = firstClear(
       [
         [11, 10],
@@ -252,7 +268,7 @@ export function courseAssets(w, h) {
       claim(...logs, 1.3);
     }
   }
-  if (h.courseIndex === 1 && !h.custom) {
+  if ((h.layoutCourse ?? h.courseIndex) === 1 && !h.custom) {
     const spots = [...(landmark === "tide" && lake ? shore(lake) : []), [14, 9], [-14, 6], [12, 13], [-12, 12]];
     let placed = 0;
     for (const spot of spots)
@@ -276,7 +292,7 @@ export function courseAssets(w, h) {
       claim(...spot, 1.8);
     }
   }
-  if (h.courseIndex === 2 && lake) {
+  if ((h.layoutCourse ?? h.courseIndex) === 2 && lake) {
     const spot = firstClear(shore(lake).slice(6), 1.8, { water: true });
     if (spot) {
       add("fallen-log", ...spot, 1, 1.1);
@@ -293,29 +309,29 @@ export function courseAssets(w, h) {
   }
 
   // ---- The rough just beyond the fairway: soft, low planting only.
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < (h.tutorialGarden ? 0 : 70); i++) {
     const t = 0.08 + (i / 70) * 0.84,
       z = -h.length * t,
       route = h.route.reduce((a, b) => (Math.abs(a[1] - z) < Math.abs(b[1] - z) ? a : b)),
       side = i % 2 ? 1 : -1,
       x = route[0] + side * (fairwayWidth(h, t) / 2 + 4.5 + ((i * 7) % 4));
     if (!clear(x, z, 0.7)) continue;
-    const name = h.courseIndex === 1 ? "dune-grass" : h.courseIndex === 2 ? (i % 3 === 0 ? "autumn-flowers" : "mushrooms") : "flowers";
+    const name = (h.layoutCourse ?? h.courseIndex) === 1 ? "dune-grass" : (h.layoutCourse ?? h.courseIndex) === 2 ? (i % 3 === 0 ? "autumn-flowers" : "mushrooms") : "flowers";
     add(name, x, z, name === "dune-grass" ? 1.3 : 1, i * 1.7);
     claim(x, z, 0.7);
   }
   // ---- Outer scenery.
-  for (let j = 0; j < 40; j++) {
+  for (let j = 0; j < (h.tutorialGarden ? 0 : 40); j++) {
     const x = (j % 2 ? 1 : -1) * (75 + ((j * 31) % 45)),
       z = -((j * 83) % (h.length + 10));
     if (terrainAt(h, x, z).hazard || h.trees.some((t) => Math.hypot(t.x - x, t.z - z) < 3)) continue;
     add("boulder", x, z, 0.6 + (j % 3) * 0.25, j);
   }
-  for (let i = 0; i < 240; i++) {
+  for (let i = 0; i < (h.tutorialGarden ? 0 : 240); i++) {
     const z = 36 - (i / 240) * (h.length + 90),
       x = (i % 2 ? 1 : -1) * (28 + ((i * 17) % 90));
     if (terrainAt(h, x, z).hazard || pathDistance(h, x, z) < h.width / 2 + 4 || Math.hypot(x - h.cup.x, z - h.cup.z) < 24) continue;
-    add(i % 4 === 0 ? (h.courseIndex === 2 ? "autumn-flowers" : h.courseIndex === 1 ? "dune-grass" : "flowers") : "bush", x, z, 0.7 + (i % 3) * 0.18, i * 2.4);
+    add(i % 4 === 0 ? ((h.layoutCourse ?? h.courseIndex) === 2 ? "autumn-flowers" : (h.layoutCourse ?? h.courseIndex) === 1 ? "dune-grass" : "flowers") : "bush", x, z, 0.7 + (i % 3) * 0.18, i * 2.4);
   }
   for (const p of scenicLayout(h)) {
     if (['alpine-massif','alpine-ridge'].includes(p.name)) continue;
@@ -323,7 +339,13 @@ export function courseAssets(w, h) {
   }
 
   const pumpkin = pumpkinFor(h);
-  if(pumpkin) add("halloween-pumpkin",pumpkin.x,pumpkin.z,1,0,ground(pumpkin.x,pumpkin.z));
+  w.pumpkinTarget=null;
+  if(pumpkin && geometryFor('halloween-pumpkin')) {
+    const target=new THREE.Mesh(geometryFor('halloween-pumpkin'),material);
+    target.name='achievement-pumpkin';target.userData.halloween=true;
+    target.position.set(pumpkin.x,ground(pumpkin.x,pumpkin.z),pumpkin.z);
+    target.castShadow=target.receiveShadow=true;w.group.add(target);w.pumpkinTarget=target;
+  }
   if(halloweenActive() && !h.custom) {
     // Small clusters beside the tee furniture, never on the playable surface.
     for(const [x,z,s] of [[-9.8,5.4,.46],[-10.5,5.9,.34],[9,6.8,.4]]) {
@@ -333,7 +355,7 @@ export function courseAssets(w, h) {
   const ship = pirateShipFor(h);
   if (ship) buildPirateShip(w,h,geometryFor('pirate-ship'),h.index===0?w.mat('#ffffff',{
     vertexColors:true,roughness:.74,emissive:'#b67a32',emissiveIntensity:.08}):material);
-  if (h.courseIndex === 1) {
+  if ((h.layoutCourse ?? h.courseIndex) === 1) {
     for (let i = 0; i < 9; i++) {
       const side = i % 2 ? 1 : -1;
       add("sea-stack", side * (218 + (i % 3) * 44), 80 - i * (h.length + 130) / 9,
@@ -341,6 +363,7 @@ export function courseAssets(w, h) {
     }
   }
   cartPath(w, h, ground);
+  }
 
   for (const [key, places] of groups) {
     const name = key.split(':')[0];
@@ -408,7 +431,7 @@ function cartPath(w, h, ground) {
   geo.computeVertexNormals();
   const path = new THREE.Mesh(
     geo,
-    w.mat(h.courseIndex === 1 ? "#dccfa6" : h.courseIndex === 2 ? "#cdb58c" : "#d5c49c", {
+    w.mat((h.layoutCourse ?? h.courseIndex) === 1 ? "#dccfa6" : (h.layoutCourse ?? h.courseIndex) === 2 ? "#cdb58c" : "#d5c49c", {
       side: THREE.DoubleSide,
       polygonOffset: true,
       polygonOffsetFactor: -2,
@@ -439,7 +462,7 @@ function holeCard(w, h, x, z, angle, y) {
   c.textAlign = "left";
   c.fillStyle = "#2f4d3c";
   c.font = "700 22px sans-serif";
-  c.fillText((h.custom ? "Custom hole" : h.course.name).toUpperCase(), 178, 52);
+  c.fillText((h.tutorialGarden ? "Willow Park" : h.custom ? "Custom hole" : h.course.name).toUpperCase(), 178, 52);
   c.font = "700 40px Georgia, serif";
   c.fillText(h.name.length > 16 ? h.name.slice(0, 15) + "…" : h.name, 178, 106);
   c.font = "600 28px sans-serif";

@@ -3,7 +3,7 @@
 export function renderScale(quality='medium',dpr=1,width=1920,height=1080) {
   const desired=quality==='high'?Math.max(1.5,Math.min(2,dpr)):quality==='low'?1:Math.min(1.5,Math.max(1,dpr));
   const budget=quality==='high'?8300000:quality==='low'?2400000:4200000;
-  return Math.max(quality==='low'?.8:1,Math.min(desired,Math.sqrt(budget/(width*height))));
+  return Math.max(1,Math.min(desired,Math.sqrt(budget/(width*height))));
 }
 
 // Auto is intentionally conservative on low-memory ChromeOS and integrated devices.

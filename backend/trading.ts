@@ -1,15 +1,18 @@
 import {tradeInventory,validateOffer,exchangeItems} from './shared/trades.js';
+import {levelInfo} from './shared/save.js';
 import {publicProfile} from './shared/profile-data.js';
 const uuid = (s:any) => typeof s==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 export async function tradingAction(action:string,p:any,b:any,db:any) {
  const {table,rpc,insert,limited}=db;
+ const eligible=(player:any)=>{if(player.is_guest||levelInfo(player.state.xp||0).level<5)throw Error('Both golfers need an account at level 5 or higher to trade.');};
+ if(action!=='trade_close')eligible(p);
  const participant=(t:any)=>t.sender_id===p.id||t.receiver_id===p.id;
  async function friend(target:string) {
   if(!uuid(target)||target===p.id)throw Error('Choose a friend to trade with.');
   const pair=[p.id,target].sort();
   const relation=(await table('friends','user_low=eq.'+pair[0]+'&user_high=eq.'+pair[1]+'&status=eq.accepted'))[0];
   if(!relation)throw Error('Add this golfer as a friend before trading.');
-  const other=(await table('players','id=eq.'+target))[0];if(!other)throw Error('Golfer not found.');return other;
+  const other=(await table('players','id=eq.'+target))[0];if(!other)throw Error('Golfer not found.');eligible(other);return other;
  }
  if(action==='trade_inventory') {
   const other=await friend(b.userId);

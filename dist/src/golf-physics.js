@@ -1,3 +1,5 @@
+import { encounterBoxes, stepEncounter } from './course-encounters.js';
+import { startMysteryFlight, updateMysteryFlight } from './mystery-flight.js';
 import { nearbyTrees } from "./forest.js";
 import { cupCapture } from "./cup-capture.js";
 import { pirateShipFor, hitsPirateShip, pumpkinFor, hitsPumpkin } from "./course-features.js";
@@ -38,6 +40,7 @@ export class GolfPhysics {
   }
   load(h) {
     this.hole = h;
+    this.encounter={cleared:false,passed:false,boxes:encounterBoxes(h.encounter)};
     this.ship = pirateShipFor(h);
     this.shipHit = false;
     this.pumpkin = pumpkinFor(h);
@@ -47,6 +50,7 @@ export class GolfPhysics {
     this.reset();
   }
   reset() {
+    this.mysteryFlight = null;
     const p = this.lastSafe;
     this.ball = {
       x: p.x,
@@ -73,6 +77,9 @@ export class GolfPhysics {
     if (!c) return false;
     const n = Math.hypot(dx, dz);
     if (!n) return false;
+    if(club === "driver" && gear.mysteryAce === true) {
+      startMysteryFlight(this,(x,z)=>terrainAt(this.hole,x,z).height);return true;
+    }
     dx /= n;
     dz /= n;
     power = clamp(power, 0.01, 1);
@@ -106,6 +113,7 @@ export class GolfPhysics {
     this.previous = { ...this.ball };
     if (!this.active) return;
     this.shotTime += dt;
+    if(updateMysteryFlight(this,dt)) return;
     const b = this.ball,
       old = { x: b.x, y: b.y, z: b.z };
     if (this.airborne) {
@@ -152,6 +160,7 @@ export class GolfPhysics {
       b.z += b.vz * dt;
       b.y = terrainAt(this.hole, b.x, b.z).height + GOLF_RADIUS;
     }
+    stepEncounter(this,old,b);
     for (const tree of nearbyTrees(this.hole, b.x, b.z)) {
       const dx = b.x - old.x,
         dz = b.z - old.z,

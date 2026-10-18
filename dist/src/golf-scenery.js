@@ -95,12 +95,12 @@ export function signatureDetails(w, h) {
   const dummy = new THREE.Object3D(),
     stones = new THREE.InstancedMesh(
       w.geometries.sphere,
-      w.mat(h.courseIndex === 2 ? "#ba967d" : "#c2c0a3"),
+      w.mat((h.layoutCourse ?? h.courseIndex) === 2 ? "#ba967d" : "#c2c0a3"),
       220,
     ),
     reeds = new THREE.InstancedMesh(
       w.geometries.cone,
-      w.mat(h.courseIndex === 1 ? "#b1ae73" : "#789b58"),
+      w.mat((h.layoutCourse ?? h.courseIndex) === 1 ? "#b1ae73" : "#789b58"),
       600,
     );
   let st = 0,
@@ -130,7 +130,7 @@ export function signatureDetails(w, h) {
       const a = i * 2.39,
         x = p.x + Math.cos(a) * p.rx * 0.64,
         z = p.z + Math.sin(a) * p.rz * 0.62;
-      if (h.courseIndex !== 0) continue;
+      if ((h.layoutCourse ?? h.courseIndex) !== 0) continue;
       const lily = m("cylinder", "#77966c", x, waterY + 0.018, z, 0.42, 0.018, 0.34);
       lily.castShadow = false;
       if (i % 3 === 0) m("sphere", "#f4d6be", x, waterY + 0.075, z, 0.09, 0.09, 0.09);
@@ -147,7 +147,7 @@ export function signatureDetails(w, h) {
   site.position.set(x, y, z);
   w.group.add(site);
   const sm = (g, c, x, y, z, sx, sy, sz) => m(g, c, x, y, z, sx, sy, sz, site);
-  if (h.courseIndex === 0) {
+  if ((h.layoutCourse ?? h.courseIndex) === 0) {
     sm("box", "#cfb58b", 0, 0.12, 0, 13, 0.24, 9);
     for (const px of [-5, 5]) for (const pz of [-3, 3]) sm("box", "#826744", px, 2.1, pz, 0.25, 4.1, 0.25);
     sm("box", "#eadbc0", 0, 2, -3, 10, 3.6, 0.22);
@@ -177,7 +177,7 @@ export function signatureDetails(w, h) {
             0.12,
           );
       }
-  } else if (h.courseIndex === 1) {
+  } else if ((h.layoutCourse ?? h.courseIndex) === 1) {
     sm("cylinder", "#aab4a5", 0, 0.3, 0, 6, 0.6, 6);
     sm("cylinder", "#eee5cb", 0, 6, 0, 2.7, 12, 2.7);
     sm("cylinder", "#a45e4c", 0, 7.1, 0, 2.72, 1.2, 2.72);

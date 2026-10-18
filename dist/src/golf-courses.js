@@ -1,3 +1,4 @@
+import { SALTWIND_EXTRA, AUTUMN_EXTRA } from './long-course-layouts.js';
 import { populateForest } from "./forest.js";
 import { samplePath } from "./courses.js";
 import { EVENT_COURSES, eventLayout, courseRotationKey } from './rotating-courses.js';
@@ -51,6 +52,8 @@ export const GOLF_COURSES = [
 ];
 GOLF_COURSES.push(...EVENT_COURSES);
 GOLF_COURSES.push({...GOLF_COURSES[0], id:"willow-long", name:"Willow Park · Long Course", subtitle:"Nine holes across the full parkland collection.", tag:"THE LONG ROUND", layoutCourse:0, holeCount:9});
+GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine coastal adventures: smugglers, TNT and harbour lights.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
+GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine alpine adventures through granite, golden larches and mischief.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
 export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");
@@ -417,6 +420,8 @@ const layouts = [
     },
   ],
 ];
+layouts[1].push(...SALTWIND_EXTRA);
+layouts[2].push(...AUTUMN_EXTRA);
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function golfLayout(courseIndex,index) {
   const course=GOLF_COURSES[courseIndex];
@@ -430,7 +435,7 @@ export function getGolfHole(courseIndex = 0, index = 0, scenery = true) {
     layout = golfLayout(courseIndex,index);
   if (!course || !Number.isInteger(index) || !layout) throw Error("Unknown golf hole");
   const h=buildGolfLayout(course.layoutCourse??courseIndex,index,layout,scenery);
-  h.course=course;h.courseIndex=courseIndex;return h;
+  h.course=course;h.courseIndex=courseIndex;h.layoutCourse=course.layoutCourse??courseIndex;return h;
 }
 export function buildGolfLayout(courseIndex, index, layout, scenery = true) {
   const course = GOLF_COURSES[courseIndex];
@@ -465,11 +470,12 @@ export function buildGolfLayout(courseIndex, index, layout, scenery = true) {
     moving: [],
     samples: points.map(([x, z], i) => ({ x, z, t: i / 4 })),
   };
-  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere"])
+  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure"])
     if (layout[key] !== undefined) h[key] = structuredClone(layout[key]);
   h.route = samplePath(points, 64).map((p) => [p.x, p.z]);
   h.trees = [];
   if(scenery)populateForest(h, layout.density ?? 1);
+  if(h.encounter)h.encounter.y=terrainHeight(h,h.encounter.x,h.encounter.z);
   h.start.y = terrainHeight(h, 0, 0);
   h.cup.y = terrainHeight(h, cup.x, cup.z);
   return h;
@@ -617,7 +623,7 @@ export function terrainHeight(h, x, z) {
   return y;
 }
 export function terrainAt(h, x, z) {
-  if (h.courseIndex === 1) {
+  if ((h.layoutCourse ?? h.courseIndex) === 1) {
     const coast=coastSurface(h,x,z);
     if(coast)return coast;
   }

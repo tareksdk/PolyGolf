@@ -218,7 +218,9 @@ export class GolfCloud {
     this.profile = null;
     this.room = null;
     this.ui.progress.repository = this.guestRepository;
+    const settings = this.ui.progress.data.settings;
     this.ui.progress.data = this.guestRepository.load();
+    this.ui.progress.data.settings = settings;
     this.status = "Guest · saved on this device";
     this.ui.game.leave();
     this.ui.render();

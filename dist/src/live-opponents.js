@@ -64,10 +64,10 @@ export class LiveOpponent {
     if(s.sunk&&!this.wasSunk){
       this.celebration=0;const color=ITEM_BY_ID[s.equipment.hole]?.color||'#e9c567';
       this.pulse.material.color.set(color);this.pulse.position.set(b.x,w.renderGround(b.x,b.z)+.04,b.z);
-      w.burst(b.x,w.renderGround(b.x,b.z)+.4,b.z,color,w.settings.graphics==='low'?10:24);
+      w.playHoleEffect?.(w.hole.cup,s.equipment.hole,{remote:true});
     }
     this.wasSunk=s.sunk;
-    this.pulse.visible=this.celebration!==undefined&&this.celebration<1.6&&w.settings.particles!==false;
+    this.pulse.visible=!w.playHoleEffect&&this.celebration!==undefined&&this.celebration<1.6&&w.settings.particles!==false;
     if(this.pulse.visible){this.celebration+=dt;this.pulse.scale.setScalar((golf?.3:.7)+this.celebration*2.2);this.pulse.material.opacity=Math.max(0,.9-this.celebration/1.6);}
     this.projected.copy(s.active?this.ball.position:this.avatar.position).y+=s.active?.6:2.15;
     this.projected.project(w.camera);

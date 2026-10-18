@@ -1,3 +1,7 @@
+## Long-course adventures · v1.1
+
+Preserve the recovered live First Swing/Meadowcrest, item, profile and rematch features included in this source. Apply `backend/long-courses.sql` once to extend the round-course constraint to 16; it does not modify records. Replay version stays `polygolf-v11`, and existing record keys stay intact. Package/deploy the matching `little-links` function first, including the new shared encounter and layout modules, then publish the same `dist/` snapshot to both existing sites. Do not deploy QA files. Verify v1.1, Classics, Adventures and Long rounds on both domains. New long rounds inherit the original course unlock levels.
+
 ## Living adventures · v0.5
 
 This release combines the recovered October 15 production adventure build with v0.4's scenery, weather and bunker improvements. Deploy the complete packaged `little-links` function (including `shared/rotating-courses.js`), apply `backend/ranked-bots.sql` for the `polygolf-v10` guard and nine-hole Willow matchmaking, then publish the identical `dist/` snapshot to both existing sites. Keep the existing production guest/rotation database columns and functions. Do not replace the live adventure update with an older branch snapshot. Verify Hollow Lanterns, weekly/daily cards, guest room entry, invite links, nine-hole Willow and all three weather controls before declaring release complete.

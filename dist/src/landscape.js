@@ -1,4 +1,6 @@
+import { buildLongCourseScenery } from './course-adventure-render.js';
 import { eventScenery } from './event-scenery.js';
+import { buildMeadowcrestRange } from './meadowcrest-range.js';
 import { buildBackdrop } from "./golf-environment.js";
 import { turfMaterial } from './turf.js';
 import { buildSky } from './sky.js';
@@ -35,7 +37,7 @@ export function batchScenery(world) {
     if (!o.isMesh || o.isInstancedMesh) return;
     let p = o;
     while (p && p !== world.group) {
-      if (!p.visible || p.userData.halloween || moving.has(p)) return;
+      if (!p.visible || p.userData.halloween || p.userData.courseDynamic || moving.has(p)) return;
       p = p.parent;
     }
     const key = o.geometry.uuid + o.material.uuid;
@@ -99,8 +101,8 @@ export function buildGolf(world, h) {
   world.sun.shadow.camera.updateProjectionMatrix();
   // One heightfield owns every land surface. Colours describe the cut of grass;
   // no overlapping fairway/green/sand meshes can z-fight or swallow the ball.
-  const nx = world.settings?.graphics === "low" ? 140 : 210,
-    nz = Math.ceil((h.length + 220) / (world.settings?.graphics === "low" ? 2.8 : 2)),
+  const nx = h.courseIndex>=15 ? (world.settings?.graphics === "low" ? 110 : 160) : world.settings?.graphics === "low" ? 140 : 210,
+    nz = Math.ceil((h.length + 220) / (h.courseIndex>=15 ? (world.settings?.graphics === "low" ? 3.4 : 2.6) : world.settings?.graphics === "low" ? 2.8 : 2)),
     width = 420,
     depth = h.length + 220,
     top = 100,
@@ -110,7 +112,7 @@ export function buildGolf(world, h) {
   for (let j = 0; j <= nz; j++)
     for (let i = 0; i <= nx; i++) {
       const z = top - (j / nz) * depth,
-        edges = h.courseIndex === 1 ? coastBounds(h, z) : [-width / 2, width / 2],
+        edges = (h.layoutCourse ?? h.courseIndex) === 1 ? coastBounds(h, z) : [-width / 2, width / 2],
         x = edges[0] + (i / nx) * (edges[1] - edges[0]);
       positions.push(x, terrainHeight(h, x, z), z);
       uvs.push(x / width + 0.5, 1 - j / nz);
@@ -135,12 +137,13 @@ export function buildGolf(world, h) {
   geo.computeVertexNormals();
   const material = turfMaterial(h, width, depth, top, world.settings?.graphics),
     terrain = new THREE.Mesh(geo, material);
+  terrain.name='golf-terrain';
   terrain.userData.ownedMaterial = true;
   terrain.receiveShadow = true;
   world.group.add(terrain);
   world.surfaceHeight = (x, z) => {
-    const edges = h.courseIndex === 1 ? coastBounds(h, z) : [-width / 2, width / 2];
-    if (h.courseIndex === 1 && (x < edges[0] || x > edges[1] || z>100 || z<-h.length-120)) return terrainAt(h,x,z).height;
+    const edges = (h.layoutCourse ?? h.courseIndex) === 1 ? coastBounds(h, z) : [-width / 2, width / 2];
+    if ((h.layoutCourse ?? h.courseIndex) === 1 && (x < edges[0] || x > edges[1] || z>100 || z<-h.length-120)) return terrainAt(h,x,z).height;
     const fx = Math.max(0, Math.min(nx - 0.00001, ((x - edges[0]) / (edges[1] - edges[0])) * nx)),
       fz = Math.max(0, Math.min(nz - 0.00001, ((top - z) / depth) * nz)),
       i = Math.floor(fx),
@@ -174,9 +177,10 @@ export function buildGolf(world, h) {
     }
   }
   if(c.eventTheme) eventScenery(world,h);
-  else { courseAssets(world,h); buildBackdrop(world,h); buildCourseVignettes(world,h); }
+  else { courseAssets(world,h); if(h.meadowcrestRange)buildMeadowcrestRange(world);else {buildBackdrop(world,h); buildCourseVignettes(world,h);} }
   const cup = h.cup,
     y = world.surfaceHeight(cup.x, cup.z);
+  if(!h.meadowcrestRange){
   world.mesh("cylinder", "#223c2b", cup.x, y + 0.012, cup.z, CUP_RADIUS + 0.025, 0.015, CUP_RADIUS + 0.025);
   world.mesh("cylinder", "#f4edcf", cup.x, y + 1.2, cup.z, 0.017, 2.4, 0.017);
   world.flag = world.mesh(
@@ -191,9 +195,11 @@ export function buildGolf(world, h) {
     world.group,
     { side: THREE.DoubleSide },
   );
+  }
   // Tee markers, distance posts and course furniture come from the Blender kit (course-assets.js).
   world.ball.position.set(h.start.x, world.surfaceHeight(h.start.x, h.start.z) + 0.1, h.start.z);
   world.previewPosition = new THREE.Vector3(0, 0, -h.length * 0.3);
+  buildLongCourseScenery(world,h);
   batchScenery(world);
 }
 

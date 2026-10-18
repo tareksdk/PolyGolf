@@ -4,7 +4,7 @@ import {RULES_VERSION} from './shared/golf-courses.js';
 export async function competitiveAction(action:string,p:any,b:any,api:any){
  const {rpc,table}=api;
  if(action==='ranked_status')return await rpc('ranked_status',{p_user:p.id});
- if(action==='ranked_queue'){if(levelInfo(p.state.xp).level<COMPETITIVE_LEVEL)throw Error('Competitive unlocks at level 15.');if(b.rulesVersion!==RULES_VERSION)throw Error('Reload PolyGolf before joining the queue.');return await rpc('ranked_join',{p_user:p.id,p_equipment:p.state.equipment,p_version:RULES_VERSION});}
+ if(action==='ranked_queue'){if(p.is_guest)throw Error('Sign in to compete.');if(b.rulesVersion!==RULES_VERSION)throw Error('Reload PolyGolf before joining the queue.');return await rpc('ranked_join',{p_user:p.id,p_equipment:p.state.equipment,p_version:RULES_VERSION});}
  if(action==='ranked_leave')return await rpc('ranked_leave',{p_user:p.id,p_forfeit:b.forfeit===true});
  if(action==='ranked_shot'){
   const state=await rpc('ranked_status',{p_user:p.id}),m=state.match;if(!m||m.id!==b.matchId)throw Error('This sudden-death attempt is no longer active.');

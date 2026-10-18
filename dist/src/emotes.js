@@ -5,16 +5,16 @@ export function ownedEmotes(data) {
   return ITEMS.filter(item => item.category === 'emote' && data.owned.includes(item.id))
     .sort((a,b) => Number(b.id === data.equipment.emote) - Number(a.id === data.equipment.emote));
 }
-export const emoteKind = item => /love|heart/i.test(item.id) ? 'love' : /cheer|victory|champion/i.test(item.id) ? 'cheer' : /dance|disco|party/i.test(item.id) ? 'dance' : 'wave';
+export const emoteKind = item => /love|heart/i.test(item.id+' '+item.name) ? 'love' : /cheer|victory|champion|applause|hype/i.test(item.id+' '+item.name) ? 'cheer' : /dance|disco|party|groove|twirl|shimmy/i.test(item.id+' '+item.name) ? 'dance' : 'wave';
 export function installEmotes(ui) {
   let wheel = null, page = 0, bubble = null, lastUse = -Infinity, previousFocus;
   const action = ui.action.bind(ui), tick = ui.tick.bind(ui);
-  const ready = () => ui.game.state === 'playing' && !ui.game.physics.active && !ui.game.charging && !ui.game.pendingSwing && !ui.modalRoot.children.length;
+  const ready = () => ui.game.state === 'playing' && !ui.game.physics.active && !ui.game.charging && !ui.game.pendingSwing && !ui.world.waterMoment && !ui.world.pirateMoment && !ui.world.adventureMoment && !ui.modalRoot.children.length;
   const close = () => { if (!wheel) return; wheel.remove(); wheel = null; ui.root.inert = false; previousFocus?.isConnected && previousFocus.focus({preventScroll:true}); };
   const draw = () => {
     const items = ownedEmotes(ui.progress.data), pages = Math.max(1,Math.ceil(items.length/6));
     page = (page+pages)%pages;
-    wheel.innerHTML = `<section class="emote-panel" role="dialog" aria-modal="true" aria-label="Emote wheel"><header><h2>Emotes</h2><p>B or Esc to close · 1–6 to use</p></header><div class="emote-wheel">${items.slice(page*6,page*6+6).map((item,i)=>`<button class="emote-slot" style="--slot:${i};--emote:${item.color}" data-emote-id="${item.id}" aria-label="${esc(item.name)}"><small>${i+1}</small>${icon(emoteKind(item)==='love'?'heart':emoteKind(item)==='cheer'?'trophy':'star')}<span>${esc(item.name)}</span></button>`).join('')}<span class="emote-center">YOUR<br>EMOTES</span></div><footer>${button('←','emote-page','data-step="-1" '+(pages<2?'disabled':''),'button secondary')}<span>${page+1} / ${pages}</span>${button('→','emote-page','data-step="1" '+(pages<2?'disabled':''),'button secondary')}${button('Close','emote-close','','button secondary')}</footer></section>`;
+    wheel.innerHTML = `<section class="emote-panel" role="dialog" aria-modal="true" aria-label="Emote wheel"><header><h2>Emotes</h2><p>B or Esc to close · 1–6 to use · [ / ] to page</p></header><div class="emote-wheel">${items.slice(page*6,page*6+6).map((item,i)=>`<button class="emote-slot" style="--slot:${i};--emote:${item.color}" data-emote-id="${item.id}" aria-label="${esc(item.name)}"><small>${i+1}</small>${icon(emoteKind(item)==='love'?'heart':emoteKind(item)==='cheer'?'trophy':'star')}<span>${esc(item.name)}</span></button>`).join('')}<span class="emote-center">YOUR<br>EMOTES</span></div><footer>${button('←','emote-page','data-step="-1" '+(pages<2?'disabled':''),'button secondary')}<span>${page+1} / ${pages}</span>${button('→','emote-page','data-step="1" '+(pages<2?'disabled':''),'button secondary')}${button('Close','emote-close','','button secondary')}</footer></section>`;
     wheel.querySelector('button:not(:disabled)')?.focus();
   };
   const use = id => {
@@ -23,6 +23,7 @@ export function installEmotes(ui) {
     close();
     if (performance.now()-lastUse < 1000) return;
     lastUse = performance.now();
+    ui.game.clearInput();
     ui.world.emotePose = {kind:emoteKind(item),time:0};
     ui.liveRound?.emote(id);
     bubble?.remove(); bubble=document.createElement('div');bubble.className='emote-bubble';bubble.setAttribute('role','status');
@@ -33,14 +34,14 @@ export function installEmotes(ui) {
   const open = () => {
     if(wheel){close();return;}
     if(!ready()){ui.toast('Use emotes between shots.');return;}
-    previousFocus=document.activeElement;page=0;wheel=document.createElement('div');wheel.className='emote-overlay';
-    wheel.addEventListener('click',event=>{const slot=event.target.closest('[data-emote-id]');if(slot)use(slot.dataset.emoteId);else if(event.target===wheel)close();});
+    previousFocus=document.activeElement;ui.game.clearInput();page=0;wheel=document.createElement('div');wheel.className='emote-overlay';
+    wheel.addEventListener('click',event=>{event.stopPropagation();const slot=event.target.closest('[data-emote-id]');if(slot)use(slot.dataset.emoteId);else {const b=event.target.closest('[data-action]');if(b&&!b.disabled)ui.action(b.dataset.action,b.dataset);else if(event.target===wheel)close();}});
     document.body.append(wheel);ui.root.inert=true;draw();
   };
   ui.action = async (name,data={}) => {
     if(name==='emote-wheel'){open();return;}
     if(name==='emote-close'){close();return;}
-    if(name==='emote-page'){page+=Number(data.step);draw();return;}
+    if(name==='emote-page'){if(wheel){page+=Number(data.step);draw();}return;}
     if(name==='emote'){use(data.id || ui.progress.data.equipment.emote);return;}
     return action(name,data);
   };
@@ -50,11 +51,17 @@ export function installEmotes(ui) {
       event.stopImmediatePropagation();
       if(event.code==='KeyB'||event.code==='Escape'){event.preventDefault();close();return;}
       if(/^Digit[1-6]$/.test(event.code)){event.preventDefault();const item=ownedEmotes(ui.progress.data)[page*6+Number(event.code.slice(-1))-1];if(item)use(item.id);return;}
+      if(['BracketLeft','BracketRight'].includes(event.code)){event.preventDefault();page+=event.code==='BracketLeft'?-1:1;draw();return;}
       if(event.code==='Tab'){
         const all=[...wheel.querySelectorAll('button:not(:disabled)')],i=all.indexOf(document.activeElement);
         event.preventDefault();all[(i+(event.shiftKey?-1:1)+all.length)%all.length]?.focus();
       }
       return;
+    }
+    if(!event.repeat&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&ready()&&!event.target.closest('input,select,textarea,[contenteditable]')){
+      const n=/^Digit[1-6]$/.test(event.code)?Number(event.code.slice(-1))-1:-1;
+      const id=event.code==='KeyV'?ui.progress.data.equipment.emote:n>=0?ownedEmotes(ui.progress.data)[n]?.id:null;
+      if(id){event.preventDefault();event.stopImmediatePropagation();use(id);return;}
     }
     if(event.code==='KeyB'&&!event.repeat&&!event.ctrlKey&&!event.metaKey&&!event.altKey && ui.game.state==='playing' && !event.target.closest('input,select,textarea,[contenteditable]')){event.preventDefault();event.stopImmediatePropagation();open();}
   },true);

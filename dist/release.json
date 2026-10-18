@@ -1,8 +1,8 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "original-shop-layout-1.0",
-  "date": "2026-10-17",
-  "items": 635,
+  "contentVersion": "long-course-adventures-1.1",
+  "date": "2026-10-18",
+  "items": 646,
   "lockers": 10,
   "patternSeeds": 1000,
   "passTiers": 30,
@@ -22,7 +22,19 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.0",
+  "appVersion": "1.1",
+  "firstSwingTutorial": true,
+  "tutorialDrivingRange": true,
+  "nativeResolutionFloor": true,
+  "rankedMinimumLevel": 1,
+  "rankedRequiresAccount": true,
+  "multiplayerRematches": true,
+  "deviceSharedSettings": true,
+  "earnedLockerPopup": true,
+  "compactShotControls": true,
+  "mysteryDriver": true,
+  "newHoleEffects": 10,
+  "pumpkinExplosion": true,
   "classicCourseHoles": 3,
   "longWillowHoles": 9,
   "newAccountCoins": 5000,
@@ -73,5 +85,24 @@
     "classic",
     "fluid"
   ],
-  "defaultShotGuide": "full"
+  "defaultShotGuide": "full",
+  "saltwindLongHoles": 9,
+  "autumnLongHoles": 9,
+  "longCourseCollection": true,
+  "courseEncounters": [
+    "mountain-pass",
+    "dynamite"
+  ],
+  "hudStyles": [
+    "classic",
+    "smart"
+  ],
+  "emoteKeys": [
+    "B",
+    "V",
+    "1-6",
+    "[",
+    "]"
+  ],
+  "pagedCourseBrowser": true
 }

@@ -95,7 +95,7 @@ function multiplayer(ui) {
       ? "Send an invite link or share the room code with up to seven friends."
       : "Create a private room or join a friend. Play as a guest. No signup needed. Each golfer plays their own ball.",
     r
-        ? `<section class="panel lobby-panel"><div class="row between"><div><span class="eyebrow">ROOM CODE</span><h2 class="room-code">${r.code}</h2>${button("Copy invite link","copy-room-link","","button secondary")}</div><span class="badge">${s.members.length} / 8 GOLFERS</span></div><p>${s.mode === "golf" ? "Full golf" : "Mini-golf"} · ${list({ mode: s.mode })[s.course].name}</p><div class="lobby-members">${s.members.map((m) => `<div><span class="avatar">${esc(m.name[0].toUpperCase())}</span>${m.bot ? nameplate(m.name,m.nameplate,{compact:true}) : button(nameplate(m.name,m.nameplate,{compact:true}), "view-profile", `data-user="${m.id}"`, "profile-link")}<span>${m.id === s.host ? "HOST · " : ""}${m.bot ? "BOT" : m.ready ? "Ready" : "Getting ready"}</span>${m.bot && s.host===ui.cloud.session.user.id ? button("Remove","remove-room-bot",`data-id="${m.id}"`,"text-button") : ""}</div>`).join("")}</div><div class="modal-actions">${s.host===ui.cloud.session.user.id ? button("Add bot","add-room-bot",s.members.length>=8?"disabled":"","button secondary")+button("Fill with bots","fill-room-bots",s.members.length>=8?"disabled":"","button secondary") : ""}${button("Leave room", "leave-room", "", "button secondary")}${button("Toggle ready", "ready-room", "", "button secondary")}${s.host === ui.cloud.session.user.id ? button("Start round", "start-room", s.members.length < 2 || s.members.some((m) => !m.ready) ? "disabled" : "", "button yellow") : ""}</div><p class="small-note">Six minutes per hole. Scores and hole changes are shared automatically.</p></section>`
+        ? `<section class="panel lobby-panel"><div class="row between"><div><span class="eyebrow">ROOM CODE</span><h2 class="room-code">${r.code}</h2>${button("Copy invite link","copy-room-link","","button secondary")}</div><span class="badge">${s.members.length} / 8 GOLFERS</span></div><p>${s.mode === "golf" ? "Full golf" : "Mini-golf"} · ${list({ mode: s.mode })[s.course].name}</p><div class="lobby-members">${s.members.map((m) => `<div><span class="avatar">${esc(m.name[0].toUpperCase())}</span>${m.bot ? nameplate(m.name,m.nameplate,{compact:true}) : button(nameplate(m.name,m.nameplate,{compact:true}), "view-profile", `data-user="${m.id}"`, "profile-link")}<span>${m.id === s.host ? "HOST · " : ""}${m.bot ? "BOT" : m.ready ? "Ready" : "Getting ready"}</span>${m.bot && s.host===ui.cloud.session.user.id ? button("Remove","remove-room-bot",`data-id="${m.id}"`,"text-button") : ""}</div>`).join("")}</div><div class="modal-actions">${s.host===ui.cloud.session.user.id ? button("Add bot","add-room-bot",s.members.length>=8?"disabled":"","button secondary")+button("Fill with bots","fill-room-bots",s.members.length>=8?"disabled":"","button secondary") : ""}${button("Leave room", "leave-room", "", "button secondary")}${button(s.members.find(m=>m.id===ui.cloud.session.user.id)?.ready ? "✓ Ready · Click to unready" : "Not ready · Click to ready", "ready-room", `aria-pressed="${!!s.members.find(m=>m.id===ui.cloud.session.user.id)?.ready}"`, "button ready-toggle " + (s.members.find(m=>m.id===ui.cloud.session.user.id)?.ready ? "is-ready" : "secondary"))}${s.host === ui.cloud.session.user.id ? button("Start round", "start-room", s.members.length < 2 || s.members.some((m) => !m.ready) ? "disabled" : "", "button yellow") : ""}</div><p class="small-note">Six minutes per hole. Scores and hole changes are shared automatically.</p></section>`
         : `<div class="multiplayer-grid"><section class="panel"><h2>Host a round</h2>${modeTabs(ui)}<label>Course<select id="room-course">${list(
             ui,
           )
@@ -173,7 +173,7 @@ function scorecard(ui, round, reward) {
   const pars = round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
     sum = round.strokes.reduce((a, b) => a + b, 0),
     par = pars.reduce((a, b) => a + b, 0);
-  return `<div class="result"><div class="eyebrow centered">ROUND COMPLETE</div><h2>${list({ mode: round.mode })[round.courseIndex].name}</h2><div class="result-score"><div><strong>${sum}</strong><span>Strokes</span></div><div><strong>${relative(sum - par)}</strong><span>To par</span></div><div><strong>${minutes(round.time)}</strong><span>Time</span></div></div><div class="table-scroll"><table class="scorecard"><thead><tr><th>Hole</th>${pars.map((_, i) => `<th>${i + 1}</th>`).join("")}</tr></thead><tbody><tr><th>Par</th>${pars.map((n) => `<td>${n}</td>`).join("")}</tr><tr><th>Score</th>${round.strokes.map((n) => `<td>${n}</td>`).join("")}</tr></tbody></table></div>${ui.cloud.room ? `<div class="lobby-results">${ui.cloud.room.state.members.map((m) => `<p>${esc(m.name)} <strong>${m.scores.reduce((a, b) => a + b, 0)} strokes</strong></p>`).join("")}</div>` : ""}<p>${round.practice ? "Practice round" : `${reward.coins} coins + ${reward.xp} XP completion bonus`}</p>${reward.locker ? `<div class="round-drop"><strong>Round drop · ${esc(LOCKERS.find(p=>p.id===reward.locker)?.name || "Locker")}</strong><span>Added to Shop → Lockers. Your next opening is free.</span></div>` : ""}<div class="modal-actions">${button("Back to clubhouse", "round-exit", "", "button yellow")}${!ui.cloud.room ? button("Play again", "replay", "", "button secondary") : ""}</div></div>`;
+  return `<div class="result"><div class="eyebrow centered">ROUND COMPLETE</div><h2>${list({ mode: round.mode })[round.courseIndex].name}</h2><div class="result-score"><div><strong>${sum}</strong><span>Strokes</span></div><div><strong>${relative(sum - par)}</strong><span>To par</span></div><div><strong>${minutes(round.time)}</strong><span>Time</span></div></div><div class="table-scroll"><table class="scorecard"><thead><tr><th>Hole</th>${pars.map((_, i) => `<th>${i + 1}</th>`).join("")}</tr></thead><tbody><tr><th>Par</th>${pars.map((n) => `<td>${n}</td>`).join("")}</tr><tr><th>Score</th>${round.strokes.map((n) => `<td>${n}</td>`).join("")}</tr></tbody></table></div>${ui.cloud.room ? `<div class="lobby-results">${ui.cloud.room.state.members.map((m) => `<p>${esc(m.name)} <strong>${m.scores.reduce((a, b) => a + b, 0)} strokes</strong></p>`).join("")}</div>` : ""}<p>${round.practice ? "Practice round" : `${reward.coins} coins + ${reward.xp} XP completion bonus`}</p>${reward.locker ? `<div class="round-drop"><strong>Round drop · ${esc(LOCKERS.find(p=>p.id===reward.locker)?.name || "Locker")}</strong><span>Added to Shop → Lockers. Your next opening is free.</span></div>` : ""}<div class="modal-actions">${button("Back to clubhouse", "round-exit", "", "button yellow")}${button("Play again", ui.cloud.room ? "replay-room" : "replay", "", "button secondary")}</div></div>`;
 }
 
 export function installExpansion(ui) {
@@ -293,6 +293,7 @@ export function installExpansion(ui) {
       const r = await ui.cloud.call("start_round", { mode: requestedMode, course: index });
       roundId = r.roundId; rotationKey = r.rotationKey;
     } else ui.progress.startRound(practice);
+    ui.roundBonus = null;
     ui.closeModal();
     ui.audio.start();
     ui.world.equip(ui.progress.data.equipment, ITEMS);
@@ -337,7 +338,7 @@ export function installExpansion(ui) {
         });
         reward = r.reward || reward;
         ui.roundBonus = r.bonus || ui.roundBonus;
-        if(r.bonus?.locker && !r.duplicate)ui.toast("Round drop! "+LOCKERS.find(p=>p.id===r.bonus.locker).name+" · Open it in Shop → Lockers");
+        if(r.bonus?.locker && !r.duplicate)ui.earnedLockerPending = {id:r.bonus.locker,round:result.round};
       } else if (!result.transcript.some((c) => c.kind === "skip")) reward = ui.progress.completeHole(result);
       else result.round.skipped = true;
       if (ui.game.round !== result.round || ui.game.index !== result.index || ui.game.state !== "complete")
@@ -346,7 +347,7 @@ export function installExpansion(ui) {
       ui.render();
       if (ui.cloud.room) {
         ui.modal(
-          `<div class="result"><h2>${result.label}</h2><p>${result.strokes} strokes · ${reward.coins} coins + ${reward.xp} XP</p><p>Waiting for the other golfers. The next hole starts automatically.</p><div id="waiting-scores"></div>${button("Leave round", "round-exit", "", "button secondary")}</div>`,
+          `<div class="result"><h2>${result.label}</h2><p>${result.strokes} strokes · ${reward.coins} coins + ${reward.xp} XP</p><p>Waiting for the other golfers. The next hole starts automatically.</p><div id="waiting-scores"></div></div>`,
           { close: false },
         );
       } else
@@ -375,16 +376,19 @@ export function installExpansion(ui) {
             round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
           );
     ui.modal(scorecard(ui, round, reward), { wide: true, close: false });
+    if(reward.locker)ui.showEarnedLocker?.(reward.locker,round);
   };
   ui.syncRoom = (r) => {
     const s = r.state,
       m = s.members.find((m) => m.id === ui.cloud.session.user.id);
     if (!m) return;
+    if (s.phase === 'waiting' && ui.game.state === 'finished') {ui.closeModal();ui.game.leave();ui.screen='multiplayer';}
     if (ui.screen === "multiplayer" && ui.game.state === "menu" && s.phase === "waiting") ui.render();
     if (s.phase === "playing") {
       if (ui.game.round?.cloudId !== m.roundId || ui.game.state === "menu") {
         ui.closeModal();
         ui.audio.start();
+        ui.roundBonus = null;
         ui.mode = s.mode;
         ui.world.equip(ui.progress.data.equipment, ITEMS);
         ui.game.start(s.course, false, { mode: s.mode, round: { cloudId: m.roundId, rotationKey: s.rotationKey || '' } });
@@ -403,7 +407,7 @@ export function installExpansion(ui) {
         ui.game.physics.sunk = true;
         ui.render();
         ui.modal(
-          `<div class="result"><h2>Score saved.</h2><p>Waiting for the other golfers.</p><div id="waiting-scores"></div>${button("Leave round", "round-exit", "", "button secondary")}</div>`,
+          `<div class="result"><h2>Score saved.</h2><p>Waiting for the other golfers.</p><div id="waiting-scores"></div></div>`,
           { close: false },
         );
       }
@@ -618,7 +622,7 @@ export function installExpansion(ui) {
         ui.toast(guest ? "Guest session ended. Your local solo save is ready." : "Signed out. Your account progress is saved.");
         return;
       }
-      if (["create-room", "join-room", "ready-room", "start-room", "leave-room", "add-room-bot", "fill-room-bots", "remove-room-bot"].includes(action)) {
+      if (["create-room", "join-room", "ready-room", "replay-room", "start-room", "leave-room", "add-room-bot", "fill-room-bots", "remove-room-bot"].includes(action)) {
         if (ui.roomBusy) return;
         const payload =
           action === "create-room"

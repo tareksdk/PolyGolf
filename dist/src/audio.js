@@ -94,6 +94,10 @@ export class AudioManager {
       this.tone(62,.7,'sawtooth',.55);
       this.tone(39,1.25,'sine',.75,.08);
       for(let i=0;i<4;i++)this.tone(180-i*30,.18,'triangle',.15,.18+i*.12);
+    } else if (name === 'pumpkin') {
+      this.noise(.22,.45);
+      this.tone(95,.28,'triangle',.35);
+      this.tone(52,.38,'sine',.28,.05);
     } else if (name === 'sand-impact' || name === 'sand-shot') this.noise(name === 'sand-shot' ? .19 : .28,.3);
     else if (name === "bounce") this.tone(175, 0.07, "sine", 0.3);
     else if (name === "water") {

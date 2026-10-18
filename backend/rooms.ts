@@ -20,6 +20,15 @@ export async function roomAction(action:string,p:any,b:any,api:any){
     for(let i=0;i<count;i++){const used=new Set(s.members.map((m:any)=>m.name));const nameIndex=BOT_NAMES.findIndex(n=>!used.has(n));s.members.push(makeBot(pars,Math.max(0,nameIndex)));}
    }
   }
+  if(action==='replay_room'){
+   if(!['finished','waiting'].includes(s.phase))throw Error('Finish the current match before playing again.');
+   if(s.phase==='finished'){
+    s.phase='waiting';s.hole=0;s.deadline=0;delete s.botHoleStartedAt;
+    s.members=s.members.map((m:any)=>m.bot?{...makeBot(Array.from({length:s.mode==='golf'?golfHoleCount(s.course):9},(_,i)=>(s.mode==='golf'?getGolfHole(s.course,i):getHole(s.course,i)).par),Math.max(0,BOT_NAMES.indexOf(m.name))),id:m.id}:{id:m.id,name:m.name,nameplate:m.nameplate,seen:m.seen,ready:false});
+    member=s.members.find((m:any)=>m.id===p.id);
+   }
+   member.ready=true;
+  }
   if(action==='ready_room'){if(s.phase!=='waiting')throw Error('The round has started.');member.ready=!member.ready;}
   if(action==='start_room'){
    if(s.host!==p.id||s.phase!=='waiting'||s.members.length<2||s.members.some((m:any)=>!m.ready))throw Error('The host can start when at least two golfers are ready.');
@@ -27,8 +36,8 @@ export async function roomAction(action:string,p:any,b:any,api:any){
    try{const players=await table('players','id=in.('+s.members.filter((m:any)=>!m.bot).map((m:any)=>m.id).join(',')+')');const rounds=await insert('rounds',players.map((pl:any)=>({user_id:pl.id,room_id:r.id,mode:s.mode,course:s.course,equipment:pl.state.equipment,rules_version:RULES_VERSION,hole_count:s.mode==='golf'?golfHoleCount(s.course):9,rotation_key:s.rotationKey||''})));s.members.filter((m:any)=>!m.bot).forEach((m:any)=>m.roundId=rounds.find((rr:any)=>rr.user_id===m.id).id);s.phase='playing';s.botHoleStartedAt=Date.now();s.deadline=Date.now()+360000;await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s});return{serverNow:Date.now(),room:{...r,state:s,revision:r.revision+2}};}catch(e){s.phase='waiting';await rpc('room_cas',{p_id:r.id,p_revision:r.revision+1,p_state:s}).catch(()=>{});throw e;}
   }
   if(s.phase==='playing'){
-   let rounds=await table('rounds','room_id=eq.'+r.id);if(Date.now()>s.deadline){for(const rr of rounds.filter((rr:any)=>rr.next_hole<=s.hole&&s.members.some((m:any)=>m.id===rr.user_id))){const pl=await player(rr.user_id);await submit(pl,{roundId:rr.id,index:rr.next_hole,transcript:[{kind:'skip',tick:0}],endTick:0});}rounds=await table('rounds','room_id=eq.'+r.id);}
-   s.members.forEach((m:any)=>{if(m.bot){if(Date.now()-s.botHoleStartedAt>=botHoleDuration(m.plan[s.hole].strokes)+(m.delay||0)*1000&&m.nextHole===s.hole){m.scores.push(m.plan[s.hole].strokes);m.nextHole++;}return;}const rr=rounds.find((rr:any)=>rr.user_id===m.id);m.scores=rr?.holes.map((h:any)=>h.strokes)||[];m.nextHole=rr?.next_hole||0;});
+   let rounds=await table('rounds','room_id=eq.'+r.id);if(Date.now()>s.deadline){for(const rr of rounds.filter((rr:any)=>rr.next_hole<=s.hole&&s.members.some((m:any)=>m.roundId===rr.id))){const pl=await player(rr.user_id);await submit(pl,{roundId:rr.id,index:rr.next_hole,transcript:[{kind:'skip',tick:0}],endTick:0});}rounds=await table('rounds','room_id=eq.'+r.id);}
+   s.members.forEach((m:any)=>{if(m.bot){if(Date.now()-s.botHoleStartedAt>=botHoleDuration(m.plan[s.hole].strokes)+(m.delay||0)*1000&&m.nextHole===s.hole){m.scores.push(m.plan[s.hole].strokes);m.nextHole++;}return;}const rr=rounds.find((rr:any)=>rr.id===m.roundId);m.scores=rr?.holes.map((h:any)=>h.strokes)||[];m.nextHole=rr?.next_hole||0;});
    if(s.members.every((m:any)=>m.nextHole>s.hole)){s.hole++;s.botHoleStartedAt=Date.now();s.deadline=Date.now()+360000;if(s.hole>=(s.mode==='golf'?golfHoleCount(s.course):9))s.phase='finished';}
   }
   if(s.host&&!s.members.some((m:any)=>m.id===s.host&&Date.now()-m.seen<120000))s.host=p.id;

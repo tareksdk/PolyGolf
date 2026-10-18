@@ -6,7 +6,7 @@ export function mountainRangeData(h,layer,quality='medium') {
   const center=-h.length/2,seed=(h.seed||1)*.137+layer*2.7;
   const scale={garden:.65,meadow:.77,wetland:.7,lookout:1.15,'alpine-pass':1.18,lake:.88}[h.backdrop]||1;
   const inside=[70,490,950][layer],width=[350,490,510][layer];
-  const rock=new THREE.Color(['#8b9581','#819397','#91a4b3'][layer]),green=new THREE.Color(h.courseIndex===2?'#747e55':'#68816a'),snow=new THREE.Color(['#e5e6d6','#dce6e3','#ccdde5'][layer]);
+  const rock=new THREE.Color(['#8b9581','#819397','#91a4b3'][layer]),green=new THREE.Color((h.layoutCourse ?? h.courseIndex) === 2?'#747e55':'#68816a'),snow=new THREE.Color(['#e5e6d6','#dce6e3','#ccdde5'][layer]);
   const point=(i,j)=>{
     const a=i/segments*Math.PI*2,t=j/bands,lobes=.7+.17*Math.sin(a*5+seed)+.1*Math.cos(a*9-seed)+.055*Math.sin(a*17+seed);
     const radius=inside+width*t*(1+.065*Math.sin(a*7+t*4+seed));
@@ -29,7 +29,7 @@ export function mountainRangeData(h,layer,quality='medium') {
   return {positions,colors};
 }
 export function buildMountainRanges(w,h) {
-  if(h.courseIndex===1)return;
+  if((h.layoutCourse ?? h.courseIndex) === 1)return;
   const group=new THREE.Group();group.name='layered-mountain-ranges';
   for(let layer=2;layer>=0;layer--){
     const data=mountainRangeData(h,layer,w.settings?.graphics),geo=new THREE.BufferGeometry();

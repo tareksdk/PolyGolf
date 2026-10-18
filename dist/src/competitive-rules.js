@@ -1,7 +1,7 @@
 import { buildGolfLayout } from "./golf-courses.js";
 import { GolfPhysics } from "./golf-physics.js";
 import { golfGear } from "./equipment.js";
-export const COMPETITIVE_LEVEL = 15;
+export const COMPETITIVE_LEVEL = 1;
 export { RANKS, rankFor } from "./ranks.js";
 export function eloChange(winner, loser) {
   return Math.max(1, Math.round(32 * (1 - 1 / (1 + 10 ** ((loser - winner) / 400)))));

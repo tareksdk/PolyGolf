@@ -1,0 +1,48 @@
+{
+  "0": {
+    "key": "golf:polygolf-v7:0",
+    "holes": [
+      "7ab4d0f49b98163ec912c454363cbdb9905432dc355450a080624615259d39d3",
+      "4d6ced2caa373fca73d4b6ee4a93b43ca95f7e9f2297bebba916b9f4a60da514",
+      "1565f4551ea23b50d2a4e82b73602de3eaa8aeeda5a963cdeb4589570f0bbf99"
+    ]
+  },
+  "1": {
+    "key": "golf:polygolf-v7:1",
+    "holes": [
+      "a2c65c944fd05c8a5e81c118ed3e0b88bf448b3858e7056f59c6f070d234b71b",
+      "86fd0439285dbf21268352e6094c77a67c6418ecb668b0b32f98ab5b45ba10b8",
+      "73b683e13bbaf40df0ba37dd0d0718c472f63e239614f0f610a50508233ce7bf"
+    ]
+  },
+  "2": {
+    "key": "golf:polygolf-v7:2",
+    "holes": [
+      "73358fbe2ebf09ae5da4ba12f69c26911b3ccfda67e39ef0a2b634656b8af175",
+      "0149854bd3355fce2c84c8cafbcf2188cf40d9599fc89227f4f1d284ceb366a2",
+      "1900676270fa9d076f5d432f1f76f0186c292ba624bb5bf37c9c2eb32e5906d8"
+    ]
+  },
+  "3": {
+    "key": "golf:polygolf-v11:3:fixed",
+    "holes": [
+      "4fdf1535a430b28b3fe7ac99885071dcaa1f23724031d2871563f2d03ee6b75d",
+      "1451b6e3c047eb5f79b07a9f28216819c395cee99e99e7e3d8b46a6601728dfd",
+      "04862aaa347f9f9bbd94f79a5737d42bb0459779fb4cf0bb425ba378874a482a"
+    ]
+  },
+  "14": {
+    "key": "golf:polygolf-v11:14:fixed",
+    "holes": [
+      "7ab4d0f49b98163ec912c454363cbdb9905432dc355450a080624615259d39d3",
+      "4d6ced2caa373fca73d4b6ee4a93b43ca95f7e9f2297bebba916b9f4a60da514",
+      "1565f4551ea23b50d2a4e82b73602de3eaa8aeeda5a963cdeb4589570f0bbf99",
+      "6cba27c4cb8f690054f774ccdcd8bbe84cd6a99524d7019646790fd5073d9c30",
+      "d6b3bc348e86c444c483e9fb67679ce9653a40efa2bb5b2a0aba206ebf20d1a4",
+      "a1d02f0c083c028eaa697c08199f7b460580dce10d9bd2cef3f9fc91b9188511",
+      "76819c4b4336f7c4517638694c7e7d79195ad48d3c7737ea6d379db20d6ce9d3",
+      "e3af525222874fcf4a6fdeca1e1e1d833214969abc1d330f2532c124a47f8aef",
+      "076b26dcd32d2987b104b696adfc291cd76fa86c65d6200f3ef9552be11fd921"
+    ]
+  }
+}

@@ -2,6 +2,7 @@ node_modules/
 .netlify/
 .sites-runtime/
 artifacts/
+supabase/.temp/
 .playwright-cli/
 output/
 *.log

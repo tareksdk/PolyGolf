@@ -19,6 +19,10 @@ export async function socialAction(action:string,p:any,b:any,db:any){
  const target=String(b.userId||'').toLowerCase();if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target))throw Error('Choose a golfer first.');
  if(action==='friend_action')return{relationship:await rpc('friend_action',{p_user:p.id,p_target:target,p_action:b.operation})};
  const row=(await table('players','id=eq.'+target))[0];if(!row)throw Error('This golfer could not be found.');
- const rel=target===p.id?null:(await table('friends',relationQuery(target)))[0];
- return{profile:publicProfile(row),relationship:rel?{status:rel.status,incoming:rel.requested_by!==p.id}:null};
+ const [relations,honors,bests]=await Promise.all([
+  target===p.id?Promise.resolve([]):table('friends',relationQuery(target)),
+  rpc('profile_honors',{p_user:target,p_viewer:p.id}),rpc('profile_bests',{p_user:target})
+ ]);
+ const rel=relations[0];
+ return{profile:{...publicProfile(row),honors,bests},relationship:rel?{status:rel.status,incoming:rel.requested_by!==p.id}:null};
 }

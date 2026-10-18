@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS = {
   sfx: 0.65,
   graphics: "auto",
   courseWeather: "normal",
+  hudStyle: "classic",
   theme: "dark",
   shadows: true,
   particles: true,
@@ -99,6 +100,7 @@ export class LocalSaveRepository {
       for (const k of ["master", "music", "sfx"])
         result.settings[k] = Math.max(0, Math.min(1, Number(result.settings[k]) || 0));
       result.settings.shotGuide = result.settings.shotGuide === 'directional' ? 'directional' : 'full';
+      result.settings.hudStyle = result.settings.hudStyle === 'smart' ? 'smart' : 'classic';
       result.settings.shotMeter = result.settings.shotMeter === "fluid" ? "fluid" : "classic";
       return normalizeInventory(result);
     } catch (e) {

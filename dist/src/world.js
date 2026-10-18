@@ -722,7 +722,7 @@ export class World {
     if (this.adaptiveFrames < 180) return;
     this.adaptiveFrames = 0;
     const cap=renderScale(this.settings?.graphics,devicePixelRatio,innerWidth,innerHeight),current=this.dynamicRatio??cap;
-    const next=Math.max(this.settings?.graphics === 'low' ? .8 : 1,Math.min(cap,current+(this.frameAverage>0.027?-0.15:this.frameAverage<0.018?0.05:0)));
+    const next=Math.max(1,Math.min(cap,current+(this.frameAverage>0.027?-0.15:this.frameAverage<0.018?0.05:0)));
     if(Math.abs(next-current)>0.01){this.dynamicRatio=next;this.renderer.setPixelRatio(next);this.resize();}
   }
   update(dt, ball, physics) {
@@ -733,7 +733,7 @@ export class World {
     if(this.clock>=(this.nextSeasonCheck||0)){
       this.nextSeasonCheck=this.clock+1;
       const visible=halloweenActive();
-      this.group?.traverse(o=>{if(o.userData.halloween&&o.visible!==visible){o.visible=visible;this.renderer.shadowMap.needsUpdate=true;}});
+      this.group?.traverse(o=>{if(o.userData.halloween){const show=visible&&!o.userData.destroyed;if(o.visible!==show){o.visible=show;this.renderer.shadowMap.needsUpdate=true;}}});
     }
     if(this.oceanTime)this.oceanTime.value=this.clock;
     this.group.visible = this.mode !== "garage";
@@ -744,8 +744,8 @@ export class World {
     }
     if (this.mode === "garage") {
       this.club.visible = true;
-      this.club.position.set(-2.4, 1.85, 8.3);
-      this.club.scale.setScalar(1.15);
+      this.club.position.set(-2.3, 2.15, 8.3);
+      this.club.scale.setScalar(1.6);
       this.club.rotation.z = -0.24;
     } else {
       this.club.scale.setScalar(1);
@@ -858,7 +858,7 @@ export class World {
       );
     } else if (this.mode === "garage") {
       target.set(-.3, 2.5, 8);
-      const fit = Math.max(1, 1.05 / aspect);
+      const fit = Math.max(.78, .70 / aspect);
       position.set(4 * fit, 2.5 + 4 * fit, 8 + 10 * fit);
     } else {
       const t = this.clock * 0.035;

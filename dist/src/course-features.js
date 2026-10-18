@@ -2,7 +2,7 @@ import { terrainHeight, pathDistance, fairwayWidth, coastBounds, coastWaterLevel
 import { halloweenActive } from './season.js';
 // Shared course targets: render placement and verified replays use the same metres.
 export function pirateShipFor(h) {
-  if (h.courseIndex !== 1 || h.custom) return null;
+  if ((h.layoutCourse ?? h.courseIndex) !== 1 || h.custom) return null;
   if(h.index===0){
     // The round supplies one seed in local practice. A missing seed stays
     // deterministic for previews and replay fixtures; resets never reroll it.
@@ -51,7 +51,7 @@ export function hitsPirateShip(ship, a, b) {
 
 // Place one find beside the inner edge of a real tree on Autumn Pines, hole one.
 export function pumpkinFor(h,now=Date.now()) {
-  if(!halloweenActive(now) || h.custom || h.courseIndex!==2 || h.index!==0) return null;
+  if(!halloweenActive(now) || h.custom || (h.layoutCourse ?? h.courseIndex) !== 2 || h.index!==0) return null;
   const trees=h.trees.filter(t=>t.z < -45 && t.z > -135 && !t.far);
   trees.sort((a,b)=>(pathDistance(h,a.x,a.z)-fairwayWidth(h,-a.z/h.length)/2)-(pathDistance(h,b.x,b.z)-fairwayWidth(h,-b.z/h.length)/2));
   const tree=trees[0];if(!tree)return null;

@@ -1,0 +1,47 @@
+/* Fitted course browser: two collections, never a main-page scrollbar. */
+.clubhouse-menu[data-screen=courses]{height:100dvh;overflow:hidden}
+.clubhouse-menu .course-menu{height:calc(100dvh - var(--header-height,90px));min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);padding:0 20px 10px;overflow:hidden}
+.clubhouse-menu .course-menu .arcade-page-header{padding:8px 0;min-height:0;margin:0}.course-menu .arcade-page-header h1{font-size:25px}
+.course-menu .arcade-page-content{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0;margin:0 auto;max-width:1200px}
+.course-menu .arcade-switch{margin:0 0 8px;gap:6px}.course-menu .arcade-switch button{padding:7px 12px}
+.course-sections{min-height:0;display:grid;grid-template-rows:minmax(0,1.1fr) minmax(0,1fr);gap:10px}
+.course-section{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.course-section-heading{margin-bottom:6px;min-height:28px;gap:6px}.course-section-heading h2{font-size:17px}.course-section-heading>span{font-size:10px}
+.course-menu .arcade-courses,.course-section-featured .arcade-courses{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:10px;min-height:0}
+.course-menu .arcade-course{overflow:hidden;position:relative;min-height:0;display:grid;grid-template-rows:minmax(35px,.85fr) minmax(100px,1fr);grid-template-columns:1fr}
+.course-menu .arcade-course>img{height:100%;min-height:0;aspect-ratio:auto;object-fit:cover}
+.course-menu .arcade-course-copy{min-height:0;padding:8px 10px;gap:4px}.course-menu .arcade-course h3,.course-menu .arcade-course h2{font-size:17px;margin:0;line-height:1.15}.course-menu .arcade-course p{display:none}
+.course-menu .arcade-course-record{margin:0;font-size:10px}.course-menu .arcade-course-copy>.arcade-button{min-height:29px;padding:5px 10px;font-size:11px}.course-card-meta{font-size:10px;gap:4px}
+.course-section-featured{padding:0;border-top:0}.course-section-featured .arcade-course{border-left:2px solid #c9ad69}
+.course-slot{padding:2px 5px;font-size:9px}.course-menu .arcade-course-footer{margin:7px 0 0;min-height:25px}.course-menu .arcade-course-footer small{font-size:9px}.course-menu .arcade-course-footer button{padding:5px 8px;font-size:10px}
+.more-course-tabs{display:flex;gap:5px}.more-course-tabs .arcade-button{padding:5px 8px;font-size:10px;min-height:27px}.more-course-tabs [aria-pressed=true]{background:#d9bf77;color:#173e31}
+.hud-style-picker{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 12px;border:1px solid var(--ui-border,#8caa8a55);border-radius:6px;max-width:100%;color:var(--ui-text,#f4efd6)}
+.hud-style-picker>span{font-size:11px;font-weight:700}.hud-style-picker button{font-size:10px;padding:6px 8px;min-height:29px}.hud-style-picker small{font-size:10px;flex:1;min-width:180px;color:var(--ui-muted,#bbcdb3)}
+.garage-inventory>.hud-style-picker{flex:none;margin-bottom:8px}.garage-inventory>.hud-style-picker small{display:none}
+.play-hud[data-hud-style=smart] .ph-card,.play-hud[data-hud-style=smart] .golfer-nameplate{background:#12392b6b!important;color:#f5f4d6!important;border-color:#d1e2bc35!important;box-shadow:none!important;backdrop-filter:none!important;text-shadow:0 1px 3px #0a211b;transition:opacity .2s}
+.play-hud[data-hud-style=smart] :is(.ph-card,.golfer-nameplate) :is(span,label,small,strong,#power-text){color:inherit!important}
+.play-hud[data-hud-style=smart] .ph-hint{opacity:.7}.play-hud[data-hud-style=smart] .hud-obscuring{opacity:.08}
+.play-hud[data-hud-style=smart] .ball-nameplate{background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+.play-hud[data-hud-style=smart] :is(.ph-left,.ph-center,.golfer-nameplate):is(:hover,:focus-within){opacity:1}
+.play-hud[data-hud-style=smart] .ph-field select{background:#193d30a6!important;color:#fff5d8!important}
+.play-hud[data-hud-style=smart] .ph-tools .icon-button{background:#12392b6b;color:#f5f4d6;border-color:#d1e2bc35;box-shadow:none}
+.play-hud[data-hud-style=smart] :is(.ph-chip,.club-current,.club-arrow,.meter-switch){background:#20453180;color:#f5f4d6;border-color:#d1e2bc35;box-shadow:none}
+.play-hud[data-hud-style=smart] .flow-gauge-caption{fill:#e4ebcf}.play-hud[data-hud-style=smart] .accuracy-label{color:#f4ebca}
+@media(max-width:640px){
+ .clubhouse-menu .course-menu{padding:0 10px 6px}.clubhouse-menu .course-menu .arcade-page-header{padding:4px 0}.course-menu .arcade-page-header h1{font-size:19px}.course-menu-note{width:auto;margin:0 0 0 auto;font-size:9px}
+ .course-menu .arcade-switch{margin-bottom:5px;flex-wrap:nowrap}.course-menu .arcade-switch button{font-size:10px;padding:5px 7px}
+ .course-sections{gap:8px;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}.course-section-heading h2{font-size:13px}.course-section-heading>span{font-size:8px}.course-section-heading{min-height:22px;flex-wrap:nowrap}
+ .course-menu .arcade-courses,.course-section-featured .arcade-courses{grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr));gap:4px}
+ .course-menu .arcade-course{grid-template-columns:23% minmax(0,1fr);grid-template-rows:1fr}.course-menu .arcade-course>img{height:100%;aspect-ratio:auto}.course-menu .arcade-course-copy{padding:4px 58px 4px 6px;justify-content:center;gap:3px}.course-menu .arcade-course h3{font-size:12px}
+ .course-menu .arcade-course-record{display:none}.course-menu .arcade-course-copy>.arcade-button{position:absolute;right:5px;bottom:5px;width:48px;min-height:24px;padding:4px;font-size:9px}.course-menu .arcade-course-copy>.arcade-button svg{display:none}.course-card-meta{font-size:8px}.course-slot{font-size:7px;padding:1px 3px}
+ .more-course-tabs{gap:3px}.more-course-tabs .arcade-button{font-size:8px;padding:4px;min-height:23px}.course-menu .arcade-course-footer small{display:none}.course-menu .arcade-course-footer{margin-top:5px}
+ .hud-style-picker{padding:5px 8px;gap:5px}.hud-style-picker small{display:none}
+}
+@media(max-height:480px) and (min-width:641px){.course-menu .arcade-course{grid-template-columns:24% minmax(0,1fr);grid-template-rows:1fr}.course-menu .arcade-course-copy{padding:4px 7px;gap:2px}.course-menu .arcade-course h3{font-size:12px}.course-menu .arcade-course-record{display:none}.course-card-meta{font-size:8px}.course-menu .arcade-course-copy>.arcade-button{min-height:22px;padding:3px;font-size:9px}.course-sections{gap:5px}.course-menu .arcade-course-footer{margin-top:3px}.course-menu .arcade-page-header{padding:3px 0}}
+@media(prefers-reduced-motion:reduce){.play-hud[data-hud-style=smart] .ph-card{transition:none}}
+@media(max-height:480px) and (min-width:641px){
+ .clubhouse-menu .course-menu .arcade-page-header{padding:3px 0}.course-menu .arcade-page-header h1{font-size:19px;line-height:22px}
+ .course-menu .arcade-switch{margin-bottom:4px}.course-menu .arcade-switch button{font-size:10px;padding:4px 9px;min-height:25px}
+ .course-section-heading{min-height:20px;margin-bottom:4px}.course-section-heading h2{font-size:13px}.more-course-tabs .arcade-button{min-height:23px;padding:4px 7px;font-size:9px}
+ .course-menu .arcade-course-footer small{display:none}.course-menu .arcade-course h3{font-size:11px}.course-slot{font-size:7px}
+}

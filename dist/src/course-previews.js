@@ -46,7 +46,7 @@ export function installCoursePreviews(world) {
   let processing = false,
     studio = null;
   world.thumbnail = (index, mode = "mini") => {
-    if(Number.isInteger(index)&&index>=0&&index<(mode==='golf'?GOLF_COURSES:COURSES).length)
+    if(Number.isInteger(index)&&index>=0&&index<(mode==='golf'?15:COURSES.length))
       return `/assets/course-cards/${mode}-${index}.webp`;
     const key = mode + ":" + index;
     if (world.thumbCache.has(key)) return world.thumbCache.get(key);

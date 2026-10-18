@@ -1,3 +1,7 @@
+# Current update · v1.1
+
+Separate nine-hole Saltwind Links and Autumn Pines rounds are in **Courses → More to play → Long rounds · 9 holes**. Classic three-hole rounds and their records remain intact. See [the update and verification report](LONG-COURSES-1.1-REPORT.md).
+
 # PolyGolf
 
 A low-poly browser golf game by **Room310 × OneShotStudios**, playable at [polygolf.lol](https://polygolf.lol).

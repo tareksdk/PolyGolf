@@ -61,6 +61,7 @@ export function installGolfPresentation(world) {
     sinkBall.scale.setScalar(radius);
     sinkBall.material = world.ballMesh.material;
     pulse.material.color.set(color);
+    return world.playHoleEffect?.(cup) || 1.15;
   };
   const guide = new THREE.Group();
   world.scene.add(guide);
@@ -129,6 +130,7 @@ export function installGolfPresentation(world) {
     world.updateGolfer(dt, ball, physics);
     if(world.waterMoment && !world.pirateMoment){world.cameraHold=world.waterMoment;golfer.visible=false;}
     if(world.pirateMoment){world.cameraHold=world.pirateEffects?.focus||world.cameraHold;golfer.visible=false;}
+    if(world.adventureMoment&&!world.pirateMoment&&!world.waterMoment){world.cameraHold=world.adventureMoment;golfer.visible=false;}
     if (world.cupMoment) {
       const moment = world.cupMoment;
       moment.time += dt;
@@ -138,7 +140,7 @@ export function installGolfPresentation(world) {
       sinkBall.visible = t < 0.36;
       pulse.position.y = 0.025;
       pulse.scale.setScalar((golf ? 0.28 : 0.65) + t * (golf ? 1.4 : 2.6));
-      pulse.material.opacity = Math.max(0, 0.85 - t / 0.95);
+      pulse.material.opacity = world.playHoleEffect ? 0 : Math.max(0, 0.85 - t / 0.95);
       if (t > 1.1) {
         celebration.visible = false;
         world.cupMoment = null;
