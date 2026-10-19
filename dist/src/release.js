@@ -8,6 +8,16 @@ import { courseMenu } from './course-menu.js';
 import { patternDialog, equipPattern } from './pattern-ui.js';
 import { ITEM_BY_ID } from './catalog.js';
 
+// Course easter eggs: the physics event, its achievement, server claim and unlocks.
+const DISCOVERIES={
+  'pumpkin':{id:'pumpkin',claim:'claim_pumpkin',items:['ball-pumpkin-find','nameplate-pumpkin-find'],local:p=>p.discoverPumpkin(),
+    message:'Pumpkin found! Lost Pumpkin ball and Pumpkin Hunter nameplate unlocked.'},
+  'pirate-ship':{id:'pirate',claim:'claim_ship',items:['ball-pirate','nameplate-pirate'],local:p=>p.discoverPirate(),
+    message:'Broadside! Pirate ball and nameplate unlocked.'},
+  'darby':{id:'darby',claim:'claim_darby',items:['ball-darby','nameplate-darby'],local:p=>p.discoverDarby(),
+    message:'You found Darby! Darby’s Tennis Ball and the Darby’s Best Friend nameplate are yours.'},
+};
+
 export function installRelease(ui) {
   installTrails(ui.world);
   const action=ui.action.bind(ui),event=ui.game.onEvent,render=ui.render.bind(ui);
@@ -44,16 +54,16 @@ export function installRelease(ui) {
   ui.game.onEvent=(name)=>{
     event(name);
     if(name==='pumpkin') ui.world.explodePumpkin?.();
-    const discovery=name==='pumpkin'?'pumpkin':name==='pirate-ship'?'pirate':null;
-    if(!discovery || ui.game.round.practice || ui.game.customHole || ui.progress.data.achievementRewards?.includes(discovery))return;
-    const pumpkin=discovery==='pumpkin',items=pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate'];
-    const message=pumpkin?'Pumpkin found! Lost Pumpkin ball and Pumpkin Hunter nameplate unlocked.':'Broadside! Pirate ball and nameplate unlocked.';
+    if(name==='darby') ui.world.greetDarby?.();
+    const discovery=DISCOVERIES[name];
+    if(!discovery || ui.game.round.practice || ui.game.customHole || ui.progress.data.achievementRewards?.includes(discovery.id))return;
+    const {items,message}=discovery;
     if(ui.cloud.session && ui.game.round.cloudId){
       const payload={roundId:ui.game.round.cloudId,index:ui.game.index,transcript:structuredClone(ui.game.transcript),endTick:ui.game.ticks};
-      ui.shipClaim=ui.cloud.call(pumpkin?'claim_pumpkin':'claim_ship',payload).then(()=>{
+      ui.shipClaim=ui.cloud.call(discovery.claim,payload).then(()=>{
         ui.revealItems(items);ui.toast(message);
       }).catch(()=>ui.toast('Discovery found! Finish this hole to sync your rewards.')).finally(()=>{ui.shipClaim=null;});
-    } else if(!ui.cloud.session && (pumpkin?ui.progress.discoverPumpkin():ui.progress.discoverPirate())){
+    } else if(!ui.cloud.session && discovery.local(ui.progress)){
       ui.revealItems(items);ui.toast(message);
     }
   };

@@ -20,7 +20,7 @@ export function verifyHole(round, index, commands, endTick, { featureOnly = fals
     strokes = 0,
     penalties = 0,
     done = false,
-    collected = false, pirateHit = false, pumpkinHit = false;
+    collected = false, pirateHit = false, pumpkinHit = false, darbyHit = false;
   function step() {
     p.update(FIXED_STEP);
     tick++;
@@ -28,6 +28,7 @@ export function verifyHole(round, index, commands, endTick, { featureOnly = fals
       if (e === "cup") done = true;
       if (e === "pirate-ship") pirateHit = true;
       if (e === "pumpkin") pumpkinHit = true;
+      if (e === "darby") darbyHit = true;
       if (e === "water") {
         penalties++;
         strokes++;
@@ -79,6 +80,7 @@ export function verifyHole(round, index, commands, endTick, { featureOnly = fals
   while (tick < endTick && !done) step();
   if (!done && !featureOnly) throw Error("The replay did not finish the hole.");
   if (featureOnly === 'pumpkin' && !pumpkinHit) throw Error('The replay did not hit the pumpkin.');
-  if (featureOnly && featureOnly !== 'pumpkin' && !pirateHit) throw Error("The replay did not hit the pirate ship.");
-  return { index, strokes, par: h.par, penalties, collectible: collected, pirateHit, pumpkinHit, time: endTick / 120 };
+  if (featureOnly === 'darby' && !darbyHit) throw Error('The replay did not reach Darby.');
+  if (featureOnly && !['pumpkin','darby'].includes(featureOnly) && !pirateHit) throw Error("The replay did not hit the pirate ship.");
+  return { index, strokes, par: h.par, penalties, collectible: collected, pirateHit, pumpkinHit, darbyHit, time: endTick / 120 };
 }

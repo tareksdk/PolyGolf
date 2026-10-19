@@ -94,6 +94,16 @@ test('pumpkin claim checks the actual replay, round ownership and one-time inven
  const first=await call('claim_pumpkin',payload);assert.deepEqual(first.unlocked,['ball-pumpkin-find','nameplate-pumpkin-find']);const coins=p.state.coins;
  const retry=await call('claim_pumpkin',payload);assert.equal(retry.already,true);assert.equal(p.state.coins,coins);assert.equal(p.state.owned.filter(i=>i==='ball-pumpkin-find').length,1);
 });
+test('Darby claim replays the real shot on Willow Park and awards the tennis ball and nameplate once',async()=>{
+ const fixture=JSON.parse(await readFile(new URL('./fixtures/darby-shot.json',import.meta.url),'utf8'));
+ const p=players.get('a');p.state=defaultSave();p.revision=0;
+ rounds.set('darby-test',{id:'darby-test',user_id:'a',mode:'golf',course:0,equipment:p.state.equipment,rules_version:RULES_VERSION,next_hole:0,finished:false,updated_at:new Date(Date.now()-60000).toISOString()});
+ const payload={roundId:'darby-test',index:0,transcript:fixture.commands,endTick:fixture.endTick};
+ await assert.rejects(call('claim_darby',payload,'b'),/Start an online round/);
+ await assert.rejects(call('claim_darby',{...payload,transcript:[{...fixture.commands[0],power:.3}]}),/did not reach Darby/);
+ const first=await call('claim_darby',payload);assert.deepEqual(first.unlocked,['ball-darby','nameplate-darby']);
+ const retry=await call('claim_darby',payload);assert.equal(retry.already,true);assert.equal(p.state.owned.filter(i=>i==='ball-darby').length,1);
+});
 test('gift redemption uses the exact code and credits one million tokens once, including concurrent requests',{skip:!process.env.LITTLE_LINKS_TEST_CODE},async()=>{
  const code=process.env.LITTLE_LINKS_TEST_CODE,before=players.get('a').state.coins;
  await assert.rejects(call('redeem_code',{code:code.toLowerCase()}),/not active/);await assert.rejects(call('redeem_code',{code:'invalid'}),/not active/);await assert.rejects(call('redeem_code',{code},null),/Sign in/);

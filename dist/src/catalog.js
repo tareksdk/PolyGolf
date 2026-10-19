@@ -358,6 +358,8 @@ for (const item of ITEMS) if (item.price > 0) item.price = Math.ceil(item.price 
 ITEMS.push(
   { id: 'ball-pirate', category: 'ball', name: 'Jolly Roger', rarity: 'Legendary', color: '#e6dfca', pattern: '#283639', design: 0, motif: 'skull', source: 'achievement', exclusive: true, price: 0, flavor: 'Strike the pirate ship off Saltwind Links.' },
   { id: 'nameplate-pirate', category: 'nameplate', name: 'Captain of the Coast', rarity: 'Legendary', color: '#283e46', pattern: '#cdb271', motif: 'skull', design: 0, source: 'achievement', exclusive: true, price: 0 },
+  { id: 'ball-darby', category: 'ball', name: 'Darby’s Tennis Ball', rarity: 'Legendary', color: '#cfdf4f', pattern: '#f7f4e4', design: 0, motif: 'tennis', source: 'achievement', exclusive: true, price: 0, flavor: 'Darby’s favourite ball, a little slobbery. A gift from the black Lab napping beside the first Willow Park fairway.' },
+  { id: 'nameplate-darby', category: 'nameplate', name: 'Darby’s Best Friend', rarity: 'Legendary', color: '#2b2a30', pattern: '#d6e35f', badge: 'paw', design: 0, source: 'achievement', exclusive: true, price: 0, flavor: 'Proof that you stopped to say hello to Darby on Willow Park.' },
   ...RANKS.map((rank, i) => ({ id: rankPlate(rank), category: 'nameplate', name: rank.name + ' Competitor', rarity: ['Common','Uncommon','Rare','Epic','Epic','Legendary','Black Market'][i], color: rank.color, pattern: '#ede6d6', rank: rank.name, design: i, source: 'competitive', exclusive: true, price: 0, flavor: 'Earned by reaching ' + rank.name + ' after a completed competitive match.' }))
 );
 for (const finish of FINISHES) for (const [category, label] of [['driver','Driver'],['club','Putter'],['ball','Ball']]) {

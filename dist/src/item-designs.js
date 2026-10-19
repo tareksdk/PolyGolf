@@ -8,6 +8,17 @@ export function ballFinish(w, item, parent, r = 1) {
   parent.add(group);
   if (item.motif === 'israel') { israelBallFinish(w, group, r); return group; }
   if (item.finish) return group;
+  if (item.motif === 'tennis') {
+    // The classic tennis-ball seam: one closed curve on the sphere, half sunk into the felt.
+    const a = .7, b = .3, k = 2 * Math.sqrt(a * b);
+    const seam = new THREE.Curve();
+    seam.getPoint = (t, target = new THREE.Vector3()) => {
+      const u = t * Math.PI * 2;
+      return target.set(a * Math.cos(u) + b * Math.cos(3 * u), k * Math.sin(2 * u), a * Math.sin(u) - b * Math.sin(3 * u)).multiplyScalar(r);
+    };
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(seam, 72, r * .04, 4, true), w.mat(item.pattern || '#f7f4e4', { roughness: .9 })));
+    return group;
+  }
   const color = item.pattern || item.color,
     d = item.design || 0;
   if (["skull", "pumpkin", "ghost"].includes(item.motif)) {

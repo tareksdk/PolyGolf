@@ -79,7 +79,7 @@ async function submit(p:any,b:any){
  if(r.competitive_id){const s=await rpc('ranked_status',{p_user:p.id});if(s.match?.id!==r.competitive_id||s.match.phase!=='playing')throw Error('This competitive match has ended.');}
  if(r.room_id){const room=(await table('rooms','id=eq.'+r.room_id))[0];if(!room||room.state.phase!=='playing'||room.state.hole!==b.index||!room.state.members.some((m:any)=>m.id===p.id))throw Error('This room is not playing that hole.');}
  const result=verifyHole(r,b.index,b.transcript,b.endTick);const elapsed=(Date.now()-new Date(r.updated_at).getTime())/1000;if(result.time>elapsed+3)throw Error('Replay time is ahead of the server.');
- result.skipped=b.transcript.some((c:any)=>c.kind==='skip');const pm=progress(p);if(result.pirateHit)pm.discoverPirate();if(result.pumpkinHit)pm.discoverPumpkin();if(b.index===0)pm.data.stats.games++;const reward=result.skipped?{coins:0,xp:0}:pm.completeHole({...result,time:elapsed,round:{practice:false}});if(result.collectible&&!result.skipped)pm.collectible(false);
+ result.skipped=b.transcript.some((c:any)=>c.kind==='skip');const pm=progress(p);if(result.pirateHit)pm.discoverPirate();if(result.pumpkinHit)pm.discoverPumpkin();if(result.darbyHit)pm.discoverDarby();if(b.index===0)pm.data.stats.games++;const reward=result.skipped?{coins:0,xp:0}:pm.completeHole({...result,time:elapsed,round:{practice:false}});if(result.collectible&&!result.skipped)pm.collectible(false);
  const holes=[...r.holes,result],count=r.hole_count,finished=holes.length===count;let record=null,bonus={coins:0,xp:0};
  if(finished){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,rotationKey:r.rotation_key,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
  result.finished=finished;if(finished)result.bonus=bonus;const state=await save(p,pm,{p_round:r.id,p_hole:b.index,p_result:result,p_record:record});return{state,result,reward,bonus,finished};
@@ -134,15 +134,18 @@ Deno.serve(async req=>{
   else if(['ranked_status','ranked_queue','ranked_leave','ranked_shot'].includes(action))result=await enrichRanked(p,await competitiveAction(action,p,b,{table,rpc}));
   else if(action==='start_round'){const c=info(b.mode,b.course);if(b.mode==='golf'&&!courseAvailable(b.course))throw Error('This featured course has rotated. Choose the current course.');if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9,rotation_key:b.mode==='golf'?courseRotationKey(b.course):''}))[0];result={roundId:r.id,rotationKey:r.rotation_key};}
   else if(action==='submit_hole')result=await submit(p,b);
-  else if(action==='claim_ship'||action==='claim_pumpkin'){
-   const pumpkin=action==='claim_pumpkin',discovery=pumpkin?'pumpkin':'pirate';
-   if(pumpkin&&!halloweenActive())throw Error('The Halloween event has ended. Your earned items are yours to keep.');
-   if(p.state.achievementRewards?.includes(discovery))result={state:p.state,already:true};
+  else if(action==='claim_ship'||action==='claim_pumpkin'||action==='claim_darby'){
+   // Each easter egg: its achievement, the courses it sits on, the replay check and unlocks.
+   const egg={claim_ship:{id:'pirate',courses:[1,15],feature:true,discover:'discoverPirate',unlocked:['ball-pirate','nameplate-pirate']},
+    claim_pumpkin:{id:'pumpkin',courses:[2,16],feature:'pumpkin',discover:'discoverPumpkin',unlocked:['ball-pumpkin-find','nameplate-pumpkin-find']},
+    claim_darby:{id:'darby',courses:[0,14],feature:'darby',discover:'discoverDarby',unlocked:['ball-darby','nameplate-darby']}}[action];
+   if(egg.id==='pumpkin'&&!halloweenActive())throw Error('The Halloween event has ended. Your earned items are yours to keep.');
+   if(p.state.achievementRewards?.includes(egg.id))result={state:p.state,already:true};
    else {const r=(await table('rounds','id=eq.'+encodeURIComponent(b.roundId)+'&user_id=eq.'+p.id))[0];
-    if(!r||r.finished||r.mode!=='golf'||!(pumpkin?[2,16]:[1,15]).includes(r.course)||r.next_hole!==b.index||r.rules_version!==RULES_VERSION)throw Error('Start an online round on the discovery’s course to claim this reward.');
-    const hit=verifyHole(r,b.index,b.transcript,b.endTick,{featureOnly:pumpkin?'pumpkin':true});
+    if(!r||r.finished||r.mode!=='golf'||!egg.courses.includes(r.course)||r.next_hole!==b.index||r.rules_version!==RULES_VERSION)throw Error('Start an online round on the discovery’s course to claim this reward.');
+    const hit=verifyHole(r,b.index,b.transcript,b.endTick,{featureOnly:egg.feature});
     if(hit.time>(Date.now()-Date.parse(r.updated_at))/1000+3)throw Error('Replay time is ahead of the server.');
-    const pm=progress(p);pumpkin?pm.discoverPumpkin():pm.discoverPirate();result={state:await save(p,pm),unlocked:pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate']};
+    const pm=progress(p);pm[egg.discover]();result={state:await save(p,pm),unlocked:egg.unlocked};
    }
   }
   else if(action==='claim_social'){const pm=progress(p),outcome=claimSocialReward(pm,b.id);result={state:outcome.duplicate?p.state:await save(p,pm),outcome};}

@@ -1,4 +1,4 @@
-import { terrainHeight, pathDistance, fairwayWidth, coastBounds, coastWaterLevel } from "./golf-courses.js";
+import { terrainHeight, terrainAt, pathDistance, fairwayWidth, coastBounds, coastWaterLevel } from "./golf-courses.js";
 import { halloweenActive } from './season.js';
 // Shared course targets: render placement and verified replays use the same metres.
 export function pirateShipFor(h) {
@@ -61,4 +61,34 @@ export function pumpkinFor(h,now=Date.now()) {
 }
 export function hitsPumpkin(p,a,b,now=Date.now()) {
   return halloweenActive(now) && !!p && segmentBox(a,b,{x:p.x-1.05,y:p.y-.12,z:p.z-1.05},{x:p.x+1.05,y:p.y+1.7,z:p.z+1.05});
+}
+
+// Darby, the black Labrador, rests in the rough between the first Willow Park
+// fairway and its cart path, below the nearest tree and facing the play. Placement
+// follows the trees, so the spot survives layout edits; the replay verifier uses the
+// same metres and hit box. The cart path runs 5.1-7.3 m beyond the fairway edge.
+export const DARBY_EDGE=2.7;
+export function darbyFor(h) {
+  if(h.custom || (h.layoutCourse ?? h.courseIndex) !== 0 || h.index!==0) return null;
+  const edge=(x,z)=>pathDistance(h,x,z)-fairwayWidth(h,-z/h.length)/2;
+  const trees=h.trees.filter(t=>t.z < -h.length*.3 && t.z > -h.length*.5 && !t.far && edge(t.x,t.z)>7);
+  trees.sort((a,b)=>edge(a.x,a.z)-edge(b.x,b.z));
+  for(const tree of trees){
+    const route=h.route.reduce((best,p)=>Math.hypot(p[0]-tree.x,p[1]-tree.z)<Math.hypot(best[0]-tree.x,best[1]-tree.z)?p:best);
+    const d=Math.hypot(route[0]-tree.x,route[1]-tree.z),ux=(route[0]-tree.x)/d,uz=(route[1]-tree.z)/d;
+    let step=0;while(step<d&&edge(tree.x+ux*step,tree.z+uz*step)>DARBY_EDGE)step+=.05;
+    const x=tree.x+ux*step,z=tree.z+uz*step;
+    // Leave room for the whole dog: no trunk, hazard or playing surface underneath.
+    if(h.trees.some(t=>Math.hypot(t.x-x,t.z-z)<2.6)) continue;
+    if([[0,0],[1.6,0],[-1.6,0],[0,1.6],[0,-1.6]].some(([dx,dz])=>terrainAt(h,x+dx,z+dz).hazard)) continue;
+    return {x,y:terrainHeight(h,x,z),z,angle:Math.atan2(ux,uz),tree};
+  }
+  return null;
+}
+// Darby's swept volume in the dog's own frame: paws to rump, plus the lifted head.
+export function hitsDarby(d,a,b) {
+  if(!d)return false;
+  const c=Math.cos(d.angle),s=Math.sin(d.angle);
+  const local=p=>({x:(p.x-d.x)*c-(p.z-d.z)*s,y:p.y-d.y,z:(p.x-d.x)*s+(p.z-d.z)*c});
+  return segmentBox(local(a),local(b),{x:-.62,y:-.1,z:-1},{x:.62,y:1.25,z:1.15});
 }

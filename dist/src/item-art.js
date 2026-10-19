@@ -170,8 +170,8 @@ export function renderItemArt(w, item, {blob = false} = {}) {
     if (!!item.motif) holder.rotation.set(-0.22, 0.55, 0);
     g.add(holder);
     const body = m(item.id === "ball-pixel" ? "sphere" : "round", item.color, 0, 0, 0, 1, 1, 1, holder, {
-      metalness: item.id === "ball-gold" || item.rarity === "Legendary" ? 0.45 : 0.06,
-      roughness: 0.32,
+      metalness: item.motif === "tennis" ? 0 : item.id === "ball-gold" || item.rarity === "Legendary" ? 0.45 : 0.06,
+      roughness: item.motif === "tennis" ? 0.95 : 0.32,
       emissive: item.rarity === "Black Market" ? item.pattern || "#000" : "#000000",
       emissiveIntensity: 0.12,
     });

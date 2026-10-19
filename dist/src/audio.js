@@ -98,6 +98,13 @@ export class AudioManager {
       this.noise(.22,.45);
       this.tone(95,.28,'triangle',.35);
       this.tone(52,.38,'sine',.28,.05);
+    } else if (name === 'darby') {
+      // Two happy woofs over a soft breath of noise.
+      this.noise(.09, .12);
+      for (const at of [0, .24]) {
+        this.tone(330, .11, 'square', .16, at);
+        this.tone(220, .14, 'triangle', .3, at + .02);
+      }
     } else if (name === 'sand-impact' || name === 'sand-shot') this.noise(name === 'sand-shot' ? .19 : .28,.3);
     else if (name === "bounce") this.tone(175, 0.07, "sine", 0.3);
     else if (name === "water") {

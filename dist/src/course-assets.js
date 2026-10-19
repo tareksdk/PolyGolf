@@ -2,7 +2,7 @@ import * as THREE from "../vendor/three.module.js";
 import { terrainHeight, terrainAt, pathDistance, fairwayWidth, ovalBoundary } from "./golf-courses.js";
 import { nearbyTrees } from "./forest.js";
 import { registerOccluders } from "./occlusion.js";
-import { pirateShipFor, pumpkinFor } from "./course-features.js";
+import { pirateShipFor, pumpkinFor, darbyFor } from "./course-features.js";
 import { scenicLayout } from "./scenic-layout.js";
 import { halloweenActive } from './season.js';
 import { buildPirateShip } from './pirate-effects.js';
@@ -59,8 +59,11 @@ export function courseAssets(w, h) {
     dummy = new THREE.Object3D(),
     groups = new Map(),
     ground = (x, z) => w.surfaceHeight?.(x, z) ?? terrainHeight(h, x, z),
-    taken = [];
+    taken = [],
+    darby = darbyFor(h);
   const add = (name, x, z, scale = 1, angle = 0, y = null) => {
+    // Darby's resting spot stays clear of every prop except the shading tree itself.
+    if (darby && !TREE.test(name) && Math.hypot(x - darby.x, z - darby.z) < 2.4 + scale) return;
     // Cull distant parts of the forest instead of submitting the entire course
     // whenever one tree enters the camera. Props stay batched by asset.
     const key = TREE.test(name) ? name + ':' + Math.floor(x / 150) + ':' + Math.floor(z / 150) : name;

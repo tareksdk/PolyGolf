@@ -1,4 +1,5 @@
 import { installHoleEffects } from './hole-effects.js';
+import { loadDarby, installDarby } from './darby.js';
 import { readPreferences, savePreferences } from './device-settings.js';
 import { installOpeningUpdate } from './opening-update.js';
 import { installSmartHud } from './smart-hud.js';
@@ -31,7 +32,8 @@ import { installShopExtras } from "./pro-shop-ui.js";
 import { installSharing } from "./map-share.js";
 let ui;
 try {
-  await Promise.all([loadCourseAssets(),loadAdventureAssets()]);
+  // Darby is a bonus: the course still opens if the dog's file cannot load.
+  await Promise.all([loadCourseAssets(),loadAdventureAssets(),loadDarby().catch(()=>{})]);
   const repository = new LocalSaveRepository(isLocalPreview() ? previewStorage() : undefined);
   const progress = new ProgressionManager(repository, (message, type) => {
     ui?.toast(message);
@@ -75,6 +77,7 @@ try {
   installCourseAtmosphere(ui);
   installPirateEffects(world);
   installHoleEffects(world);
+  installDarby(world);
   installCourseAdventures(ui);
   installFlagCelebration(world);
   installLocalPreview(ui);

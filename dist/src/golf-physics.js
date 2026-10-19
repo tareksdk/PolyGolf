@@ -2,7 +2,7 @@ import { encounterBoxes, stepEncounter } from './course-encounters.js';
 import { startMysteryFlight, updateMysteryFlight } from './mystery-flight.js';
 import { nearbyTrees } from "./forest.js";
 import { cupCapture } from "./cup-capture.js";
-import { pirateShipFor, hitsPirateShip, pumpkinFor, hitsPumpkin } from "./course-features.js";
+import { pirateShipFor, hitsPirateShip, pumpkinFor, hitsPumpkin, darbyFor, hitsDarby } from "./course-features.js";
 import { terrainAt, clamp } from "./golf-courses.js";
 export const GOLF_RADIUS = 0.021335;
 export const CUP_RADIUS = 0.19;
@@ -45,6 +45,8 @@ export class GolfPhysics {
     this.shipHit = false;
     this.pumpkin = pumpkinFor(h);
     this.pumpkinHit = false;
+    this.darby = darbyFor(h);
+    this.darbyHit = false;
     this.lastSafe = { x: h.start.x, z: h.start.z };
     this.clock = 0;
     this.reset();
@@ -190,6 +192,10 @@ export class GolfPhysics {
     if (!this.pumpkinHit && hitsPumpkin(this.pumpkin, old, b)) {
       this.pumpkinHit = true;
       this.events.push('pumpkin');
+    }
+    if (!this.darbyHit && hitsDarby(this.darby, old, b)) {
+      this.darbyHit = true;
+      this.events.push('darby');
     }
     let t = terrainAt(this.hole, b.x, b.z);
     if (

@@ -121,6 +121,7 @@ export class LocalSaveRepository {
 export const ACHIEVEMENTS = [
   { id:LOCKER_LEGEND_ID,item:LOCKER_LEGEND_ITEM,name:'Just One More',desc:'Open more than 1,000 lockers.',icon:'gift',target:LOCKER_LEGEND_TARGET,value:s=>s.stats.lockersOpened||0,coins:0,xp:0,secret:true },
   { id:'pumpkin',item:'ball-pumpkin-find',items:['ball-pumpkin-find','nameplate-pumpkin-find'],name:'A Little Pumpkin Hunt',desc:'Hit the pumpkin beneath a tree beside the first Autumn Pines fairway.',icon:'gift',target:1,value:s=>s.stats.pumpkinHits||0,coins:350,xp:450 },
+  { id:'darby',item:'ball-darby',items:['ball-darby','nameplate-darby'],name:'Who’s a Good Dog?',desc:'Find Darby, the black Lab resting in the shade beside the first Willow Park fairway.',icon:'gift',target:1,value:s=>s.stats.darbyVisits||0,coins:350,xp:450 },
   { id: 'pirate', item: 'ball-pirate', items: ['ball-pirate', 'nameplate-pirate'], name: 'Broadside!', desc: 'Hit the pirate ship in the water at Saltwind Links.', icon: 'flag', target: 1, value: s => s.stats.shipHits || 0, coins: 350, xp: 450 },
   {
     id: "first",
@@ -337,6 +338,13 @@ export class ProgressionManager {
   discoverPumpkin(now=Date.now()) {
     if(!halloweenActive(now)||this.data.achievementRewards?.includes('pumpkin'))return false;
     this.data.stats.pumpkinHits=1;this.checkAchievements();this.claimAchievement('pumpkin');return true;
+  }
+  discoverDarby() {
+    if (this.data.achievementRewards?.includes('darby')) return false;
+    this.data.stats.darbyVisits = 1;
+    this.checkAchievements();
+    this.claimAchievement('darby');
+    return true;
   }
   discoverPirate() {
     if (this.data.achievementRewards?.includes('pirate')) return false;
