@@ -46,3 +46,14 @@ Before publication, both live sites reported application version 0.8.2, replay r
 - `RELEASE-1.3-REPORT.md`: release provenance, validation and rollback records.
 
 Production account purchases, trades and auction writes are not exercised by the browser checks. Existing cloud services are retained without a backend deployment.
+
+## Published verification
+
+- Release source on GitHub main: `5e07222d2c4cef2609ef6ea2cd51be3ec8eb67e4`. Its complete tree matches the checked local release exactly.
+- littlelinks.study ready deployment: `6ad66ada6c0f402fd3bf61a1`.
+- polygolf.lol ready deployment: `6ad66ae86cad6f1c60910e78`.
+- All 213 public files on each site match the committed publication snapshot by SHA-1; Netlify consumes the configuration file separately.
+- Public version metadata reports 1.3 and 648 items. Security headers remain present.
+- Browser interaction on both domains verified course and collection navigation, the existing guest sign-in gate for Trading, the final Country Club tier, and locker search plus the final reward at 1440 × 960 and 390 × 844. No page runtime errors were recorded.
+- The local integrated build also passed every locker at 1440 × 960, 390 × 844 and 907 × 510.
+- Deployment uses only committed files; unrelated untracked Desktop metadata and sync duplicates were excluded. Backend and database deployments were unchanged.
