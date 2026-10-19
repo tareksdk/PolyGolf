@@ -91,11 +91,20 @@ try {
     hudTimer = 0;
   function frame(now) {
     const elapsed = (now - last) / 1000;
-    if (document.hidden || (game.state === 'menu' && elapsed < 1 / 30 - .001)) {
-      if(document.hidden) last=now;
+    if (document.hidden) {
+      last = now;
       requestAnimationFrame(frame);return;
     }
-    if(game.state === "playing") world.observeFrame(elapsed);
+    // Menus render at the display's full refresh rate. Opaque clubhouse pages
+    // cover the course completely, so the GPU rests until the course is visible.
+    const covered = game.state === 'menu' && ui.screen !== 'garage' && ui.root.classList.contains('clubhouse-menu') && !ui.modalRoot?.childElementCount;
+    world.covered = covered;
+    if (covered) {
+      last = now; hudTimer += elapsed;
+      if (hudTimer > 0.1) { ui.tick(); hudTimer = 0; }
+      requestAnimationFrame(frame);return;
+    }
+    world.observeFrame(elapsed);
     world.frameTimes ??= [];
     world.frameTimes.push(elapsed * 1000);
     if (world.frameTimes.length > 240) world.frameTimes.shift();

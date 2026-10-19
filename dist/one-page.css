@@ -1,0 +1,34 @@
+/* v0.8.2 · One page. Menus scroll as a single page; nothing is split into pager pages or tabs. */
+
+/* Courses: the original three-hole rounds lead, then adventures, then the nine-hole collections. */
+.clubhouse-menu[data-screen=courses]{height:auto;overflow-y:auto}
+.clubhouse-menu .course-menu{display:block;height:auto}
+.course-section-classic .arcade-course{border-top:3px solid #d9bf77}
+.course-section-classic .arcade-course>img{aspect-ratio:1.7;height:clamp(150px,18vw,230px)}
+.course-section-classic .arcade-course h3{font-size:26px}
+.course-section-classic .course-section-heading h2{font-size:24px}
+.course-section-long{padding-top:24px;border-top:1px solid var(--ui-border)}
+.course-section-long .arcade-courses{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.course-section-long .arcade-course{display:grid;grid-template-columns:38% minmax(0,1fr);border-left:3px solid #8fb38a}
+.course-section-long .arcade-course>img{height:100%;aspect-ratio:auto;object-fit:cover}
+.course-section-long .arcade-course-copy{padding:13px}
+.course-section-long .arcade-course h3{font-size:18px;margin:8px 0}
+.course-section-long .arcade-course p{font-size:12px;margin-bottom:10px}
+.course-section-long .course-slot{background:#8fb38a2b}
+.mini-course-list{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))!important}
+@media(max-width:1000px){.course-section-long .arcade-courses{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){
+ .course-section-long .arcade-courses{grid-template-columns:1fr}
+ .course-section-classic .arcade-course>img{height:auto;aspect-ratio:2}
+ .course-section-classic .arcade-course h3{font-size:22px}
+}
+
+/* Caddie: the whole collection scrolls in one list beside the preview. */
+.clubhouse-menu .garage-inventory{overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin}
+.clubhouse-menu .garage-inventory .garage-items{flex:none;overflow:visible;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));grid-template-rows:none;grid-auto-rows:auto;align-content:start}
+.garage-items>[hidden]{display:flex!important}
+.garage-items .pg-card{height:auto!important;content-visibility:auto;contain-intrinsic-size:auto 280px}
+.garage-items .pg-art{flex:none;height:auto;aspect-ratio:1.35;max-height:none!important}
+@media(max-height:600px){.garage-items .pg-card{display:flex}.garage-items .pg-art{height:auto}}
+@media(max-height:480px) and (min-width:601px){.clubhouse-menu .garage-inventory{display:flex!important;height:auto}}
+@media(max-width:600px){.clubhouse-menu .garage-inventory .garage-items{grid-template-columns:repeat(2,minmax(0,1fr))}}

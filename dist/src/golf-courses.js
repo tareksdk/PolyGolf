@@ -52,8 +52,8 @@ export const GOLF_COURSES = [
 ];
 GOLF_COURSES.push(...EVENT_COURSES);
 GOLF_COURSES.push({...GOLF_COURSES[0], id:"willow-long", name:"Willow Park · Long Course", subtitle:"Nine holes across the full parkland collection.", tag:"THE LONG ROUND", layoutCourse:0, holeCount:9});
-GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine coastal adventures: smugglers, TNT and harbour lights.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
-GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine alpine adventures through granite, golden larches and mischief.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
+GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine clifftop holes from the sea stacks to the harbour lights.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
+GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine alpine holes through granite, golden larches and mountain air.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
 export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");

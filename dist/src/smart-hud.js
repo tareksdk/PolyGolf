@@ -23,7 +23,6 @@ export function installSmartHud(ui) {
     }
   };
   ui.action=async(name,data={})=>{
-    if(name==='more-course-page'){ui.moreCoursePage=Number(data.page)===1?1:0;ui.render();return;}
     if(name==='hud-style'){
       ui.progress.data.settings.hudStyle=data.style==='smart'?'smart':'classic';ui.world.settingsChanged(ui.progress.data.settings);ui.progress.save();ui.render();ui.modalRoot.querySelectorAll('.hud-style-picker').forEach(el=>el.outerHTML=hudStylePicker(ui.progress.data.settings));
       ui.toast(data.style==='smart'?'Clear View equipped · controls return on hover or focus.':'Classic HUD equipped.');return;

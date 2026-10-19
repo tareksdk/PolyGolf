@@ -53,13 +53,15 @@ test('restored room invites retain valid codes and reject invalid invitations',(
  assert.throws(()=>roomInviteUrl('bad-code','https://littlelinks.study'),/Invalid room code/);
 });
 
-test('one course screen contains both featured adventures and all three classics',()=>{
+test('one scrolling course page contains the classics, adventures and nine-hole rounds',()=>{
  const data=defaultSave(),progress=new ProgressionManager({load:()=>data,save:()=>true});
  const ui={mode:'golf',screen:'courses',progress,world:{thumbnail:()=>''}};
  const menu=courseMenu(ui);assert.match(menu,/Hollow Lanterns/);assert.match(menu,/Play Hollow Lanterns/);
  for(const name of ['Willow Park','Saltwind Links','Autumn Pines'])assert.ok(menu.includes(name));
- assert.match(courseMenu({...ui,moreCoursePage:1}),/9 holes · Par 36/);assert.equal((menu.match(/<article /g)||[]).length,6);
+ assert.match(menu,/9 holes · Par 36/);assert.equal((menu.match(/<article /g)||[]).length,3+featuredCourses().length);
+ assert.ok(menu.indexOf('classic-courses-heading')<menu.indexOf('featured-courses-heading')&&menu.indexOf('featured-courses-heading')<menu.indexOf('long-courses-heading'));
+ assert.ok(!menu.includes('more-course-page'));
  assert.match(menu,/aria-labelledby="featured-courses-heading"/);assert.match(menu,/aria-labelledby="classic-courses-heading"/);
  assert.ok(!menu.includes('data-action="course-collection"'));
- ui.mode='mini';ui.miniCoursePage=1;assert.equal((courseMenu(ui).match(/<article /g)||[]).length,2);
+ ui.mode='mini';assert.equal((courseMenu(ui).match(/<article /g)||[]).length,5);
 });

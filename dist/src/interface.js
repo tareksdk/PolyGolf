@@ -2,7 +2,6 @@ import { button } from './views.js';
 import { installTrading } from './trading-ui.js';
 import { installActivity } from './online-activity.js';
 import { installTheme } from './theme.js';
-import { installDialogPages } from './dialog-pages.js';
 import { installMenuPages } from './menu-pages.js';
 import { installEmotes } from './emotes.js';
 import { ITEMS, ITEM_BY_ID } from './catalog.js';
@@ -49,6 +48,5 @@ export function installInterface(ui) {
   installActivity(ui);
   installTheme(ui);
   installEmotes(ui);
-  installDialogPages(ui);
   installMenuPages(ui);
 }

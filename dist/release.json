@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.2",
+  "appVersion": "0.8.2",
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,
   "nativeResolutionFloor": true,

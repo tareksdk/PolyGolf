@@ -499,10 +499,6 @@ export function installExpansion(ui) {
     if (connection) connection.textContent = ui.cloud.status;
   };
   ui.action = async (action, data = {}) => {
-    if(action==='course-collection'){
-      if(ui.mode==='mini'&&['0','1'].includes(data.id))ui.miniCoursePage=Number(data.id);
-      ui.render();return;
-    }
     if(action==='club-welcome-done'){ui.closeModal();ui.navigate('club-pass');return;}
     try {
       if (ui.launching) return;

@@ -9,6 +9,7 @@ import { buildPirateShip } from './pirate-effects.js';
 import { coastWaterLevel } from './golf-courses.js';
 import { treeModel } from './tree-detail.js';
 import { treeSilhouette } from './tree-silhouettes.js';
+import { mountainSurface } from './mountain-ranges.js';
 
 // Places the Blender-authored course kit (assets/source/build_course_kit.py) around each
 // full-golf hole. Everything here is visual only: collisions, terrain and replays use
@@ -365,10 +366,23 @@ export function courseAssets(w, h) {
   cartPath(w, h, ground);
   }
 
-  for (const [key, places] of groups) {
+  // Nothing is half-buried in a mountainside: props on the lower slopes sit on
+  // the visible mountain, and anything hidden inside it is not drawn at all.
+  const mountain = h.course?.eventTheme || h.meadowcrestRange ? null : mountainSurface(h, w.settings?.graphics);
+  for (const [key, all] of groups) {
     const name = key.split(':')[0];
     const geo = geometryFor(name);
     if (!geo) continue;
+    const tall = kit[name]?.height ?? 3;
+    const places = mountain ? all.filter((p) => {
+      if (p.fixedY != null) return true;
+      const base = ground(p.x, p.z), slope = mountain(p.x, p.z);
+      if (slope <= base + 0.15) return true;
+      if (slope - base > tall * p.scale * 0.5) return false;
+      p.fixedY = slope - 0.15;
+      return true;
+    }) : all;
+    if (!places.length) continue;
     const mesh = new THREE.InstancedMesh(geo, material, places.length);
     if(name.startsWith('halloween-'))mesh.userData.halloween=true;
     mesh.castShadow = !name.endsWith("-low") && !name.endsWith('-far') && !["lily-pads", "mushrooms", "rake", "alpine-massif", "alpine-ridge", "coastal-headland", "gull"].includes(name);
