@@ -1,7 +1,8 @@
 import { SALTWIND_EXTRA, AUTUMN_EXTRA } from './long-course-layouts.js';
 import { populateForest } from "./forest.js";
 import { samplePath } from "./courses.js";
-import { EVENT_COURSES, eventLayout, courseRotationKey } from './rotating-courses.js';
+import { EVENT_COURSES, MONTHLY_COURSES, eventLayout, courseRotationKey } from './rotating-courses.js';
+import { VOID_HEIGHT } from './sky-isles.js';
 // All distances are metres. Layouts are shared by the renderer and score verifier.
 export const GOLF_COURSES = [
   {
@@ -54,6 +55,7 @@ GOLF_COURSES.push(...EVENT_COURSES);
 GOLF_COURSES.push({...GOLF_COURSES[0], id:"willow-long", name:"Willow Park · Long Course", subtitle:"Nine holes across the full parkland collection.", tag:"THE LONG ROUND", layoutCourse:0, holeCount:9});
 GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine coastal adventures: smugglers, TNT and harbour lights.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
 GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine alpine adventures through granite, golden larches and mischief.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
+GOLF_COURSES.push(...MONTHLY_COURSES);
 export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");
@@ -470,7 +472,7 @@ export function buildGolfLayout(courseIndex, index, layout, scenery = true) {
     moving: [],
     samples: points.map(([x, z], i) => ({ x, z, t: i / 4 })),
   };
-  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure"])
+  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure", "islands", "falls", "decor"])
     if (layout[key] !== undefined) h[key] = structuredClone(layout[key]);
   h.route = samplePath(points, 64).map((p) => [p.x, p.z]);
   h.trees = [];
@@ -572,6 +574,18 @@ export function ovalBoundary(p, a, scale = 1) {
     c = Math.cos(p.angle || 0), s = Math.sin(p.angle || 0);
   return { x: p.x + x * c - z * s, z: p.z + x * s + z * c };
 }
+// Floating isles: each island is a gently domed plateau with a rounded lip.
+export function islandAt(h, x, z) {
+  let best = null, d = Infinity;
+  for (const p of h.islands) { const e = ellipse(p, x, z); if (e < d) { d = e; best = p; } }
+  return d < 1 ? best : null;
+}
+function islandLift(h, x, z) {
+  let best = h.islands[0], d = Infinity;
+  for (const p of h.islands) { const e = ellipse(p, x, z); if (e < d) { d = e; best = p; } }
+  const r = Math.sqrt(d), u = clamp((r - 0.9) / 0.1, 0, 1);
+  return best.y + 1.2 * (1 - Math.min(1, d)) - 0.75 * u * u * (3 - 2 * u) - Math.max(0, r - 1) * 30;
+}
 function baseHeight(h, x, z) {
   let height = (
     (Math.sin(x * 0.014 + h.seed * 0.3) * 1.8 + Math.sin(z * 0.018) * 2.1 + Math.sin((x + z) * 0.008) * 2.5) *
@@ -588,6 +602,7 @@ function baseHeight(h, x, z) {
     const d = ((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2;
     if (d < 1) height += rise * (1 - d) ** 3;
   }
+  if (h.islands) height += islandLift(h, x, z);
   // Only the final hole opens onto the lake beyond its right-hand playing bounds.
   if (h.backdrop === "lake" && x > 130) {
     const shore = 145 + Math.sin(z * 0.013 + 1.3) * 11 + Math.cos(z * 0.023) * 4,
@@ -623,6 +638,7 @@ export function terrainHeight(h, x, z) {
   return y;
 }
 export function terrainAt(h, x, z) {
+  if (h.islands && !islandAt(h, x, z)) return { height: VOID_HEIGHT, normal: { x: 0, y: 1, z: 0 }, surface: "rough", hazard: "void" };
   if ((h.layoutCourse ?? h.courseIndex) === 1) {
     const coast=coastSurface(h,x,z);
     if(coast)return coast;
@@ -634,7 +650,7 @@ export function terrainAt(h, x, z) {
   if (h.bunkers.some((p) => ellipse(p, x, z) < 1)) surface = "sand";
   const hazard = h.water.some((p) => ellipse(p, x, z) < 1)
     ? "water"
-    : Math.abs(x) > 150 || z > 65 || z < -h.length - 80
+    : h.islands ? null : Math.abs(x) > 150 || z > 65 || z < -h.length - 80
       ? "bounds"
       : null;
   const pond = h.water.find((p) => ellipse(p, x, z) < 1),

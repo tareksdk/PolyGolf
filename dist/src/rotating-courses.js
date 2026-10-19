@@ -1,4 +1,5 @@
 import { halloweenActive, HALLOWEEN_END } from './season.js';
+import { SKY_ISLES, skyIsleLayout } from './sky-isles.js';
 
 const DAY = 86400000, EPOCH = Date.UTC(2026, 9, 12);
 export const EVENT_THEMES = [
@@ -14,6 +15,10 @@ export const EVENT_COURSES = [
   ...EVENT_THEMES.map(t=>({...base(t),id:'weekly-'+t.id,slot:'weekly',holeCount:3})),
   ...EVENT_THEMES.map(t=>({...base(t),id:'daily-'+t.id,name:t.name+' Sprint',slot:'daily',holeCount:1})),
 ];
+// Appended after the nine-hole collections (index 17) so existing course indices never move.
+export const MONTHLY_COURSE_INDEX=17;
+export const MONTHLY_COURSES=[{...base(SKY_ISLES),eventTheme:'isles',tag:'MAP OF THE MONTH'}];
+const monthStart=(now,offset=0)=>{const d=new Date(Number(now));return Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+offset,1);};
 const mod=(a,b)=>((a%b)+b)%b;
 export function rotationSlots(now=Date.now()) {
   const day=Math.floor((Number(now)-EPOCH)/DAY),week=Math.floor(day/7);
@@ -22,18 +27,20 @@ export function rotationSlots(now=Date.now()) {
 }
 export function courseRotationKey(index,now=Date.now()) {
   const s=rotationSlots(now);
+  if(index===MONTHLY_COURSE_INDEX){const d=new Date(Number(now));return 'month-'+d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');}
   return index>=14?'':index===3?'halloween-2026':index>=9?'day-'+s.day:index>=4?'week-'+s.week:'';
 }
 export function courseAvailable(index,now=Date.now()) {
   const s=rotationSlots(now);
-  return Number.isInteger(index)&&index>=0&&(index<3||(index>=14&&index<=16)||[s.seasonal,s.weekly,s.daily].includes(index));
+  return Number.isInteger(index)&&index>=0&&(index<3||(index>=14&&index<=MONTHLY_COURSE_INDEX)||[s.seasonal,s.weekly,s.daily].includes(index));
 }
 export function featuredCourses(now=Date.now()) {
   const s=rotationSlots(now);
-  return [{index:s.seasonal,label:'Seasonal course',ends:s.seasonalEnds},{index:s.weekly,label:'Map of the week',ends:s.weeklyEnds},{index:s.daily,label:'Hole of the day',ends:s.dailyEnds},...[14,15,16].map(index=>({index,label:'Nine-hole collection'}))].filter(x=>x.index!==null);
+  return [{index:s.seasonal,label:'Seasonal course',ends:s.seasonalEnds},{index:s.weekly,label:'Map of the week',ends:s.weeklyEnds},{index:s.daily,label:'Hole of the day',ends:s.dailyEnds},{index:MONTHLY_COURSE_INDEX,label:'Map of the month',ends:monthStart(now,1)},...[14,15,16].map(index=>({index,label:'Nine-hole collection'}))].filter(x=>x.index!==null);
 }
 // Stable layouts: the date selects a course, never changes an in-progress replay.
 export function eventLayout(course,index) {
+  if(course.eventTheme==='isles')return skyIsleLayout(index);
   const theme=course.eventTheme,variation=['halloween',...EVENT_THEMES.map(t=>t.id)].indexOf(theme),daily=course.slot==='daily';
   const par=daily?3:[4,3,5][index],length=par===3?152+variation*7:par===4?315+variation*9:458+variation*8;
   const side=variation%2?-1:1,bend=par===3?10:34+variation*3;

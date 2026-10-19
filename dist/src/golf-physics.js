@@ -158,7 +158,21 @@ export class GolfPhysics {
       b.vz *= factor;
       b.x += b.vx * dt;
       b.z += b.vz * dt;
-      b.y = terrainAt(this.hole, b.x, b.z).height + GOLF_RADIUS;
+      const ahead = terrainAt(this.hole, b.x, b.z);
+      // Rolling off a floating isle: the ball drops under gravity instead of snapping down.
+      if (ahead.hazard === "void") this.airborne = true;
+      else b.y = ahead.height + GOLF_RADIUS;
+    }
+    if (this.airborne && this.hole.islands) {
+      const now = terrainAt(this.hole, b.x, b.z);
+      // A low ball from the open sky strikes the island's rock face and drops away.
+      if (!now.hazard && b.y < now.height - 0.35 && terrainAt(this.hole, old.x, old.z).hazard === "void") {
+        b.x = old.x;
+        b.z = old.z;
+        b.vx *= -0.25;
+        b.vz *= -0.25;
+        this.events.push("bounce");
+      }
     }
     stepEncounter(this,old,b);
     for (const tree of nearbyTrees(this.hole, b.x, b.z)) {
