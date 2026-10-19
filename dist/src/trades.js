@@ -1,6 +1,7 @@
 import { ITEM_BY_ID, DEFAULT_EQUIPMENT } from './catalog.js';
 import { validSeed } from './finishes.js';
 import { LEVEL_REWARDS } from './equipment.js';
+import { itemCount, addItem, removeItem, MAX_STACK } from './item-stacks.js';
 
 const sources = new Set(['daily','weekly','permanent','pack','bundle']);
 // These older shop items are also permanently restored by level progression.
@@ -11,7 +12,8 @@ export function tradeInventory(state) {
   return [...new Set(state.owned || [])].flatMap(id => {
     const item = ITEM_BY_ID[id];
     if (!tradeable(item)) return [];
-    return item.finish ? (state.patterns?.[id] || []).filter(validSeed).map(seed=>({id,seed})) : [{id}];
+    const entries = item.finish ? (state.patterns?.[id] || []).filter(validSeed).map(seed=>({id,seed})) : [{id}];
+    return entries.map(e => { const quantity = itemCount(state,e); return quantity > 1 ? {...e,quantity} : e; });
   });
 }
 export const MAX_TRADE_COINS = 1_000_000_000;
@@ -23,14 +25,15 @@ export function validateCoins(coins, state) {
 export function validateOffer(entries, state, coins = 0) {
   validateCoins(coins, state);
   if (!Array.isArray(entries) || entries.length > 5 || (!entries.length && !coins)) throw Error('Choose up to five items or add coins on each side.');
-  const owned = new Set(tradeInventory(state).map(tradeKey)), keys = new Set();
+  const keys = new Set();
   return entries.map(entry => {
     if (!entry || typeof entry.id !== 'string') throw Error('Invalid trade item.');
     const item = ITEM_BY_ID[entry.id], clean = item?.finish ? {id:entry.id,seed:entry.seed} : {id:entry.id};
     if (!tradeable(item) || (item.finish && !validSeed(entry.seed)) || (!item.finish && entry.seed !== undefined)) throw Error('This item cannot be traded.');
     const key = tradeKey(clean);
-    if (!owned.has(key) || keys.has(key)) throw Error('A selected item is no longer available.');
-    keys.add(key); return clean;
+    const quantity = entry.quantity ?? 1;
+    if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > MAX_STACK || quantity > itemCount(state,clean) || keys.has(key)) throw Error('A selected item is no longer available in that quantity.');
+    keys.add(key); return quantity > 1 ? {...clean,quantity} : clean;
   }).sort((a,b)=>tradeKey(a).localeCompare(tradeKey(b)));
 }
 export function exchangeItems(sender, receiver, offered, requested, offeredCoins = 0, requestedCoins = 0) {
@@ -41,34 +44,9 @@ export function exchangeItems(sender, receiver, offered, requested, offeredCoins
   b.coins = (b.coins || 0) - requestedCoins + offeredCoins;
   if (!Number.isSafeInteger(a.coins) || !Number.isSafeInteger(b.coins)) throw Error('This exchange would exceed the coin balance limit.');
   if (give.some(x=>take.some(y=>tradeKey(x)===tradeKey(y)))) throw Error('Choose different items for each side.');
-  function remove(s, entries) {
-    for (const e of entries) {
-      const item = ITEM_BY_ID[e.id];
-      if (item.finish) {
-        s.patterns[e.id] = s.patterns[e.id].filter(seed=>seed!==e.seed);
-        if (s.equipment.patterns?.[e.id] === e.seed) {
-          if (s.patterns[e.id].length) s.equipment.patterns[e.id] = s.patterns[e.id][0];
-          else delete s.equipment.patterns[e.id];
-        }
-        if (s.patterns[e.id].length) continue;
-        delete s.patterns[e.id];
-      }
-      s.owned = s.owned.filter(id=>id!==e.id);
-      if (s.equipment[item.category] === e.id) s.equipment[item.category] = DEFAULT_EQUIPMENT[item.category];
-    }
-  }
-  function add(s, entries) {
-    for (const e of entries) {
-      const item = ITEM_BY_ID[e.id];
-      if (item.finish) {
-        s.patterns ??= {}; s.patterns[e.id] ??= [];
-        if (s.patterns[e.id].includes(e.seed)) throw Error('A golfer already owns this exact pattern.');
-        s.patterns[e.id].push(e.seed);
-        s.equipment.patterns ??= {}; s.equipment.patterns[e.id] ??= e.seed;
-      } else if (s.owned.includes(e.id)) throw Error('A golfer already owns one of the offered items.');
-      if (!s.owned.includes(e.id)) s.owned.push(e.id);
-    }
-  }
-  remove(a,give); remove(b,take); add(a,take); add(b,give);
+  for (const e of give) removeItem(a,e,e.quantity||1);
+  for (const e of take) removeItem(b,e,e.quantity||1);
+  for (const e of take) addItem(a,e,e.quantity||1);
+  for (const e of give) addItem(b,e,e.quantity||1);
   return {sender:a,receiver:b};
 }

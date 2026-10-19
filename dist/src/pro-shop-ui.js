@@ -205,7 +205,7 @@ function revealBatch(ui, stage, pack, items, result) {
   box.hidden = false;
   box.innerHTML = `<h2>${items.length} lockers opened</h2><div class="batch-rewards">${items.map((item,i) => {
     const r = result.items[i];
-    return `<article class="batch-reward" style="--rarity:${RARITY[item.rarity]}"><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><span class="rarity-chip">${item.rarity}</span><h3>${esc(item.name)}</h3>${item.finish ? `<p>Pattern ${String(r.seed).padStart(3,'0')}${item.finish==='case-hardened'?' · '+patternLabel(r.seed):''}</p>` : ''}<small>${r.duplicate ? r.refund ? `${r.refund.toLocaleString()} coins refunded` : 'Already owned' : 'Added to your caddie'}</small></article>`;
+    return `<article class="batch-reward" style="--rarity:${RARITY[item.rarity]}"><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><span class="rarity-chip">${item.rarity}</span><h3>${esc(item.name)}</h3>${item.finish ? `<p>Pattern ${String(r.seed).padStart(3,'0')}${item.finish==='case-hardened'?' · '+patternLabel(r.seed):''}</p>` : ''}<small>${r.duplicate ? r.refund ? `${r.refund.toLocaleString()} coins refunded` : `Added to stack · ×${r.quantity || 1}` : 'Added to your caddie'}</small></article>`;
   }).join('')}</div><p>${result.cost.toLocaleString()} coins spent${result.refund ? ' · '+result.refund.toLocaleString()+' refunded' : ''}</p><div class="modal-actions">${button('Open '+items.length+' again','open-locker',`data-id="${pack.id}" data-count="${items.length}" ${again?'':'disabled'}`,'button secondary')}${button('Done','crate-close','','button yellow')}</div>`;
   ui.audio.play(items.some(i => ['Legendary','Black Market'].includes(i.rarity)) ? 'level' : 'reward');
   box.querySelector('button:not(:disabled)')?.focus();
@@ -224,7 +224,7 @@ function reveal(ui, stage, pack, item, result) {
   stage.querySelector(".crate-hero").hidden = true;
   stage.querySelector("footer").hidden = true;
   box.hidden = false;
-  box.innerHTML = `<div class="reveal-burst" aria-hidden="true">${high ? Array.from({ length: 18 }, (_, i) => `<i style="--a:${i * 20}deg;--d:${(i % 3) * 0.08}s"></i>`).join("") : ""}</div><div class="reveal-art"><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"></div><span class="rarity-chip" style="--rarity:${RARITY[item.rarity]}">${item.rarity} · ${category}</span><h2>${esc(item.name)}</h2><p>${result.duplicate ? `Already in your caddie${result.refund ? ` · ${coins(result.refund)} refunded` : ""}` : "Added to your caddie"}</p><div class="modal-actions">${!result.duplicate && ["ball", "club", "driver", "trail", "hole", "emote", "nameplate"].includes(item.category) ? button("Equip now", "crate-equip", `data-id="${item.id}"`, "button yellow") : ""}${button(again ? "Open another" : "Need more tokens", "open-locker", `data-id="${pack.id}" ${again ? "" : "disabled"}`, "button secondary")}${button("Done", "crate-close", "", "button secondary")}</div>`;
+  box.innerHTML = `<div class="reveal-burst" aria-hidden="true">${high ? Array.from({ length: 18 }, (_, i) => `<i style="--a:${i * 20}deg;--d:${(i % 3) * 0.08}s"></i>`).join("") : ""}</div><div class="reveal-art"><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"></div><span class="rarity-chip" style="--rarity:${RARITY[item.rarity]}">${item.rarity} · ${category}</span><h2>${esc(item.name)}</h2><p>${result.duplicate ? `Added to stack · ×${result.quantity || 1}${result.refund ? ` · ${coins(result.refund)} refunded` : ""}` : "Added to your caddie"}</p><div class="modal-actions">${!result.duplicate && ["ball", "club", "driver", "trail", "hole", "emote", "nameplate"].includes(item.category) ? button("Equip now", "crate-equip", `data-id="${item.id}"`, "button yellow") : ""}${button(again ? "Open another" : "Need more tokens", "open-locker", `data-id="${pack.id}" ${again ? "" : "disabled"}`, "button secondary")}${button("Done", "crate-close", "", "button secondary")}</div>`;
   ui.audio.play(high ? "level" : "reward");
   if (item.finish) {
     const description=document.createElement('p');
@@ -240,9 +240,23 @@ function reveal(ui, stage, pack, item, result) {
 export async function proShopAction(ui, name, data) {
   listen(ui);
   if (name === 'locker-quantity') {
+    const catalog = ui.modalRoot.querySelector('.crate-content');
+    const state = catalog && { top: catalog.scrollTop, query: catalog.querySelector('#locker-search')?.value, rarity: catalog.querySelector('#locker-rarity')?.value };
+    const returnFocus = ui.lastFocus;
     ui.lockerCount = Number(data.count);
     ui.render();
-    if (data.id) ui.modal(lockerDetail(ui, data.id), {wide:true});
+    if (data.id) {
+      ui.modal(lockerDetail(ui, data.id), {wide:true});
+      if (state) {
+        const search = ui.modalRoot.querySelector('#locker-search');
+        search.value = state.query;
+        ui.modalRoot.querySelector('#locker-rarity').value = state.rarity;
+        search.dispatchEvent(new Event('input'));
+        ui.modalRoot.querySelector('.crate-content').scrollTop = state.top;
+        ui.lastFocus = returnFocus;
+        queueMicrotask(() => ui.modalRoot.querySelector(`[data-action="locker-quantity"][data-count="${ui.lockerCount}"]`)?.focus({preventScroll:true}));
+      }
+    }
     return true;
   }
   if (name === "shop-shelf") {

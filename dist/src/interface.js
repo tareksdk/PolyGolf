@@ -1,3 +1,5 @@
+import { installAuctions } from './auction-ui.js';
+import { installTradeUps } from './trade-up-ui.js';
 import { button } from './views.js';
 import { installTrading } from './trading-ui.js';
 import { installActivity } from './online-activity.js';
@@ -12,6 +14,10 @@ export function controlsDialog() {
   return `<section class="controls-guide"><span class="menu-kicker">ON THE COURSE</span><h2>Make your shot.</h2><p>Choose your Shot meter in Club &amp; shot. <b>Classic:</b> hold and release to lock power, then click again to lock direction. <b>Flow:</b> the direction marker sweeps first; press to lock it, keep holding for power, then release to swing. Space works the same way.</p><div class="controls-meters"><div><strong>Power</strong><div class="demo-power"><i></i></div><small>More green, more distance. The meter bounces at both ends.</small></div><div><strong>Direction</strong><div class="accuracy-track demo-accuracy"><span></span><i></i></div><small>Centre is straight. Left or right adds a slight miss in that direction.</small></div></div><div class="controls-keys">${keys.map(([key,label])=>`<div><kbd>${key}</kbd><span>${label}</span></div>`).join('')}</div><div class="controls-notes"><p><b>Golf</b> The full shot path shows flight, bounce and roll to the landing marker. Choose Direction only in Settings for a shorter guide. Your caddie picks a club after each shot; shape and spin add draw, fade and backspin.</p><p><b>Mini golf</b> Bank off the walls and read the surfaces. Sand slows the ball; ice carries it farther. Water costs one stroke.</p></div>${button('Back to the game','close-modal','','button yellow wide')}</section>`;
 }
 export function installInterface(ui) {
+  // Trading supplies its own page renderer; keep it inside the shared header layout.
+  installTrading(ui);
+  installAuctions(ui);
+  installTradeUps(ui);
   const render = ui.render.bind(ui), action = ui.action.bind(ui);
   const sizeHeader=()=>{const top=ui.root.querySelector('.topbar');if(top)ui.root.style.setProperty('--header-height',Math.ceil(top.getBoundingClientRect().height)+'px');};
   const headerObserver=new ResizeObserver(sizeHeader);
@@ -21,6 +27,12 @@ export function installInterface(ui) {
     ui.root.dataset.screen = ui.screen;
     ui.world.caddieViewport = ui.root.querySelector('.caddie-stage');
     headerObserver.disconnect();const top=ui.root.querySelector('.topbar');if(top)headerObserver.observe(top);sizeHeader();
+    const nav=top?.querySelector('.nav'),active=nav?.querySelector('[aria-current="page"]');
+    if(nav&&active){
+      const bar=nav.getBoundingClientRect(),tab=active.getBoundingClientRect();
+      if(tab.right>bar.right)nav.scrollLeft+=tab.right-bar.right+8;
+      else if(tab.left<bar.left)nav.scrollLeft-=bar.left-tab.left+8;
+    }
   };
   ui.action = async (name, data) => {
     if (name === 'toggle-shot-panel') { ui.shotPanelCollapsed = !ui.shotPanelCollapsed; ui.render(); return; }
@@ -45,7 +57,6 @@ export function installInterface(ui) {
     }
     return action(name, data);
   };
-  installTrading(ui);
   installActivity(ui);
   installTheme(ui);
   installEmotes(ui);

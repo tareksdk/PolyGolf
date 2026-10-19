@@ -1,3 +1,6 @@
+import { buildPondWater } from './pond-water.js';
+import { buildSkyIslands } from './sky-islands.js';
+import { buildDarby } from './darby.js';
 import { buildLongCourseScenery } from './course-adventure-render.js';
 import { eventScenery } from './event-scenery.js';
 import { buildMeadowcrestRange } from './meadowcrest-range.js';
@@ -37,7 +40,7 @@ export function batchScenery(world) {
     if (!o.isMesh || o.isInstancedMesh) return;
     let p = o;
     while (p && p !== world.group) {
-      if (!p.visible || p.userData.halloween || p.userData.courseDynamic || moving.has(p)) return;
+      if (!p.visible || p.userData.halloween || p.userData.dynamic || p.userData.courseDynamic || moving.has(p)) return;
       p = p.parent;
     }
     const key = o.geometry.uuid + o.material.uuid;
@@ -101,6 +104,7 @@ export function buildGolf(world, h) {
   world.sun.shadow.camera.updateProjectionMatrix();
   // One heightfield owns every land surface. Colours describe the cut of grass;
   // no overlapping fairway/green/sand meshes can z-fight or swallow the ball.
+  if(h.islands){buildSkyIslands(world,h);}else{
   const nx = h.courseIndex>=15 ? (world.settings?.graphics === "low" ? 110 : 160) : world.settings?.graphics === "low" ? 140 : 210,
     nz = Math.ceil((h.length + 220) / (h.courseIndex>=15 ? (world.settings?.graphics === "low" ? 3.4 : 2.6) : world.settings?.graphics === "low" ? 2.8 : 2)),
     width = 420,
@@ -156,28 +160,12 @@ export function buildGolf(world, h) {
       ? y(a) * (1 - u - v) + y(a + 1) * u + y(a + nx + 1) * v
       : y(a + 1) * (1 - v) + y(a + nx + 1) * (1 - u) + y(a + nx + 2) * (u + v - 1);
   };
-  for (const p of h.water) {
-    const water = new THREE.Mesh(
-      new THREE.CircleGeometry(1, 96),
-      world.mat(c.water, { roughness: 0.3, metalness: 0.08, side: THREE.DoubleSide }),
-    );
-    water.rotation.x = -Math.PI / 2;
-    water.scale.set(p.rx, p.rz, 1);
-    water.position.set(p.x, waterLevel(h, p), p.z);
-    world.group.add(water);
-    for (let i = 0; i < 3; i++) {
-      const ripple = new THREE.Mesh(
-        new THREE.RingGeometry(0.985, 1, 64),
-        world.mat("#96c9ce", { side: THREE.DoubleSide, transparent: true, opacity: 0.28, depthWrite: false }),
-      );
-      ripple.rotation.x = -Math.PI / 2;
-      ripple.position.set(p.x, waterLevel(h, p) + 0.012 + i * 0.002, p.z);
-      ripple.scale.set(p.rx * (0.35 + i * 0.16), p.rz * (0.35 + i * 0.16), 1);
-      world.group.add(ripple);
-    }
+  for (const p of h.water) buildPondWater(world,h,p);
   }
-  if(c.eventTheme) eventScenery(world,h);
+  if(h.islands)courseAssets(world,h);
+  else if(c.eventTheme) eventScenery(world,h);
   else { courseAssets(world,h); if(h.meadowcrestRange)buildMeadowcrestRange(world);else {buildBackdrop(world,h); buildCourseVignettes(world,h);} }
+  buildDarby(world,h);
   const cup = h.cup,
     y = world.surfaceHeight(cup.x, cup.z);
   if(!h.meadowcrestRange){

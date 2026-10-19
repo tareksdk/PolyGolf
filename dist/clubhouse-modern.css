@@ -1,0 +1,526 @@
+/* PolyGolf 1.3: the clubhouse catalog, course browser and player exchanges. */
+:root {
+  --club-bg: #102d2a;
+  --club-panel: #193e35;
+  --club-raised: #214d40;
+  --club-line: #86aa922e;
+  --club-ink: #f5f3e6;
+  --club-muted: #b9cbbd;
+  --club-gold: #e9cc78;
+}
+html[data-theme=light] {
+  --club-bg: #edf0e6;
+  --club-panel: #fffdf4;
+  --club-raised: #e0e8d8;
+  --club-line: #81977c66;
+  --club-ink: #214335;
+  --club-muted: #536d5c;
+  --club-gold: #775b16;
+}
+.clubhouse-menu {
+  --page-gutter: clamp(16px, 3vw, 48px);
+  background: var(--club-bg);
+  color: var(--club-ink);
+}
+.clubhouse-menu .panel-backdrop { background: var(--club-bg); }
+.clubhouse-menu .topbar {
+  position: relative;
+  inset: auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px 24px;
+  width: 100%;
+  height: auto;
+  padding: 16px var(--page-gutter) 0;
+  background: var(--club-bg);
+  border-bottom: 1px solid var(--club-line);
+  align-items: center;
+}
+.clubhouse-menu .topbar .logo { padding: 0; gap: 8px; }
+.clubhouse-menu .topbar .logo svg { width: 26px; height: 32px; }
+.clubhouse-menu .topbar .wordmark { font-size: 25px; letter-spacing: -.8px; }
+.clubhouse-menu .topbar .wordmark small { font-size: 11px; color: var(--club-muted); letter-spacing: 0; margin-left: 5px; }
+.clubhouse-menu .topbar .player-bar { grid-column: 3; grid-row: 1; gap: 12px; margin: 0; }
+.clubhouse-menu .topbar .wallet { display: block; background: transparent; padding: 0; border: 0; font-size: 13px; }
+.clubhouse-menu .topbar .player-button { padding: 0; gap: 9px; border: 0; background: transparent; }
+.clubhouse-menu .topbar .player-button strong { color: var(--club-ink); font-size: 13px; }
+.clubhouse-menu .topbar .player-button small { font-size: 10px; color: var(--club-muted); }
+.clubhouse-menu .topbar .avatar { width: 32px; height: 32px; border-radius: 8px; font-size: 15px; }
+.clubhouse-menu .topbar .header-settings { width: 34px; height: 34px; background: var(--club-raised); border-radius: 8px; }
+.clubhouse-menu .topbar .nav {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  order: initial;
+  display: flex !important;
+  width: 100%;
+  padding: 0;
+  gap: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow-x: auto;
+  justify-content: flex-start;
+}
+.clubhouse-menu .topbar .nav button {
+  padding: 12px 15px 15px;
+  min-height: 44px;
+  font-size: 12px;
+  color: var(--club-muted);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.clubhouse-menu .topbar .nav button.active {
+  background: transparent !important;
+  color: var(--club-ink) !important;
+  border-radius: 0;
+  box-shadow: inset 0 -3px var(--club-gold) !important;
+}
+.clubhouse-menu .topbar .nav button:hover:not(.active) { box-shadow: none; background: var(--club-raised); }
+.clubhouse-menu :is(.button,.chip,.category-tab,.arcade-button) {
+  border-radius: 7px;
+  box-shadow: none;
+  border: 1px solid var(--club-line);
+  min-height: 40px;
+  transition: background .15s, border-color .15s;
+}
+.clubhouse-menu :is(.button,.chip,.category-tab,.arcade-button):hover { transform: none; border-color: var(--club-gold); }
+.clubhouse-menu :is(.button.yellow,.arcade-primary) { background: #e9cc78; color: #183b2e; border-color: #e9cc78; }
+.clubhouse-menu :is(.button.secondary,.chip,.category-tab) { background: var(--club-raised); color: var(--club-ink); }
+.clubhouse-menu :is(.chip.active,.category-tab.active) { background: #e9cc78; color: #183b2e; border-color: #e9cc78; }
+.clubhouse-menu :is(h1,h2,h3) { color: var(--club-ink); }
+.clubhouse-menu :is(input,select) { border-radius: 7px; }
+.clubhouse-menu :is(button,input,select,a):focus-visible,
+.scrolling-locker :is(button,input,select,[tabindex]):focus-visible { outline: 2px solid var(--club-gold); outline-offset: 3px; }
+.clubhouse-menu .page {
+  position: absolute;
+  inset: var(--header-height, 112px) 0 0 !important;
+  overflow: auto;
+  padding: 28px var(--page-gutter) 40px;
+  scrollbar-gutter: stable;
+}
+.clubhouse-menu .page > * { max-width: 1480px; }
+.clubhouse-menu .page-heading { margin-bottom: 28px; gap: 16px; }
+.clubhouse-menu .page-heading h1 { font-size: clamp(27px, 3vw, 38px); letter-spacing: -1.2px; }
+.clubhouse-menu .page-heading p { color: var(--club-muted); margin: 8px 0 0; }
+.clubhouse-menu .eyebrow { color: var(--club-gold); font-size: 10px; letter-spacing: .14em; }
+.clubhouse-menu .shop-wallet { background: transparent; border: 0; padding: 0; }
+.clubhouse-menu .shop-wallet .money { font-size: 22px; }
+.clubhouse-menu .shop-wallet small { color: var(--club-muted); font-size: 9px; margin-top: 4px; }
+
+/* A narrow shop rail keeps the catalog close to its navigation. */
+.shop-layout { display: grid; grid-template-columns: 182px minmax(0,1fr); gap: 30px; align-items: start; }
+.clubhouse-menu .shop-toolbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  margin: 0;
+  padding: 0 20px 0 0;
+  border: 0;
+  border-right: 1px solid var(--club-line);
+}
+.clubhouse-menu .shop-tabs { display: flex; flex-direction: column; gap: 4px; border: 0; overflow: visible; margin: 0; }
+.clubhouse-menu .shop-tabs .shop-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  min-height: 44px;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 7px;
+  text-align: left;
+  font-size: 12px;
+  color: var(--club-muted);
+}
+.clubhouse-menu .shop-tabs .shop-tab.active { background: var(--club-raised); color: var(--club-ink); box-shadow: inset 3px 0 var(--club-gold); }
+.clubhouse-menu .shop-tabs .shop-tab::after { display: none; }
+.clubhouse-menu .shop-toolbar > .text-button { font-size: 12px; padding: 10px; justify-content: flex-start; }
+.shelf-heading { margin: 0 0 18px; }
+.shelf-heading h2 { margin: 6px 0 0; font-size: 26px; letter-spacing: -.6px; }
+.clubhouse-menu .shop-shelf { min-width: 0; overflow: visible; }
+.clubhouse-menu .shelf-caption { margin: 0 0 18px; font-size: 12px; line-height: 1.65; color: var(--club-muted); }
+.clubhouse-menu .locker-quantity { background: var(--club-panel); border: 1px solid var(--club-line); border-radius: 9px; padding: 13px 16px; margin: 0 0 20px; gap: 16px; }
+.locker-quantity strong { font-size: 13px; }
+.locker-quantity span { font-size: 11px; color: var(--club-muted); }
+.locker-quantity [role=group] { display: flex; flex-wrap: wrap; gap: 5px; }
+.clubhouse-menu .locker-quantity .chip { min-width: 36px; min-height: 36px; padding: 7px; font-size: 12px; border-radius: 5px; }
+.clubhouse-menu .crate-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.clubhouse-menu :is(.crate-card,.pg-card,.bundle-card,.shop-hero,.promo-card) { background: var(--club-panel); border: 1px solid var(--club-line); border-radius: 10px; box-shadow: none; overflow: hidden; }
+.clubhouse-menu .crate-card:hover { transform: none; border-color: var(--club-gold); box-shadow: none; }
+.clubhouse-menu .crate-art { aspect-ratio: 1.65; width: 100%; overflow: hidden; padding: 0; }
+.clubhouse-menu .crate-art img { width: 100%; height: 100%; object-fit: cover; }
+.clubhouse-menu .crate-body { padding: 16px; gap: 0; }
+.clubhouse-menu .crate-body h3 { font-size: 21px; margin: 8px 0; }
+.clubhouse-menu .crate-body > p { font-size: 12px; line-height: 1.5; min-height: 36px; margin: 0 0 14px; }
+.clubhouse-menu .crate-best { margin: 9px 0 16px; font-size: 10px; }
+.clubhouse-menu .crate-best .rarity-chip { font-size: 8px; padding: 3px 7px; letter-spacing: .04em; vertical-align: middle; }
+.clubhouse-menu .crate-foot { border-top: 1px solid var(--club-line); padding-top: 14px; gap: 12px; }
+.clubhouse-menu .crate-foot .money { font-size: 14px; }
+.clubhouse-menu .crate-foot .row { width: 100%; display: flex; gap: 6px; }
+.clubhouse-menu .crate-foot .button { min-height: 38px; padding: 9px 10px; flex: 1; font-size: 11px; white-space: normal; }
+.clubhouse-menu .pg-new { border-radius: 5px; top: 12px; left: 12px; padding: 5px 8px; font-size: 9px; }
+.clubhouse-menu .shop-featured { grid-template-columns: minmax(0,2fr) minmax(0,1fr); gap: 16px; }
+.clubhouse-menu .shop-hero .hero-copy { padding: 24px; background: var(--club-panel); }
+.clubhouse-menu .shop-hero .hero-art { background: var(--club-panel); }
+.clubhouse-menu .shop-hero h2 { font-size: clamp(24px,2.6vw,38px); }
+.clubhouse-menu .promo-card > div { background: var(--club-panel); padding: 18px; }
+.clubhouse-menu .shop-rail { margin-top: 28px; }
+.clubhouse-menu .rail-head { margin-bottom: 14px; }
+.clubhouse-menu .rail-head h2 { font-size: 20px; }
+.clubhouse-menu .pg-card :is(.pg-body,.pg-foot) { background: var(--club-panel); color: var(--club-ink); }
+.clubhouse-menu .pg-card :is(h3,.money) { color: var(--club-ink); }
+.clubhouse-menu .pg-card :is(.pg-meta,.pg-category) { color: var(--club-muted); }
+.clubhouse-menu .shop-filters { gap: 14px; }
+.clubhouse-menu .bundle-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+/* One flex child scrolls. The opening controls never join the scrolled content. */
+:is(#modal-root,#modal-exit) .modal.scrolling-locker {
+  width: min(1030px,calc(100vw - 32px));
+  height: min(860px,calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--club-line);
+  border-radius: 14px;
+  background: var(--club-bg);
+  color: var(--club-ink);
+}
+.scrolling-locker .crate-detail { height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.scrolling-locker .locker-dialog-title { display: flex; justify-content: space-between; gap: 14px; flex: none; padding: 20px 60px 18px 26px; border-bottom: 1px solid var(--club-line); font-size: 11px; color: var(--club-muted); }
+.scrolling-locker .locker-dialog-title .eyebrow { color: var(--club-gold); font-size: 10px; letter-spacing: .12em; }
+.scrolling-locker .modal-close { top: 11px; right: 12px; min-height: 36px; width: 36px; height: 36px; border-radius: 7px; }
+.scrolling-locker .crate-content { flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 24px 26px; scrollbar-width: auto; scrollbar-color: #76937c var(--club-bg); scrollbar-gutter: stable; }
+.scrolling-locker .crate-detail-head { grid-template-columns: 32% minmax(0,1fr); gap: 26px; padding: 0; margin: 0 0 26px; }
+.scrolling-locker .crate-detail-head > img { max-height: 175px; border-radius: 10px; object-fit: contain; }
+.scrolling-locker .crate-detail-head h2 { margin: 6px 0 10px; font-size: clamp(26px,3.3vw,42px); line-height: 1.1; }
+:is(#modal-root,#modal-exit) .scrolling-locker :is(h2,h3) { color: var(--club-ink); }
+.scrolling-locker .crate-detail-head p { margin: 0 0 12px; font-size: 13px; }
+.scrolling-locker .crate-detail-head .small-note { font-size: 11px; margin: 0; }
+.locker-catalog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.locker-catalog-heading h3 { margin: 0; font-size: 19px; }
+.locker-result-count { font-size: 11px; color: var(--club-muted); }
+.locker-catalog-tools { display: flex; gap: 10px; margin: 0 0 20px; }
+.locker-catalog-tools label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; margin: 0; }
+.locker-catalog-tools label > svg { width: 18px; height: 18px; color: var(--club-muted); flex: none; }
+.locker-catalog-tools input { width: 100%; min-width: 0; }
+.locker-catalog-tools :is(input,select) { height: 42px; padding: 10px; font-size: 12px; border-radius: 7px; }
+.locker-catalog-tools select { width: 180px; }
+.scrolling-locker .odds-group { border-color: var(--club-line); margin: 0 0 18px; padding: 16px 0 0; }
+.scrolling-locker .odds-group header { flex-wrap: wrap; margin-bottom: 14px; }
+.scrolling-locker .odds-group header strong { font-size: 15px; color: var(--club-ink); }
+.scrolling-locker .odds-group header small { margin-left: auto; font-size: 11px; color: var(--club-muted); }
+.scrolling-locker .odds-items { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 10px; overflow: visible; max-height: none; }
+:is(#modal-root,#modal-exit) .scrolling-locker .odds-item { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--club-line); border-radius: 7px; background: var(--club-panel); color: var(--club-ink); padding: 0 0 10px; font-size: 11px; line-height: 1.4; }
+.scrolling-locker .odds-item img { width: 100%; height: auto; aspect-ratio: 1.3; object-fit: contain; margin-bottom: 8px; }
+.scrolling-locker .odds-item span { overflow-wrap: anywhere; }
+.scrolling-locker .odds-item:hover { border-color: var(--rarity); }
+.scrolling-locker .locker-rules { padding: 16px 0 0; border-top: 1px solid var(--club-line); font-size: 12px; }
+.locker-rules summary { cursor: pointer; color: var(--club-gold); padding: 5px 0; }
+.locker-rules p { font-size: 12px; line-height: 1.7; }
+.scrolling-locker .locker-opening-bar { flex: none; padding: 14px 26px 18px; background: var(--club-panel); border-top: 1px solid var(--club-line); }
+.scrolling-locker .locker-quantity { display: flex; justify-content: space-between; flex-wrap: wrap; margin: 0 0 12px; padding: 0; border: 0; background: transparent; gap: 8px; }
+.scrolling-locker .locker-quantity strong { font-size: 12px; }
+.scrolling-locker .locker-quantity span { display: block; font-size: 10px; margin-top: 2px; }
+.scrolling-locker .locker-quantity [role=group] { gap: 4px; }
+.scrolling-locker .locker-quantity .chip { width: 32px; height: 32px; min-height: 32px; padding: 5px; font-size: 11px; }
+.scrolling-locker .crate-detail-actions {
+  position: static !important;
+  margin: 0 !important;
+  padding: 12px 0 0 !important;
+  min-height: 0;
+  border: 0;
+  border-top: 1px solid var(--club-line);
+  background: transparent !important;
+  justify-content: space-between;
+  gap: 20px;
+  backdrop-filter: none;
+}
+.scrolling-locker .crate-detail-actions > .button { flex: 0 1 260px; min-height: 44px; font-size: 14px; border-radius: 7px; }
+.locker-total small { color: var(--club-muted); font-size: 10px; display: block; margin-bottom: 4px; }
+.locker-total > div { display: flex; gap: 10px; align-items: center; }
+.scrolling-locker .locker-total .money { font-size: 19px; color: var(--club-ink) !important; }
+.scrolling-locker [hidden] { display: none !important; }
+.crate-stage.revealed { overflow-y: auto; overscroll-behavior: contain; }
+.crate-stage.revealed .crate-shell { max-height: calc(100dvh - 36px); overflow: auto; padding: 12px; scrollbar-width: thin; }
+.crate-stage.revealed .crate-reveal { min-height: 0; }
+.crate-stage :is(h2,h3) { font-family: Outfit,"DM Sans",sans-serif; }
+.crate-stage .batch-reward { border-radius: 8px; }
+
+/* Courses use the course art, with more room for the choice itself. */
+.clubhouse-menu[data-screen=courses] { overflow: hidden; }
+.clubhouse-menu .course-menu { position: absolute; display: block; inset: var(--header-height,112px) 0 0; min-height: 0; height: auto; overflow-y: auto; padding: 28px var(--page-gutter) 36px; background: var(--club-bg); }
+.clubhouse-menu .course-menu .arcade-page-header { display: block; max-width: 1480px; margin: 0 auto; padding: 0; border: 0; height: auto; background: transparent; }
+.course-page-title { text-align: left; width: 100%; }
+.clubhouse-menu .course-menu .arcade-page-header h1 { font-size: clamp(28px,3vw,38px); letter-spacing: -1.2px; line-height: 1.15; margin: 8px 0; }
+.course-page-title p { color: var(--club-muted); font-size: 13px; margin: 0; }
+.clubhouse-menu .course-menu .arcade-page-content { display: block; max-width: 1480px; margin: 22px auto 0; padding: 0; }
+.course-menu .course-sections { display: flex; flex-direction: column; gap: 32px; }
+.course-menu .course-section { display: block; }
+.clubhouse-menu .course-menu .arcade-courses { grid-template-rows: none; grid-auto-rows: auto; gap: 18px; }
+.course-menu .arcade-switch { margin-bottom: 26px; gap: 6px; }
+.course-menu .arcade-switch > button { min-height: 42px; border-radius: 7px; font-size: 12px; }
+.course-menu .arcade-switch button[aria-pressed=true], .course-menu .more-course-tabs button[aria-pressed=true] { background: #e9cc78; color: #183b2e; border-color: #e9cc78; }
+.course-menu .course-section-heading h2 { font-size: 21px; }
+.clubhouse-menu .course-menu .arcade-course { display: flex; flex-direction: column; border: 1px solid var(--club-line); border-radius: 10px; box-shadow: none; background: var(--club-panel); transition: border-color .15s; }
+.course-menu .arcade-course:hover { border-color: var(--club-gold); transform: none; }
+.course-menu .arcade-course > img { height: clamp(140px,18vw,245px); aspect-ratio: 1.8; }
+.course-menu .arcade-course-copy { padding: 20px; }
+.course-menu .arcade-course h3, .course-menu .arcade-course h2 { font-size: 25px; margin: 10px 0; }
+.course-menu .arcade-course p { display: block; margin-bottom: 20px; }
+.course-menu .arcade-course-record { display: flex; margin: 0 0 14px; }
+.course-menu .arcade-course-copy > .arcade-button { position: static; width: 100%; min-height: 42px; border-radius: 6px; font-size: 13px; }
+.course-menu .arcade-course-copy > .arcade-button svg { display: block; }
+.course-section-featured { border-color: var(--club-line); }
+.course-section-featured .arcade-course > img { height: 100%; }
+.course-menu .arcade-course-footer { border-color: var(--club-line); gap: 20px; margin-top: 28px; }
+.course-menu .arcade-course-footer small { display: block; font-size: 11px; }
+
+/* The preview and collection each have their own space; cards never get paged away. */
+.clubhouse-menu .garage-page { inset: var(--header-height,112px) 0 0; grid-template-columns: minmax(210px,28%) minmax(0,1fr); gap: 28px; padding: 24px var(--page-gutter); }
+.clubhouse-menu .garage-preview { position: relative; display: flex; flex-direction: column; overflow: hidden; height: 100% !important; margin: 0; }
+.caddie-preview-label { flex: none; padding: 18px; background: var(--club-bg); border-radius: 10px; }
+.caddie-preview-label h1 { font-size: 30px; line-height: 1.15; letter-spacing: -.8px; margin: 10px 0; }
+.caddie-preview-label p { font-size: 12px; color: var(--club-muted); line-height: 1.5; }
+.clubhouse-menu .garage-preview .caddie-stage { flex: 1; min-height: 0 !important; height: auto !important; }
+.clubhouse-menu .garage-inventory { position: relative; background: var(--club-panel); border: 1px solid var(--club-line); border-radius: 12px; padding: 20px; gap: 0; }
+.clubhouse-menu .garage-inventory > .garage-equipped { margin: 0 0 16px; padding: 0 0 16px; border-color: var(--club-line); flex: none; }
+.clubhouse-menu .garage-equipped h2 { font-size: 23px; margin: 7px 0; }
+.clubhouse-menu .garage-equipped p { margin: 0; color: var(--club-muted); }
+.garage-inventory .caddie-setup-label { font-size: 10px; color: var(--club-gold); }
+.garage-inventory .caddie-setup-actions .button { font-size: 11px; min-height: 38px; padding: 9px 11px; white-space: nowrap; }
+.clubhouse-menu .garage-collection-header h2 { font-size: 21px !important; }
+.garage-collection-header h2 span { font-size: 11px !important; color: var(--club-muted); margin-left: 8px; }
+.clubhouse-menu .garage-inventory > .category-tabs { display: flex !important; flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin: 14px 0 4px; padding-bottom: 5px; scrollbar-width: thin; }
+.garage-inventory .category-tab { flex: none; white-space: nowrap; min-height: 38px; padding: 8px 11px; font-size: 11px; }
+.garage-inventory .category-tab svg { width: 15px; height: 15px; }
+.garage-inventory .caddie-toolbar { flex: none; margin: 10px 0 16px; gap: 8px; }
+.garage-inventory .caddie-search { max-width: none; background: var(--club-bg); border-color: var(--club-line); border-radius: 7px; }
+.garage-inventory .caddie-filter-toggle { min-height: 40px; font-size: 11px; }
+.garage-inventory .caddie-filters { top: 200px; right: 18px; left: auto; width: min(480px,calc(100% - 36px)); max-height: calc(100% - 220px); overflow: auto; background: var(--club-bg); border: 1px solid var(--club-line); border-radius: 9px; z-index: 5; }
+.clubhouse-menu .garage-inventory .garage-items { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: none; grid-auto-rows: max-content; align-content: start; gap: 14px; overflow-y: auto; overflow-x: hidden; padding: 3px 8px 12px 3px; scrollbar-width: thin; scrollbar-color: #76937c var(--club-panel); }
+.garage-items .pg-card { display: flex; flex-direction: column; content-visibility: visible; contain-intrinsic-size: none; border-radius: 8px; }
+.garage-items .pg-art { flex: none; width: 100%; height: auto; min-height: 0; max-height: none; aspect-ratio: 1.55; }
+.garage-items .pg-body { padding: 12px; }
+.garage-items .pg-body h3 { font-size: 15px; line-height: 1.3; min-height: 20px; margin: 8px 0; }
+.garage-items .pg-meta { font-size: 9px; }
+.garage-items .pg-foot .button { min-height: 36px; padding: 8px 10px; font-size: 11px; }
+.clubhouse-menu .garage-inventory > .garage-bottom { padding: 12px 0 0; margin-top: 8px; border-color: var(--club-line); }
+
+/* Offers have a real inbox, clear states and concise exchange instructions. */
+.trading-layout { display: grid; grid-template-columns: 285px minmax(0,1fr); gap: 40px; }
+.trade-guide { border-right: 1px solid var(--club-line); padding-right: 30px; }
+.trade-guide h2 { font-size: 28px; line-height: 1.16; margin: 14px 0 28px; }
+.trade-guide ol { counter-reset: exchange; list-style: none; margin: 0; padding: 0; }
+.trade-guide li { counter-increment: exchange; position: relative; padding: 0 0 26px 34px; }
+.trade-guide li::before { content: counter(exchange,decimal-leading-zero); position: absolute; left: 0; top: 1px; color: var(--club-gold); font-size: 11px; font-weight: 700; }
+.trade-guide li strong { display: block; font-size: 13px; }
+.trade-guide li span,.trade-guide > p { display: block; font-size: 12px; color: var(--club-muted); line-height: 1.7; margin: 6px 0 0; }
+.trade-guide > p { border-top: 1px solid var(--club-line); padding-top: 20px; }
+.trade-inbox { min-width: 0; }
+.trade-inbox > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.trade-inbox > header h2 { margin: 7px 0 0; font-size: 25px; }
+.trade-tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+.trade-inbox .trade-empty { min-height: 330px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px; text-align: center; border: 1px dashed var(--club-line); border-radius: 12px; background: var(--club-panel); }
+.trade-inbox .trade-empty > svg { width: 34px; height: 34px; color: var(--club-gold); margin-bottom: 22px; }
+.trade-inbox .trade-empty h2 { font-size: 25px; max-width: 380px; margin: 12px 0; }
+.trade-inbox .trade-empty p { color: var(--club-muted); max-width: 390px; font-size: 13px; line-height: 1.7; margin: 0 0 24px; }
+.trade-error { border: 1px solid #d79772; padding: 18px; margin-bottom: 18px; border-radius: 8px; }
+.trade-error p { color: var(--club-muted); }
+.trade-loading { padding: 50px 20px; color: var(--club-muted); text-align: center; }
+.clubhouse-menu .trade-offer { background: var(--club-panel); border-color: var(--club-line); border-radius: 10px; }
+.clubhouse-menu .trade-list { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+
+/* Ten tiers per section, in visible rows rather than a clipped horizontal rail. */
+.clubhouse-menu .pass-page .pass-summary { background: var(--club-panel); color: var(--club-ink); border: 1px solid var(--club-line); border-radius: 12px; padding: 26px 30px; gap: 40px; }
+.clubhouse-menu .pass-page .pass-summary :is(h2,.eyebrow) { color: var(--club-ink); }
+.clubhouse-menu .pass-page .pass-summary h2 { font-size: 42px; margin: 12px 0; }
+.clubhouse-menu .pass-page .pass-summary h2 small { font-size: 20px; color: var(--club-muted); }
+.clubhouse-menu .pass-page .pass-summary p { color: var(--club-muted); font-size: 12px; line-height: 1.6; }
+.pass-summary > div:first-child { flex: 1; }
+.pass-progress { height: 6px; width: min(430px,100%); border-radius: 3px; overflow: hidden; background: var(--club-bg); margin: 0 0 12px; }
+.pass-progress i { display: block; height: 100%; background: #e9cc78; }
+.clubhouse-menu .pass-navigation { margin: 24px 0 18px; }
+.clubhouse-menu .pass-navigation > span { color: var(--club-muted); font-size: 12px; }
+.clubhouse-menu .pass-track { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); align-items: stretch; gap: 14px; overflow: visible; padding: 0; }
+.clubhouse-menu .pass-column { background: var(--club-panel); color: var(--club-ink); border: 1px solid var(--club-line); border-radius: 10px; min-width: 0; }
+.clubhouse-menu .pass-column.available { border-color: #e9cc7880; }
+.clubhouse-menu .pass-column > header { background: var(--club-raised); padding: 14px; color: var(--club-ink); align-items: flex-end; }
+.pass-column > header strong { display: flex; flex-direction: column; gap: 4px; font-size: 30px; line-height: 1; }
+.pass-column > header strong, .pass-column > header strong small { font-family: inherit; }
+.pass-column > header strong small { font-size: 8px; letter-spacing: .14em; color: var(--club-muted); }
+.clubhouse-menu .pass-column > header span { font-size: 9px; color: var(--club-muted); }
+.clubhouse-menu .pass-free { padding: 16px 14px; }
+.clubhouse-menu .pass-free .money { font-size: 18px; }
+.clubhouse-menu .pass-free small { font-size: 10px; color: var(--club-muted); }
+.clubhouse-menu .pass-premium { padding: 14px; background: transparent; border-top: 1px solid var(--club-line); }
+.clubhouse-menu .track-label { font-size: 8px; color: var(--club-gold); letter-spacing: .08em; }
+.clubhouse-menu .tier-item { flex-direction: column; padding: 0; border: 0; background: transparent; color: var(--club-ink); border-radius: 6px; overflow: hidden; }
+.clubhouse-menu .pass-page .pass-premium .tier-item img { width: 100%; height: auto; aspect-ratio: 1.4; object-fit: contain; border-radius: 5px; }
+.tier-item span { font-size: 11px; line-height: 1.4; padding: 8px 0; }
+.pass-premium > small { font-size: 9px; color: var(--club-muted); }
+.clubhouse-menu .pass-column > .button { min-height: 40px; border-radius: 0; border-width: 1px 0 0; }
+.clubhouse-menu .member-collection { margin-top: 38px; }
+.clubhouse-menu .member-collection-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.clubhouse-menu .member-collection-grid > article { border: 1px solid var(--club-line); border-radius: 10px; background: var(--club-panel); overflow: hidden; }
+
+@media (max-width: 1150px) {
+  .shop-layout { grid-template-columns: 155px minmax(0,1fr); gap: 20px; }
+  .clubhouse-menu .crate-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .clubhouse-menu .shop-featured { grid-template-columns: 1fr; }
+  .clubhouse-menu .promo-card { display: grid; grid-template-columns: 28% 1fr; }
+  .clubhouse-menu .promo-card > img { width: 100%; height: 100%; max-height: 180px; object-fit: cover; }
+  .clubhouse-menu .garage-page { grid-template-columns: 24% minmax(0,1fr); gap: 20px; }
+  .clubhouse-menu .garage-inventory { padding: 16px; }
+  .clubhouse-menu .garage-inventory .garage-items { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .trading-layout { grid-template-columns: 230px minmax(0,1fr); gap: 25px; }
+  .clubhouse-menu .trade-list { grid-template-columns: 1fr; }
+  .clubhouse-menu .pass-track { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 760px) {
+  .clubhouse-menu .topbar { padding: 12px 16px 0; gap: 10px; grid-template-columns: 1fr auto; }
+  .clubhouse-menu .topbar .player-bar { grid-column: 2; gap: 9px; }
+  .clubhouse-menu .topbar .player-button > div { display: none; }
+  .clubhouse-menu .topbar .wordmark { font-size: 22px; }
+  .clubhouse-menu .topbar .wallet { font-size: 11px; }
+  .clubhouse-menu .topbar .nav { gap: 3px; }
+  .clubhouse-menu .topbar .nav button { padding: 12px 11px 14px; font-size: 11px; }
+  .clubhouse-menu .page { padding: 22px 16px 30px; }
+  .clubhouse-menu .page-heading { align-items: flex-start; margin-bottom: 22px; }
+  .clubhouse-menu .page-heading p { font-size: 12px; }
+  .clubhouse-menu .shop-wallet { display: none; }
+  .shop-layout { display: flex; flex-direction: column; gap: 22px; }
+  .clubhouse-menu .shop-toolbar { position: static; width: 100%; border: 0; padding: 0; gap: 10px; }
+  .clubhouse-menu .shop-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
+  .clubhouse-menu .shop-tabs .shop-tab { padding: 10px 8px; min-height: 42px; font-size: 10px; background: var(--club-panel); justify-content: center; text-align: center; }
+  .clubhouse-menu .shop-tabs .shop-tab.active { background: #e9cc78; color: #183b2e; box-shadow: none; }
+  .clubhouse-menu .shop-toolbar > .text-button { align-self: flex-end; padding: 3px; }
+  .clubhouse-menu .shop-shelf { width: 100%; }
+  .clubhouse-menu .crate-grid { gap: 12px; }
+  .clubhouse-menu .crate-body { padding: 13px; }
+  .clubhouse-menu .crate-body h3 { font-size: 18px; }
+  .clubhouse-menu .crate-foot .row { flex-wrap: wrap; }
+  .clubhouse-menu .crate-foot .button { flex: 1 0 100%; }
+  .clubhouse-menu .bundle-grid { grid-template-columns: 1fr; }
+  .clubhouse-menu .garage-page { grid-template-columns: minmax(0,1fr); grid-template-rows: 140px minmax(0,1fr); gap: 12px; padding: 14px 16px; }
+  .clubhouse-menu .garage-preview { flex-direction: row; min-height: 0 !important; }
+  .caddie-preview-label { width: 48%; align-self: center; }
+  .caddie-preview-label h1 { font-size: 24px; }
+  .caddie-preview-label p { display: none; }
+  .clubhouse-menu .garage-preview .caddie-stage { width: 52%; height: 100% !important; }
+  .clubhouse-menu .garage-inventory { padding: 14px; }
+  .clubhouse-menu .garage-inventory > .garage-equipped { margin-bottom: 12px; padding-bottom: 12px; }
+  .garage-inventory .caddie-setup-label,.garage-inventory .caddie-setup-copy > p { display: none; }
+  .clubhouse-menu .garage-equipped h2 { font-size: 18px; }
+  .garage-inventory .caddie-setup-actions .button { font-size: 10px; padding: 7px 8px; min-height: 36px; }
+  .clubhouse-menu .garage-collection-header h2 { font-size: 18px !important; }
+  .garage-collection-header h2 span { font-size: 10px !important; margin-left: 4px; }
+  .garage-inventory .caddie-toolbar { margin: 8px 0 12px; }
+  .garage-inventory .caddie-search { min-width: 100px; }
+  .garage-inventory #caddie-result-count { display: none; }
+  .clubhouse-menu .garage-inventory .garage-items { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .garage-items .pg-body { padding: 10px; }
+  .garage-items .pg-body h3 { font-size: 13px; }
+  .clubhouse-menu .course-menu { padding: 22px 16px 30px; }
+  .clubhouse-menu .course-menu .arcade-courses,.course-section-featured .arcade-courses { grid-template-columns: 1fr; }
+  .course-menu .arcade-course > img { height: auto; aspect-ratio: 2; }
+  .course-section-featured .arcade-course { display: flex; }
+  .course-section-featured .arcade-course > img { height: auto; aspect-ratio: 2; }
+  .course-menu .arcade-course-copy { padding: 18px; }
+  .course-section-heading { flex-wrap: wrap; margin-bottom: 14px; gap: 10px; }
+  .course-section-heading > span { font-size: 11px; }
+  .course-menu .arcade-switch { flex-wrap: wrap; }
+  .course-menu .more-course-tabs .arcade-button { min-height: 40px; padding: 8px 10px; font-size: 11px; }
+  .course-menu-note { margin-left: 0; font-size: 11px; }
+  .course-page-title p { line-height: 1.6; }
+  .trading-layout { display: flex; flex-direction: column-reverse; gap: 30px; }
+  .trade-guide { border-right: 0; border-top: 1px solid var(--club-line); padding: 24px 0 0; }
+  .trade-guide h2 { font-size: 25px; }
+  .trade-inbox .trade-empty { min-height: 300px; padding: 26px 20px; }
+  .trade-inbox .trade-empty h2 { font-size: 23px; }
+  .clubhouse-menu .pass-page .pass-summary { flex-direction: column; align-items: stretch; padding: 22px; gap: 20px; }
+  .clubhouse-menu .pass-page .pass-summary > div { width: 100%; }
+  .clubhouse-menu .pass-page .pass-summary h2 { font-size: 38px; }
+  .clubhouse-menu .pass-navigation { flex-wrap: wrap; gap: 12px; }
+  .clubhouse-menu .pass-navigation .button { min-height: 40px; font-size: 11px; padding: 8px 12px; }
+  .clubhouse-menu .pass-track { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .clubhouse-menu .member-collection-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .scrolling-locker .crate-detail-head { grid-template-columns: 120px minmax(0,1fr); gap: 16px; }
+  .scrolling-locker .odds-items { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@media (max-width: 480px) {
+  .clubhouse-menu .topbar .header-settings { width: 30px; height: 30px; }
+  .clubhouse-menu .topbar .avatar { width: 28px; height: 28px; }
+  .clubhouse-menu .topbar .logo svg { width: 21px; }
+  .clubhouse-menu .topbar .wordmark { font-size: 20px; }
+  .clubhouse-menu .topbar .player-bar { gap: 7px; }
+  .clubhouse-menu .crate-grid { grid-template-columns: 1fr; }
+  .clubhouse-menu .crate-card { display: grid; grid-template-columns: 30% minmax(0,1fr); align-items: start; }
+  .clubhouse-menu .crate-art { height: 130px; aspect-ratio: auto; margin-top: 12px; }
+  .clubhouse-menu .crate-art img { object-fit: contain; }
+  .clubhouse-menu .crate-card .pg-new { top: 6px; left: 6px; }
+  .clubhouse-menu .crate-foot .row { flex-wrap: nowrap; }
+  .clubhouse-menu .crate-foot .button { flex: 1; font-size: 10px; }
+  .clubhouse-menu .crate-body > p { min-height: 0; }
+  .clubhouse-menu .crate-best { margin-bottom: 12px; }
+  .clubhouse-menu .garage-page { grid-template-rows: 105px minmax(0,1fr); gap: 8px; }
+  .caddie-preview-label h1 { font-size: 22px; }
+  .clubhouse-menu .garage-inventory { padding: 12px; }
+  .garage-inventory .caddie-setup-actions { gap: 5px; }
+  .garage-inventory .caddie-setup-actions .button { font-size: 9px; padding: 6px; }
+  .garage-inventory .garage-collection-header { flex-wrap: wrap; gap: 5px; }
+  .garage-inventory .collection-tools .text-button { font-size: 10px; }
+  .garage-inventory .caddie-toolbar .button { min-width: 44px; font-size: 10px; padding: 8px; }
+  .clubhouse-menu .garage-inventory .garage-items { gap: 8px; }
+  .garage-items .pg-body { padding: 9px; }
+  .garage-items .pg-foot { flex-wrap: wrap; }
+  .garage-items .pg-foot .button { flex: 1; min-height: 36px; }
+  .garage-inventory .caddie-filters { top: 180px; max-height: calc(100% - 195px); }
+  :is(#modal-root,#modal-exit) .modal.scrolling-locker { width: calc(100vw - 16px); height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); border-radius: 10px; }
+  .scrolling-locker .locker-dialog-title { padding: 18px 50px 16px 16px; font-size: 9px; }
+  .scrolling-locker .locker-dialog-title .eyebrow { font-size: 8px; letter-spacing: .08em; }
+  .scrolling-locker .crate-content { padding: 20px 14px; }
+  .scrolling-locker .crate-detail-head { grid-template-columns: 82px minmax(0,1fr); gap: 13px; margin-bottom: 24px; }
+  .scrolling-locker .crate-detail-head > img { max-height: 100px; }
+  .scrolling-locker .crate-detail-head h2 { font-size: 27px; }
+  .scrolling-locker .crate-detail-head p { font-size: 11px; }
+  .scrolling-locker .crate-detail-head .small-note { display: none; }
+  .locker-catalog-heading h3 { font-size: 17px; }
+  .locker-catalog-tools { flex-wrap: wrap; }
+  .locker-catalog-tools label { flex-basis: 100%; }
+  .locker-catalog-tools select { width: 100%; }
+  .scrolling-locker .odds-items { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+  .scrolling-locker .odds-item { font-size: 10px; }
+  .scrolling-locker .odds-group header { gap: 8px; }
+  .scrolling-locker .odds-group header small { flex-basis: 100%; font-size: 10px; }
+  .scrolling-locker .locker-opening-bar { padding: 12px 16px 16px; }
+  .scrolling-locker .locker-quantity { flex-wrap: nowrap; }
+  .scrolling-locker .locker-quantity > div:first-child { max-width: 100px; flex: none; }
+  .scrolling-locker .locker-quantity [role=group] { justify-content: flex-end; }
+  .scrolling-locker .locker-quantity .chip { width: 30px; height: 30px; min-height: 30px; }
+  .scrolling-locker .crate-detail-actions > .button { min-width: 0; flex: 0 1 190px; }
+  .scrolling-locker .locker-total .money { font-size: 17px; }
+}
+@media (max-height: 600px) and (min-width: 600px) {
+  .clubhouse-menu .topbar { padding-top: 8px; gap: 4px 16px; }
+  .clubhouse-menu .topbar .nav button { min-height: 36px; padding: 8px 12px 10px; }
+  .clubhouse-menu .garage-page { padding-block: 12px; }
+  .caddie-preview-label h1 { font-size: 24px; }
+  .clubhouse-menu .garage-inventory { padding: 12px; }
+  .clubhouse-menu .garage-inventory > .garage-equipped { margin-bottom: 7px; padding-bottom: 7px; }
+  .clubhouse-menu .garage-inventory .category-tabs { margin: 5px 0 0; }
+  .garage-inventory .caddie-toolbar { margin: 5px 0 8px; }
+  .scrolling-locker .locker-dialog-title { padding-block: 14px; }
+  .scrolling-locker .locker-opening-bar { padding: 10px 20px; }
+  .scrolling-locker .locker-quantity { margin-bottom: 8px; }
+  .scrolling-locker .crate-detail-actions { padding-top: 8px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clubhouse-menu *, .scrolling-locker * { scroll-behavior: auto !important; transition: none !important; }
+}
+
+.trade-inbox-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}

@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { itemCount } from '../dist/src/item-stacks.js';
 import assert from 'node:assert/strict';
 import { chargePower, chargeAccuracy, shotDirection } from '../dist/src/game.js';
 import { renderScale } from '../dist/src/render-quality.js';
@@ -49,10 +50,12 @@ test('trade exchanges exact patterns, resets removed equipment and preserves bal
   const final=exchangeItems(result.sender,result.receiver,[{id,seed:0}],[{id,seed:999}]);
   assert.deepEqual(final.sender.patterns[id],[999]);assert.deepEqual(final.receiver.patterns[id],[0]);
 });
-test('trades reject absent, duplicate, exclusive and already-owned items without mutating inventories',()=>{
+test('trades stack already-owned items and reject invalid or exclusive offers without mutation',()=>{
   const a=defaultSave(),b=defaultSave(),items=['ball-lava','ball-gold','ball-marble'].map(id=>ITEMS.find(i=>i.id===id));a.owned.push(items[0].id,items[1].id);b.owned.push(items[1].id);
   const original=structuredClone(a);
-  assert.throws(()=>exchangeItems(a,b,[{id:items[0].id}],[{id:items[1].id}]),/already owns/);
+  const stacked=exchangeItems(a,b,[{id:items[0].id}],[{id:items[1].id}]);
+  assert.equal(itemCount(stacked.sender,{id:items[1].id}),2);
+  assert.equal(itemCount(stacked.receiver,{id:items[0].id}),1);
   assert.throws(()=>validateOffer([{id:items[0].id},{id:items[0].id}],a),/available/);
   assert.throws(()=>validateOffer([{id:items[2].id}],a),/available/);
   assert.throws(()=>validateOffer([{id:items[0].id,seed:5}],a),/cannot be traded/);

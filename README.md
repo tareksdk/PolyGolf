@@ -1,12 +1,14 @@
-# Current update · v1.1
+# Current update · v1.3
 
-Separate nine-hole Saltwind Links and Autumn Pines rounds are in **Courses → More to play → Long rounds · 9 holes**. Classic three-hole rounds and their records remain intact. See [the update and verification report](LONG-COURSES-1.1-REPORT.md).
+The Shop, Courses, Caddie, Trading and Country Club share refreshed responsive layouts. Locker contents scroll through every reward, with search and rarity filters and a fixed opening bar. See [the release report](RELEASE-1.3-REPORT.md).
+
+Separate nine-hole Saltwind Links and Autumn Pines rounds remain in **Courses → More to play → Long rounds · 9 holes**. Classic three-hole rounds and their records remain intact.
 
 # PolyGolf
 
 A low-poly browser golf game by **Room310 × OneShotStudios**, playable at [polygolf.lol](https://polygolf.lol).
 
-Current release: **v1.0**. The Shop uses its original scrolling shelves and full-size cards. See [START-HERE.md](START-HERE.md) for the game-file archive and local launch instructions.
+Current release: **v1.3**. The Shop has desktop sidebar navigation, responsive shelves and searchable locker rewards. See [START-HERE.md](START-HERE.md) for the game-file archive and local launch instructions.
 
 Play the three-hole classics at Willow Park, Saltwind Links and Autumn Pines, the separate nine-hole Willow Park Long Course, or 45 mini-golf holes. Create and share courses, collect equipment, complete achievements, play friends and enter competitive matchmaking at level 15. Map editors unlock at level 10.
 

@@ -752,6 +752,7 @@ export class World {
       if (!this.swingTime || this.swingTime <= 0) this.club.visible = false;
     }
     for (const a of this.animations) {
+      if(a.type==="waterfall")a.mesh.position.y=a.base+Math.sin(this.clock*2+a.phase)*1.2;
       if (a.type === "rotor") a.mesh.rotation.z = this.clock * 0.4;
       if (a.type === "cloud") a.mesh.position.x = a.base + Math.sin(this.clock * 0.025 + a.phase) * 3;
       if (a.type === "water") a.mesh.scale.setScalar(1 + Math.sin(this.clock + a.phase) * 0.04);

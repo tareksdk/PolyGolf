@@ -82,9 +82,9 @@ function rail(ui, title, caption, items, shelf) {
 
 function lockerCard(ui, p) {
   const earned = ui.progress.data.lockers?.[p.id] || 0,
-    afford = earned || ui.progress.data.coins >= p.price,
-    best = lockerContents(p.id).flatMap((r) => r.items).sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0];
-  return `<article data-card class="crate-card" style="--crate:${p.color};--trim:${p.pattern};--gem:${p.gem}">${["forge", "workshop"].includes(p.id) ? '<span class="pg-new">New</span>' : ""}<button data-card-primary class="crate-art" data-action="locker-detail" data-id="${p.id}" aria-label="View ${esc(p.name)} contents"><img src="${lockerArt(ui, p)}" alt=""></button><div class="crate-body"><span class="eyebrow">${earned ? `${earned} earned · ready` : p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker exclusives"}</span><h3>${esc(p.name)}</h3><p>${esc(p.tagline)}</p>${oddsBar(p)}<div class="crate-best">${best ? `Top prize: <b style="color:${RARITY[best.rarity]}">${esc(best.name)}</b>` : ""}</div><div class="crate-foot">${openingPrice(ui, p)}<div class="row">${button("Contents", "locker-detail", `data-id="${p.id}"`, "button secondary")}${openingButton(ui, p)}</div></div></div></article>`;
+    rewards = lockerContents(p.id).flatMap((r) => r.items),
+    best = rewards.sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0];
+  return `<article data-card class="crate-card" style="--crate:${p.color};--trim:${p.pattern};--gem:${p.gem}">${earned ? `<span class="pg-new">${earned} earned</span>` : ["forge", "workshop"].includes(p.id) ? '<span class="pg-new">New</span>' : ""}<button data-card-primary class="crate-art" data-action="locker-detail" data-id="${p.id}" aria-label="View ${esc(p.name)} contents"><img src="${lockerArt(ui, p)}" alt="" loading="lazy"></button><div class="crate-body"><span class="eyebrow">${rewards.length} rewards · ${p.crate ? "Themed" : p.categories ? "Focused" : "Exclusives"}</span><h3>${esc(p.name)}</h3><p>${esc(p.tagline)}</p>${oddsBar(p)}<div class="crate-best">${best ? `Top rarity: <span class="rarity-chip" style="--rarity:${RARITY[best.rarity]}">${esc(best.rarity)}</span>` : ""}</div><div class="crate-foot">${openingPrice(ui, p)}<div class="row">${button("View rewards", "locker-detail", `data-id="${p.id}"`, "button secondary")}${openingButton(ui, p)}</div></div></div></article>`;
 }
 
 export function selectedLockerCount(ui) {
@@ -107,22 +107,21 @@ function openingButton(ui, pack) {
 export function lockerDetail(ui, id) {
   const p = LOCKERS.find((l) => l.id === id);
   if (!p) throw Error("This locker is unavailable.");
-  const earned = ui.progress.data.lockers?.[p.id] || 0,
-    owned = ui.progress.data.owned;
-  return `<div class="crate-detail" style="--crate:${p.color}"><div class="crate-detail-head"><img src="${lockerArt(ui, p)}" alt="${esc(p.name)}"><div><span class="eyebrow">${p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker"}</span><h2>${esc(p.name)}</h2><p>${esc(p.tagline)}</p>${oddsBar(p)}<p class="small-note">Rarity is drawn first, then every item in that rarity is equally likely. Different patterns are separate collectibles; only an identical item and pattern counts as a duplicate. Purchased duplicates refund 35%. Earned lockers cost no tokens. Lockers use earned tokens only.</p></div></div>${lockerQuantity(ui, p.id)}${lockerContents(p.id)
-    .reverse()
+  const owned = ui.progress.data.owned, groups = lockerContents(p.id).reverse();
+  const rewards = groups.flatMap(r => r.items), collected = rewards.filter(i => owned.includes(i.id)).length;
+  return `<div class="crate-detail" style="--crate:${p.color}"><div class="locker-dialog-title"><span class="eyebrow">LOCKER / REWARD CATALOG</span><span>${collected} / ${rewards.length} collected</span></div><div class="crate-content" tabindex="0" role="region" aria-label="Scrollable locker rewards"><div class="crate-detail-head"><img src="${lockerArt(ui, p)}" alt="${esc(p.name)}"><div><span class="eyebrow">${p.crate ? "Themed locker" : p.categories ? "Focused locker" : "Locker exclusives"}</span><h2>${esc(p.name)}</h2><p>${esc(p.tagline)}</p>${oddsBar(p)}<p class="small-note">One reward per opening. Every possible reward and its odds are listed below.</p></div></div><div class="locker-catalog-heading"><h3>Possible rewards</h3><span class="locker-result-count" role="status">${rewards.length} rewards</span></div><div class="locker-catalog-tools"><label>${icon('search')}<input id="locker-search" type="search" placeholder="Search rewards" aria-label="Search locker rewards" autocomplete="off"></label><select id="locker-rarity" aria-label="Filter locker rarity"><option value="all">All rarities</option>${groups.map(r=>`<option value="${esc(r.rarity)}">${esc(r.rarity)} · ${r.weight}%</option>`).join('')}</select></div><div class="locker-reward-groups">${groups
     .map(
       (r) =>
-        `<section class="odds-group"><header><span class="rarity-chip" style="--rarity:${RARITY[r.rarity]}">${r.rarity}</span><strong>${r.weight}%</strong><small>${r.items.length} item${r.items.length === 1 ? "" : "s"} · ${(r.each < 0.1 ? r.each.toFixed(3) : r.each.toFixed(2)).replace(/0+$/, "").replace(/\.$/, "")}% each</small></header><div class="odds-items">${r.items
+        `<section class="odds-group" data-rarity="${esc(r.rarity)}"><header><span class="rarity-chip" style="--rarity:${RARITY[r.rarity]}">${r.rarity}</span><strong>${r.weight}%</strong><small>${r.items.length} item${r.items.length === 1 ? "" : "s"} · ${(r.each < 0.1 ? r.each.toFixed(3) : r.each.toFixed(2)).replace(/0+$/, "").replace(/\.$/, "")}% each</small></header><div class="odds-items">${r.items
           .map(
             (i) =>
-              `<button class="odds-item ${owned.includes(i.id) ? "is-owned" : ""}" data-action="item-detail" data-id="${i.id}" style="--rarity:${RARITY[i.rarity]}"><img src="${ui.world.itemThumbnail(i)}" alt=""><span>${esc(i.name)}</span>${owned.includes(i.id) ? `<em>${icon("check")}</em>` : ""}</button>`,
+              `<button class="odds-item ${owned.includes(i.id) ? "is-owned" : ""}" data-action="item-detail" data-id="${i.id}" style="--rarity:${RARITY[i.rarity]}"><img src="${ui.world.itemThumbnail(i)}" alt="" loading="lazy"><span>${esc(i.name)}</span>${owned.includes(i.id) ? `<em aria-label="Collected">${icon("check")}</em>` : ""}</button>`,
           )
           .join("")}</div></section>`,
     )
     .join(
       "",
-    )}<div class="modal-actions crate-detail-actions">${openingPrice(ui, p)}${openingButton(ui, p)}</div></div>`;
+    )}</div><div class="locker-no-results empty-state" hidden><h3>No rewards match.</h3><p>Try a different name or rarity.</p><button type="button" class="button secondary locker-clear">Clear filters</button></div><details class="locker-rules"><summary>How the odds work</summary><p>Rarity is drawn first, then every item in that rarity is equally likely. Duplicates stack in your Caddie, including matching numbered patterns. Keep them, trade them, or combine ten of one rarity in a trade-up. Earned lockers open free. Lockers use earned coins only.</p></details></div><footer class="locker-opening-bar">${lockerQuantity(ui, p.id)}<div class="modal-actions crate-detail-actions"><div class="locker-total"><small>Opening total</small><div>${openingPrice(ui, p)}</div></div>${openingButton(ui, p)}</div></footer></div>`;
 }
 
 export function shopView(ui) {
@@ -131,7 +130,7 @@ export function shopView(ui) {
     shelf = ui.shopShelf || "featured",
     d = ui.progress.data,
     weekly = [...r.featured, ...r.weekly],
-    tabs = `<div class="shop-toolbar"><div class="shop-tabs" role="tablist" aria-label="Shop sections">${SHELVES.map(([id, name]) => button(name + (id === "lockers" && Object.values(d.lockers || {}).some(Boolean) ? '<i class="dot" aria-label="Earned lockers ready"></i>' : ""), "shop-shelf", `data-id="${id}" role="tab" aria-selected="${shelf === id}"`, "shop-tab " + (shelf === id ? "active" : ""))).join("")}</div>${button(icon("gift") + "Redeem code", "shop-code", "", "text-button")}</div>`;
+    tabs = `<div class="shop-toolbar"><div class="shop-tabs" role="tablist" aria-label="Shop sections">${SHELVES.map(([id, name]) => button(name + (id === "lockers" && Object.values(d.lockers || {}).some(Boolean) ? '<i class="dot" aria-label="Earned lockers ready"></i>' : ""), "shop-shelf", `data-id="${id}" role="tab" aria-selected="${shelf === id}"`, "shop-tab " + (shelf === id ? "active" : ""))).join("")}</div>${button("Auction house", "auctions", "", "text-button")}${button(icon("gift") + "Redeem code", "shop-code", "", "text-button")}</div>`;
   let content = "";
   if (shelf === "featured") {
     const heroItem = [...r.featured].sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0] || weekly[0],
@@ -167,7 +166,7 @@ export function shopView(ui) {
     ui,
     "Item shop",
     `Daily picks, weekly collections, and locker exclusives.`,
-    tabs + `<div class="shop-shelf ${ui.lastShopShelf !== shelf ? "shelf-enter" : ""}" data-shelf="${shelf}">${content}</div>`,
+    `<div class="shop-layout">${tabs}<div class="shop-shelf ${ui.lastShopShelf !== shelf ? "shelf-enter" : ""}" data-shelf="${shelf}"><header class="shelf-heading"><span class="eyebrow">THE PRO SHOP</span><h2>${SHELVES.find(([id])=>id===shelf)?.[1] || 'Featured'}</h2></header>${content}</div></div>`,
     `<div class="shop-wallet">${coins(d.coins)}<small>Your coins</small></div>`,
   ).replace('class="page"', 'class="page shop-page"');
 }

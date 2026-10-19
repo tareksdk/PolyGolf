@@ -1,3 +1,5 @@
+import { loadSkyDarbyAssets } from './sky-islands.js';
+import { installDarby } from './darby.js';
 import { installHoleEffects } from './hole-effects.js';
 import { readPreferences, savePreferences } from './device-settings.js';
 import { installOpeningUpdate } from './opening-update.js';
@@ -31,7 +33,7 @@ import { installShopExtras } from "./pro-shop-ui.js";
 import { installSharing } from "./map-share.js";
 let ui;
 try {
-  await Promise.all([loadCourseAssets(),loadAdventureAssets()]);
+  await Promise.all([loadCourseAssets(),loadAdventureAssets(),loadSkyDarbyAssets()]);
   const repository = new LocalSaveRepository(isLocalPreview() ? previewStorage() : undefined);
   const progress = new ProgressionManager(repository, (message, type) => {
     ui?.toast(message);
@@ -80,6 +82,7 @@ try {
   installLocalPreview(ui);
   installHonors(ui);
   installOpeningUpdate(ui);
+  installDarby(ui);
   installSmartHud(ui);
   ui.render();
   installInvites(ui);

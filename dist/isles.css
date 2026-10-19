@@ -1,0 +1,61 @@
+/* Collections and courses share one continuous scroll surface. */
+.clubhouse-menu[data-screen=courses]{height:100dvh;overflow-y:auto;overflow-x:hidden}
+.clubhouse-menu .course-menu{height:auto;min-height:calc(100dvh - 80px);display:block;overflow:visible;padding:8px 24px 28px;max-width:1380px;margin:auto}
+.course-menu .arcade-page-content{display:block;max-width:none;overflow:visible}
+.clubhouse-menu .course-menu .arcade-page-header{padding:8px 0;min-height:0}
+.course-menu .arcade-page-header h1{margin:0}
+.course-menu .course-section-heading h2{margin:0}
+.course-sections{display:flex;flex-direction:column;gap:24px;min-height:auto}
+.course-section{display:block;min-height:auto}
+.course-menu .course-section-heading{margin:12px 0;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap}
+.course-menu .course-section-heading h2{font-size:24px}
+.course-menu .course-section-heading>span{font-size:12px}
+.course-menu .arcade-courses,.course-menu .course-section-featured .arcade-courses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;gap:14px}
+.course-menu .arcade-course{display:flex;flex-direction:column;min-height:0;overflow:hidden;border-radius:10px}
+.course-menu .arcade-course>img{width:100%;height:auto;aspect-ratio:1.9;object-fit:cover}
+.course-menu .arcade-course-copy{display:flex;flex-direction:column;padding:14px;gap:8px;flex:1}
+.course-menu .arcade-course h3,.course-menu .arcade-course h2{font-size:22px}
+.course-menu .arcade-course p{display:block;font-size:12px;line-height:1.5;margin:0;color:var(--ui-muted)}
+.course-menu .arcade-course-record{display:flex;font-size:11px;margin-top:auto}
+.course-menu .arcade-course-copy>.arcade-button{position:static;width:auto;min-height:38px;font-size:13px;padding:8px 12px}
+.course-menu .course-card-meta{font-size:11px;flex-wrap:wrap}
+.course-menu .course-slot{font-size:10px;padding:4px 7px}
+.course-menu .monthly-course{grid-column:span 2;display:grid;grid-template-columns:1.15fr 1fr;border:1px solid #d7c48a;background:linear-gradient(125deg,#244b57,#254a39)}
+.course-menu .monthly-course>img{height:100%;min-height:180px;aspect-ratio:auto}
+.course-menu .course-section-featured{border-top:1px solid #a5b89b55;padding-top:8px}
+.course-menu .arcade-course-footer{margin-top:22px;gap:10px;flex-wrap:wrap}
+.course-menu .arcade-course-footer small{font-size:11px}
+.course-menu .arcade-course-footer button{font-size:12px;padding:8px 12px}
+.auction-tools,.auction-tools>nav,.auction-tools>div{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.auction-tools{justify-content:space-between;margin:20px 0}
+.auction-search{display:flex;align-items:center;gap:12px;max-width:600px;margin:18px 0}.auction-search input{flex:1;min-width:0;padding:12px}
+.auction-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.auction-card{border:1px solid var(--ui-border,#6b8f72);border-radius:12px;overflow:hidden;background:var(--ui-panel,#1d493a);color:var(--ui-text,#f5edd1)}
+.auction-card>img{display:block;width:100%;height:auto;aspect-ratio:1.7;object-fit:cover}.auction-card>div{padding:18px;display:flex;flex-direction:column;gap:10px}.auction-card h2{font-size:21px;line-height:1.2;margin:0}.auction-card p{font-size:12px;margin:0}.auction-prices{display:flex;justify-content:space-between;gap:10px}.auction-prices small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.auction-prices .money{font-size:18px}
+.auction-card footer{display:flex;gap:8px;flex-wrap:wrap}.auction-card footer button{flex:1;padding:10px;min-width:90px}.auction-inventory{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-height:300px;overflow:auto;margin:14px 0;padding:4px}
+.auction-pick{padding:0 0 10px;border:2px solid var(--ui-border,#78947b);border-radius:9px;overflow:hidden;background:var(--ui-panel,#1d493a);color:inherit}.auction-pick img{display:block;width:100%;height:auto}.auction-pick span{display:block;padding:7px;font-size:12px}.auction-pick[aria-pressed=true]{border-color:#f3d477;box-shadow:0 0 0 2px #d4af5880}
+.auction-form{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:18px 0}.auction-form label,.auction-compose>label,.auction-review>label{display:flex;flex-direction:column;gap:7px}.auction-form input,.auction-compose input,.auction-review input{padding:12px;width:100%;min-width:0}.auction-form fieldset{grid-column:1/-1;border:0;padding:0;display:flex;gap:8px}.auction-form legend{margin-bottom:8px}.auction-form [aria-pressed=true]{background:#e3c777;color:#193c31}.auction-review>img{width:180px;border-radius:12px;display:block;margin:0 auto 14px}
+.auction-card[hidden],.auction-pick[hidden]{display:none}
+.auction-card,.auction-pick{background:var(--ui-surface);color:var(--ui-text)}
+.auction-pick>span{color:var(--ui-text)}
+.course-menu .monthly-course,.course-menu .monthly-course h3,.course-menu .monthly-course p,.course-menu .monthly-course .arcade-course-record{color:#f4efd8}
+@media(max-height:600px){.auction-inventory{max-height:170px;grid-template-columns:repeat(4,minmax(0,1fr))}.auction-compose h2{font-size:24px;margin:4px 0}.auction-compose p{font-size:12px}.auction-form{margin:12px 0}.auction-pick img{max-height:110px;object-fit:contain;background:#d6e3db}}
+@media(max-width:1000px){.auction-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.auction-inventory{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.auction-grid{grid-template-columns:1fr}.auction-form{grid-template-columns:1fr}.auction-inventory{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1000px){
+ .course-menu .course-section-heading h2{font-size:20px}.course-menu .arcade-course h3{font-size:18px}
+ .course-menu .arcade-course-copy{padding:10px;gap:6px}.course-menu .arcade-course p{font-size:11px}
+}
+@media(max-width:600px){
+ .clubhouse-menu .course-menu{padding:8px 12px 24px}.course-menu .arcade-courses,.course-menu .course-section-featured .arcade-courses{grid-template-columns:1fr;gap:12px}
+ .course-menu .monthly-course{grid-column:auto;display:flex}.course-menu .monthly-course>img{aspect-ratio:1.9;min-height:0}
+ .course-menu .arcade-course h3{font-size:21px}.course-menu .arcade-course-copy{padding:14px}.course-menu .arcade-course p{font-size:13px}
+}
+
+.pg-stack{position:absolute;bottom:10px;right:10px;background:#173e31;color:#f4efd8;border:1px solid #9ebd8b;border-radius:7px;padding:5px 10px;font-size:15px;font-weight:800;box-shadow:0 2px 0 #102b23}
+.caddie-toolbar{flex-wrap:wrap}.trade-up h2{font-size:30px;margin:5px 0 12px}.trade-up p{font-size:14px}.trade-up-rarities{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}.trade-up-rarities .button{padding:8px 13px;font-size:13px;min-height:36px}
+.trade-up-workbench{display:grid;grid-template-columns:1fr 120px;gap:16px;padding:16px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;margin-bottom:14px}.trade-up-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.trade-up-slot{width:100px;padding:0 0 6px;border:1px solid var(--ui-border);background:var(--ui-surface);color:var(--ui-text);border-radius:8px;overflow:hidden}.trade-up-slot img{width:100%;height:65px;object-fit:cover}.trade-up-slot span{display:block;font-size:11px;padding:2px 5px}.trade-up-slot b{display:block;font-size:14px}.trade-up-slot small{display:block;font-size:10px;opacity:.7}
+.trade-up-result{display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--ui-border);color:var(--rarity)}.trade-up-result>span{font-size:42px}.trade-up-result small{font-size:11px;margin-top:5px;color:var(--ui-text)}
+.trade-up-inventory{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-height:260px;overflow:auto;padding:4px 4px 10px}.trade-up-pick{padding:0 0 8px;background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden}.trade-up-pick img{width:100%;height:auto;aspect-ratio:1.44;object-fit:cover}.trade-up-pick span,.trade-up-pick small{display:block;padding:3px 7px;font-size:12px}.trade-up-pick small{opacity:.75}.trade-up-pick:disabled{opacity:.45}.trade-up-pick[hidden]{display:none!important}
+.trade-up-odds{padding:12px 0;font-size:12px}.trade-up-odds>div{display:flex;gap:6px;flex-wrap:wrap}.trade-up-odds>div>span{padding:5px 8px;border:1px solid var(--ui-border);border-radius:5px}.trade-up-warning{border:1px solid #cfb261;border-radius:8px;padding:12px;background:#886d2820}.trade-up-reveal{text-align:center}.trade-up-reveal>img{display:block;width:260px;max-width:85%;margin:20px auto;border-radius:16px;box-shadow:0 0 45px color-mix(in srgb,var(--rarity),transparent 60%)}
+.scrolling-locker .crate-detail{padding-bottom:0}.scrolling-locker .crate-detail-actions{position:relative;inset:auto;margin:20px 0 0;padding:18px 0;background:var(--ui-surface);display:flex;gap:18px;flex-wrap:wrap}.scrolling-locker .odds-items{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.scrolling-locker .locker-quantity{flex-wrap:wrap}
+@media(max-height:600px){.trade-up h2{font-size:24px}.trade-up p{font-size:12px}.trade-up-inventory{max-height:180px}.trade-up-workbench{padding:10px}.trade-up-slot{width:80px}.trade-up-slot img{height:46px}}
+@media(max-width:600px){.trade-up-inventory{grid-template-columns:repeat(2,minmax(0,1fr))}.trade-up-workbench{grid-template-columns:1fr 90px}.scrolling-locker .odds-items{grid-template-columns:repeat(3,minmax(0,1fr))}}

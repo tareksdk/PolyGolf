@@ -5,7 +5,7 @@ import { getGolfHole, GOLF_COURSES } from "./golf-courses.js";
 import { getHole, COURSES } from "./courses.js";
 import { coursePreview } from "./landscape.js";
 import { halloweenActive } from './season.js';
-const PREVIEW_PREFIX = "polygolf.preview.v28."+(halloweenActive()?'october.':'standard.');
+const PREVIEW_PREFIX = "polygolf.preview.v29."+(halloweenActive()?'october.':'standard.');
 function prunePreviewCache() {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {

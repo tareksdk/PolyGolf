@@ -1,5 +1,5 @@
 // New holes are appended only to the long collections. The original loops stay intact.
-const hole=(name,par,points,width,green,water,bunkers,extra={})=>({name,par,points,width,green,water,bunkers,density:.57,longAdventure:true,...extra});
+const hole=(name,par,points,width,green,water,bunkers,extra={})=>{const {encounter,vignette,...scenery}=extra;return {name,par,points,width,green,water,bunkers,density:.57,longAdventure:true,...scenery};};
 export const SALTWIND_EXTRA = [
  hole('Tideglass Needle',3,[[0,0],[8,-39],[18,-82],[4,-128],[-12,-172]],29,[-12,-170,11,14],[[-38,-122,18,29],[35,-151,16,21]],[[9,-159,7,10],[-31,-188,8,7]],{elevation:[[0,12],[.45,7],[1,1]],mounds:[[28,-78,25,39,7]],fairwayBands:[[.65,.2,.75]],vignette:'buoys',backdrop:'lookout'}),
  hole('Cannonball Cut',5,[[0,0],[32,-133],[72,-278],[45,-421],[4,-558]],43,[4,-556,14,18],[[-46,-275,25,48],[83,-395,21,39]],[[22,-322,12,27],[-20,-539,10,14],[29,-575,8,10]],{elevation:[[0,1],[.28,6],[.58,13],[1,3]],mounds:[[-13,-178,30,44,8],[85,-345,23,38,11]],encounter:{kind:'dynamite',x:27,z:-136,width:44,height:19,depth:14},vignette:'cannons',glades:[[27,-136,80,55]]}),

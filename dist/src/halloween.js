@@ -19,6 +19,7 @@ export const HALLOWEEN_ITEMS = [
   flavor:'A finish from the Halloween Locker.'
 }));
 export const DISCOVERY_ITEMS = [
+  {id:'nameplate-darby',category:'nameplate',name:'Darby’s Best Friend',rarity:'Legendary',color:'#223438',pattern:'#e5b879',badge:'paw',flavor:'A loyal black Labrador and a very good round of fetch.'},
   {id:'ball-pumpkin-find',category:'ball',name:'Lost Pumpkin',rarity:'Legendary',color:'#d88131',pattern:'#26332b',motif:'pumpkin',flavor:'Found beneath an Autumn Pines tree.'},
   {id:'nameplate-pumpkin-find',category:'nameplate',name:'Pumpkin Hunter',rarity:'Legendary',color:'#352d36',pattern:'#eba65d',motif:'pumpkin'},
 ].map(i=>({...i,design:0,source:'achievement',exclusive:true,price:0}));

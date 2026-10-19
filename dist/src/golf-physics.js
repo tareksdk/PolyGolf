@@ -2,7 +2,7 @@ import { encounterBoxes, stepEncounter } from './course-encounters.js';
 import { startMysteryFlight, updateMysteryFlight } from './mystery-flight.js';
 import { nearbyTrees } from "./forest.js";
 import { cupCapture } from "./cup-capture.js";
-import { pirateShipFor, hitsPirateShip, pumpkinFor, hitsPumpkin } from "./course-features.js";
+import { pirateShipFor, hitsPirateShip, pumpkinFor, hitsPumpkin, darbyFor } from "./course-features.js";
 import { terrainAt, clamp } from "./golf-courses.js";
 export const GOLF_RADIUS = 0.021335;
 export const CUP_RADIUS = 0.19;
@@ -45,6 +45,7 @@ export class GolfPhysics {
     this.shipHit = false;
     this.pumpkin = pumpkinFor(h);
     this.pumpkinHit = false;
+    this.darby = darbyFor(h);this.darbyFound=false;
     this.lastSafe = { x: h.start.x, z: h.start.z };
     this.clock = 0;
     this.reset();
@@ -116,6 +117,7 @@ export class GolfPhysics {
     if(updateMysteryFlight(this,dt)) return;
     const b = this.ball,
       old = { x: b.x, y: b.y, z: b.z };
+    if(!this.airborne&&terrainAt(this.hole,b.x,b.z).hazard==='void')this.airborne=true;
     if (this.airborne) {
       const u = { x: b.vx - this.hole.wind.x, y: b.vy, z: b.vz - this.hole.wind.z },
         v = Math.hypot(u.x, u.y, u.z),
@@ -158,7 +160,7 @@ export class GolfPhysics {
       b.vz *= factor;
       b.x += b.vx * dt;
       b.z += b.vz * dt;
-      b.y = terrainAt(this.hole, b.x, b.z).height + GOLF_RADIUS;
+      const next=terrainAt(this.hole,b.x,b.z);if(next.hazard==='void')this.airborne=true;else b.y=next.height+GOLF_RADIUS;
     }
     stepEncounter(this,old,b);
     for (const tree of nearbyTrees(this.hole, b.x, b.z)) {
@@ -191,6 +193,7 @@ export class GolfPhysics {
       this.pumpkinHit = true;
       this.events.push('pumpkin');
     }
+    if(this.darby&&!this.darbyFound&&Math.hypot(b.x-this.darby.x,b.z-this.darby.z)<3.5&&b.y<this.darby.y+.5&&Math.hypot(b.vx,b.vz)<3){this.darbyFound=true;this.events.push('darby');}
     let t = terrainAt(this.hole, b.x, b.z);
     if (
       (t.hazard && b.y <= t.height + 0.08) ||

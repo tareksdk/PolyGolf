@@ -1,4 +1,5 @@
 import { courseRecordKey } from "./golf-courses.js";
+import { normalizeStacks } from './item-stacks.js';
 import { halloweenActive } from './season.js';
 import { rollRoundLocker } from './round-rewards.js';
 import { normalizePatterns, validSeed } from './finishes.js';
@@ -120,6 +121,7 @@ export class LocalSaveRepository {
 }
 export const ACHIEVEMENTS = [
   { id:LOCKER_LEGEND_ID,item:LOCKER_LEGEND_ITEM,name:'Just One More',desc:'Open more than 1,000 lockers.',icon:'gift',target:LOCKER_LEGEND_TARGET,value:s=>s.stats.lockersOpened||0,coins:0,xp:0,secret:true },
+  {id:'darby',item:'nameplate-darby',items:['nameplate-darby'],name:'Darby’s Best Friend',desc:'Play fetch with Darby beside the first Willow Park tee. Roll a ball close to him.',icon:'heart',target:1,value:s=>s.stats.darbyFound||0,coins:1500,xp:600},
   { id:'pumpkin',item:'ball-pumpkin-find',items:['ball-pumpkin-find','nameplate-pumpkin-find'],name:'A Little Pumpkin Hunt',desc:'Hit the pumpkin beneath a tree beside the first Autumn Pines fairway.',icon:'gift',target:1,value:s=>s.stats.pumpkinHits||0,coins:350,xp:450 },
   { id: 'pirate', item: 'ball-pirate', items: ['ball-pirate', 'nameplate-pirate'], name: 'Broadside!', desc: 'Hit the pirate ship in the water at Saltwind Links.', icon: 'flag', target: 1, value: s => s.stats.shipHits || 0, coins: 350, xp: 450 },
   {
@@ -338,6 +340,7 @@ export class ProgressionManager {
     if(!halloweenActive(now)||this.data.achievementRewards?.includes('pumpkin'))return false;
     this.data.stats.pumpkinHits=1;this.checkAchievements();this.claimAchievement('pumpkin');return true;
   }
+  discoverDarby(){if(this.data.achievementRewards?.includes('darby'))return false;this.data.stats.darbyFound=1;this.checkAchievements();this.claimAchievement('darby');return true;}
   discoverPirate() {
     if (this.data.achievementRewards?.includes('pirate')) return false;
     this.data.stats.shipHits = 1;
@@ -500,5 +503,5 @@ export function normalizeInventory(d) {
   );
   d.favorites = (d.favorites || []).filter((id) => ITEM_BY_ID[id]);
   d.equipment.patterns = patterns;
-  return normalizePatterns(d, ITEM_BY_ID);
+  return normalizeStacks(normalizePatterns(d, ITEM_BY_ID));
 }

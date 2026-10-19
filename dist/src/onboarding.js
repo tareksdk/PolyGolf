@@ -4,11 +4,11 @@ import { DEFAULT_EQUIPMENT } from './catalog.js';
 import { loadRangeAssets } from './meadowcrest-range.js';
 export const TUTORIAL_KEY = 'polygolf.first-swing.v1';
 export function openingHole() {
-  const h=buildGolfLayout(0,0,{name:'Willow Practice Green',par:3,width:24,contour:0,density:.8,glades:[[0,14,32,32]],points:[[0,0],[0,-9],[0,-18]],green:[0,-10,12,22],water:[],bunkers:[],wind:{x:0,z:0},landmark:'garden',scenery:[]});
+  const h=buildGolfLayout(0,0,{name:'Willow Practice Green',par:3,width:24,contour:0,density:.8,glades:[[0,14,32,32]],points:[[0,0],[0,-9],[0,-18]],green:[0,-10,12,22],water:[[23,-15,6.5,8,.3,.12]],bunkers:[],wind:{x:0,z:0},landmark:'garden',scenery:[]});
   h.custom=true;h.tutorialGarden=true;return h;
 }
 export function drivingRange() {
-  const h=buildGolfLayout(0,0,{name:'Meadowcrest Golf Range',par:4,width:148,contour:0,density:.85,glades:[[18,32,105,62]],elevation:[[0,0],[.18,-.3],[.43,-.65],[.68,.3],[1,1.8]],mounds:[[-76,-100,55,95,2.4],[74,-180,48,82,3]],points:[[0,0],[0,-70],[0,-150],[0,-260]],green:[0,-260,2,2],water:[[-30,-105,15,8]],bunkers:[],wind:{x:0,z:0},scenery:[]});
+  const h=buildGolfLayout(0,0,{name:'Meadowcrest Golf Range',par:4,width:148,contour:0,density:.85,glades:[[18,32,105,62]],elevation:[[0,0],[.18,-.3],[.43,-.65],[.68,.3],[1,1.8]],mounds:[[-76,-100,55,95,2.4],[74,-180,48,82,3]],points:[[0,0],[0,-70],[0,-150],[0,-260]],green:[0,-260,2,2],water:[[-30,-105,15,8,-.25,.18]],bunkers:[],wind:{x:0,z:0},scenery:[]});
   for(const [x,z,type,size] of [[-51,-91,'oak',1.28],[-49,-125,'willow',1.15],[51,-160,'pine',1.38]]){
     const t={x,z,type,size,far:false};h.trees.push(t);(h.treeGrid[Math.floor(x/10)+':'+Math.floor(z/10)]??=[]).push(t);
   }

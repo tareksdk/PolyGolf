@@ -99,8 +99,17 @@ export function courseAssets(w, h) {
     for(const [x,z] of [[26,13],[27.5,14],[48,26]])add('flowers',x,z,.65,.2);
   }
 
+  if(h.islands)for(const [i,p] of h.islands.entries()){
+    const side=i%2?1:-1;
+    for(const [dx,dz,s] of [[.62,-.36,.9],[.72,.19,.7],[.50,.29,.6]]){
+      add('bush',p.x+side*p.rx*dx,p.z+p.rz*dz,s,i*.7);
+    }
+    add('boulder',p.x-side*p.rx*.65,p.z+p.rz*.36,.9,i*.8);
+    add('flowers',p.x+side*p.rx*.54,p.z-p.rz*.22,.7,i);
+  }
+
   // ---- Clubhouse facing the first tee, with a flag, parked cart and planters.
-  if (!h.meadowcrestRange) {
+  if (!h.meadowcrestRange && !h.islands) {
   if (!h.tutorialGarden) {
   const home = [-26, 24],
     toTee = facing(...home, 0, 0),
@@ -203,14 +212,6 @@ export function courseAssets(w, h) {
       if (pathDistance(h, x, z) < h.width * 0.5 + 3) continue;
       add((h.layoutCourse ?? h.courseIndex) === 1 && j % 4 === 0 ? "tide-rocks" : j % 5 === 0 ? "boulder" : "reeds", x, z, 0.85 + (j % 4) * 0.15, a);
     }
-  if ((h.layoutCourse ?? h.courseIndex) !== 1)
-    for (const p of h.water)
-      for (let i = 0; i < 7; i++) {
-        const a = i * 2.399 + h.seed,
-          r = 0.28 + (i % 3) * 0.18;
-        add("lily-pads", p.x + Math.cos(a) * p.rx * r, p.z + Math.sin(a) * p.rz * r, 1.3, a, water(p) + 0.015);
-      }
-
   // ---- A signature landmark per hole on a clear shoreline, away from the line of play.
   const shore = (p) => {
     const spots = [];
@@ -228,11 +229,9 @@ export function courseAssets(w, h) {
   if (lake && landmark === "boathouse") {
     const spot = firstClear(shore(lake), 3.4, { water: true, canopy: 1.6 });
     if (spot) {
-      const angle = facing(...spot, lake.x, lake.z),
-        bx = spot[0] + Math.sin(angle) * 8 + Math.cos(angle) * 2.8,
-        bz = spot[1] + Math.cos(angle) * 8 - Math.sin(angle) * 2.8;
+      const angle = facing(...spot, lake.x, lake.z);
       add("boathouse", ...spot, 1, angle, ground(...spot) - 0.15);
-      add("rowboat", bx, bz, 1, angle + 0.5, water(lake) - 0.02);
+
       claim(...spot, 5);
     }
   }
@@ -245,12 +244,6 @@ export function courseAssets(w, h) {
         break;
       }
     }
-    for (const p of h.water)
-      for (const a of [0.8, 3.7]) {
-        const x = p.x + Math.cos(a) * p.rx * 0.92,
-          z = p.z + Math.sin(a) * p.rz * 0.92;
-        add("heron", x, z, 1.1, a + 2.2, water(p) - 0.04);
-      }
   }
   if ((h.layoutCourse ?? h.courseIndex) === 2 && !h.custom) {
     const logs = firstClear(

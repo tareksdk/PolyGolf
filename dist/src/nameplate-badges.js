@@ -1,5 +1,6 @@
 // One vector design is shared by live nameplates and the 3D collection artwork.
 const BADGES = {
+  paw:[['M6 14c1-2 3-5 6-5s5 3 6 5c3 4-1 7-6 5-5 2-9-1-6-5Z','fill'],['M4 6a2 3 0 1 0 4 0 2 3 0 1 0-4 0M10 4a2 3 0 1 0 4 0 2 3 0 1 0-4 0M16 6a2 3 0 1 0 4 0 2 3 0 1 0-4 0','fill']],
   vault: [
     ['M3 6h18v15H3Zm-1 0 3-4h14l3 4M3 10h18M7 2v8m10-8V2','stroke'],
     ['m12 11 1.5 3 3.5.5-2.5 2.3.6 3.2-3.1-1.5L9 20l.6-3.2L7 14.5l3.5-.5Z','fill'],

@@ -1,5 +1,6 @@
 import { ITEMS, ITEM_BY_ID, dayNumber } from "./catalog.js";
-import { grantPattern, rollPattern } from './finishes.js';
+import { rollPattern } from './finishes.js';
+import { addItem, itemCount } from './item-stacks.js';
 import { halloweenActive } from './season.js';
 import { levelInfo } from './save.js';
 import { recordLockerOpening } from './locker-milestones.js';
@@ -190,13 +191,15 @@ export function openLocker(progress, id, requestId, random, now=Date.now()) {
   if (!earned && d.coins < pack.price) throw Error("Earn more tokens before opening this locker.");
   const item = rollLocker(id, random(), random()),
     seed = item.finish ? rollPattern(random) : undefined,
-    duplicate = item.finish ? grantPattern(d, item, seed) : d.owned.includes(item.id),
-    refund = duplicate && !earned ? Math.floor(pack.price * 0.35) : 0;
+    entry = {id:item.id, ...(item.finish ? {seed} : {})},
+    duplicate = itemCount(d, entry) > 0,
+    refund = 0;
+  const quantity = addItem(d, entry);
   if (earned) d.lockers[id]--;
   else d.coins -= pack.price - refund;
   if (!d.owned.includes(item.id)) d.owned.push(item.id);
   recordLockerOpening(d);
-  const receipt = { requestId, pack: id, item: item.id, duplicate, refund, earned, ...(item.finish ? { seed } : {}) };
+  const receipt = { requestId, pack: id, item: item.id, duplicate, refund, quantity, earned, ...(item.finish ? { seed } : {}) };
   d.lockerReceipts.push(receipt);
   d.lockerReceipts = d.lockerReceipts.slice(-100);
   progress.save();

@@ -1,3 +1,4 @@
+import { SKY_COURSE, skyIslandLayout, islandAt, springAt } from './sky-island-layouts.js';
 import { SALTWIND_EXTRA, AUTUMN_EXTRA } from './long-course-layouts.js';
 import { populateForest } from "./forest.js";
 import { samplePath } from "./courses.js";
@@ -52,8 +53,9 @@ export const GOLF_COURSES = [
 ];
 GOLF_COURSES.push(...EVENT_COURSES);
 GOLF_COURSES.push({...GOLF_COURSES[0], id:"willow-long", name:"Willow Park · Long Course", subtitle:"Nine holes across the full parkland collection.", tag:"THE LONG ROUND", layoutCourse:0, holeCount:9});
-GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine coastal adventures: smugglers, TNT and harbour lights.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
-GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine alpine adventures through granite, golden larches and mischief.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
+GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine holes along the cliffs, coves and coastal greens.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
+GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine holes through golden woodland and mountain meadows.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
+GOLF_COURSES.push(SKY_COURSE);
 export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");
@@ -425,6 +427,7 @@ layouts[2].push(...AUTUMN_EXTRA);
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function golfLayout(courseIndex,index) {
   const course=GOLF_COURSES[courseIndex];
+  if(course?.slot==='monthly')return skyIslandLayout(index);
   if(!course||!Number.isInteger(index)||index<0||index>=golfHoleCount(courseIndex))throw Error("Unknown golf hole");
   return course.eventTheme?eventLayout(course,index):layouts[course.layoutCourse??courseIndex][index];
 }
@@ -470,11 +473,21 @@ export function buildGolfLayout(courseIndex, index, layout, scenery = true) {
     moving: [],
     samples: points.map(([x, z], i) => ({ x, z, t: i / 4 })),
   };
-  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure"])
+  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure", "islands"])
     if (layout[key] !== undefined) h[key] = structuredClone(layout[key]);
   h.route = samplePath(points, 64).map((p) => [p.x, p.z]);
   h.trees = [];
   if(scenery)populateForest(h, layout.density ?? 1);
+  if(h.islands&&scenery){
+    for(const [i,p] of h.islands.entries()){
+      const side=i%2?1:-1;
+      for(const [dx,dz,size,type] of [[-.68,.15,1.05,'pine'],[-.76,.32,.9,'oak'],[-.55,.4,1.1,'pine'],[-.52,-.48,.84,'oak'],[-.68,-.34,.9,'pine'],[.48,-.55,.78,'willow'],[.7,-.39,.8,'oak']]){
+        const t={x:p.x+side*p.rx*dx,z:p.z+p.rz*dz,size,type,far:false};
+        if(!islandAt(h,t.x,t.z)||Math.hypot(t.x-h.cup.x,t.z-h.cup.z)<18)continue;
+        h.trees.push(t);(h.treeGrid[Math.floor(t.x/10)+':'+Math.floor(t.z/10)]??=[]).push(t);
+      }
+    }
+  }
   if(h.encounter)h.encounter.y=terrainHeight(h,h.encounter.x,h.encounter.z);
   h.start.y = terrainHeight(h, 0, 0);
   h.cup.y = terrainHeight(h, cup.x, cup.z);
@@ -596,6 +609,7 @@ function baseHeight(h, x, z) {
   }
   return height;
 }
+export function springWaterLevel(h,spring){return baseHeight(h,spring.x,spring.z)+.16;}
 export function terrainHeight(h, x, z) {
   const g = h.green,
     d = Math.sqrt(ellipse(g, x, z)),
@@ -620,9 +634,15 @@ export function terrainHeight(h, x, z) {
       blend = u * u * (3 - 2 * u);
     y = y * (1 - blend) + (waterLevel(h, p) - 0.65) * blend;
   }
+  if(h.islands){
+    const bank=springAt(h,x,z,1.5);
+    if(bank){const u=clamp((bank.width+1.5-bank.distance)/1.5,0,1),blend=u*u*(3-2*u);y=y*(1-blend)+(springWaterLevel(h,bank.spring)-.55)*blend;}
+  }
   return y;
 }
 export function terrainAt(h, x, z) {
+  if(h.islands&&!islandAt(h,x,z))return {height:-85,normal:{x:0,y:1,z:0},surface:"rough",hazard:"void"};
+  if(h.islands){const spring=springAt(h,x,z);if(spring)return {height:springWaterLevel(h,spring.spring),normal:{x:0,y:1,z:0},surface:'rough',hazard:'water'};}
   if ((h.layoutCourse ?? h.courseIndex) === 1) {
     const coast=coastSurface(h,x,z);
     if(coast)return coast;

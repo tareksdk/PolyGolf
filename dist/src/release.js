@@ -44,16 +44,16 @@ export function installRelease(ui) {
   ui.game.onEvent=(name)=>{
     event(name);
     if(name==='pumpkin') ui.world.explodePumpkin?.();
-    const discovery=name==='pumpkin'?'pumpkin':name==='pirate-ship'?'pirate':null;
+    const discovery=name==='darby'?'darby':name==='pumpkin'?'pumpkin':name==='pirate-ship'?'pirate':null;
     if(!discovery || ui.game.round.practice || ui.game.customHole || ui.progress.data.achievementRewards?.includes(discovery))return;
-    const pumpkin=discovery==='pumpkin',items=pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate'];
-    const message=pumpkin?'Pumpkin found! Lost Pumpkin ball and Pumpkin Hunter nameplate unlocked.':'Broadside! Pirate ball and nameplate unlocked.';
+    const darby=discovery==='darby',pumpkin=discovery==='pumpkin',items=darby?['nameplate-darby']:pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate'];
+    const message=darby?'Darby’s Best Friend nameplate unlocked!':pumpkin?'Pumpkin found! Lost Pumpkin ball and Pumpkin Hunter nameplate unlocked.':'Broadside! Pirate ball and nameplate unlocked.';
     if(ui.cloud.session && ui.game.round.cloudId){
       const payload={roundId:ui.game.round.cloudId,index:ui.game.index,transcript:structuredClone(ui.game.transcript),endTick:ui.game.ticks};
-      ui.shipClaim=ui.cloud.call(pumpkin?'claim_pumpkin':'claim_ship',payload).then(()=>{
+      ui.shipClaim=ui.cloud.call(darby?'claim_darby':pumpkin?'claim_pumpkin':'claim_ship',payload).then(()=>{
         ui.revealItems(items);ui.toast(message);
       }).catch(()=>ui.toast('Discovery found! Finish this hole to sync your rewards.')).finally(()=>{ui.shipClaim=null;});
-    } else if(!ui.cloud.session && (pumpkin?ui.progress.discoverPumpkin():ui.progress.discoverPirate())){
+    } else if(!ui.cloud.session && (darby?ui.progress.discoverDarby():pumpkin?ui.progress.discoverPumpkin():ui.progress.discoverPirate())){
       ui.revealItems(items);ui.toast(message);
     }
   };

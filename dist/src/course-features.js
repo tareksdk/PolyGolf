@@ -62,3 +62,6 @@ export function pumpkinFor(h,now=Date.now()) {
 export function hitsPumpkin(p,a,b,now=Date.now()) {
   return halloweenActive(now) && !!p && segmentBox(a,b,{x:p.x-1.05,y:p.y-.12,z:p.z-1.05},{x:p.x+1.05,y:p.y+1.7,z:p.z+1.05});
 }
+
+// Darby waits in the near-tee rough. Roll a ball nearby to play fetch.
+export function darbyFor(h){if(h.custom||(h.layoutCourse??h.courseIndex)!==0||h.index!==0)return null;const x=13,z=-20;return {x,z,y:terrainHeight(h,x,z)};}

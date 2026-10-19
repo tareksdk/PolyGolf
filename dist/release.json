@@ -1,8 +1,8 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "supreme-flag-ball-1.2",
-  "date": "2026-10-18",
-  "items": 647,
+  "contentVersion": "clubhouse-overhaul-1.3",
+  "date": "2026-10-19",
+  "items": 648,
   "lockers": 10,
   "patternSeeds": 1000,
   "passTiers": 30,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.2",
+  "appVersion": "1.3",
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,
   "nativeResolutionFloor": true,
@@ -89,10 +89,7 @@
   "saltwindLongHoles": 9,
   "autumnLongHoles": 9,
   "longCourseCollection": true,
-  "courseEncounters": [
-    "mountain-pass",
-    "dynamite"
-  ],
+  "courseEncounters": [],
   "hudStyles": [
     "classic",
     "smart"
@@ -104,7 +101,16 @@
     "[",
     "]"
   ],
-  "pagedCourseBrowser": true,
+  "pagedCourseBrowser": false,
   "israelFlagBall": true,
-  "flagCupCelebration": true
+  "flagCupCelebration": true,
+  "scrollingCollections": true,
+  "monthlyCourse": "Aetherfall Isles",
+  "monthlyCourseHoles": 3,
+  "auctionHouse": true,
+  "auctionMinimumLevel": 5,
+  "darbyDiscovery": true,
+  "itemStacks": true,
+  "tradeUps": true,
+  "flowingIslandWater": true
 }
