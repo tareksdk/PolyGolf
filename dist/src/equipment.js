@@ -50,6 +50,7 @@ export function golfGear(equipment = {}) {
   return { driverYards: driverYards(equipment), ...(equipment.driver === 'driver-mystery' ? {mysteryAce:true} : {}) };
 }
 export function itemDescription(item) {
+  if (item.description) return item.description;
   if(item.id === 'driver-mystery') return item.flavor;
   const flavor = item.flavor ? item.flavor + " " : "";
   if (item.category === "driver")

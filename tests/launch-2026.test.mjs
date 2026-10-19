@@ -52,7 +52,7 @@ test('Halloween odds total 100 with a real pool for every rarity; exclusives nev
  for(const row of lockerContents(pack.id)){assert.ok(row.items.length);assert.ok(row.items.every(i=>i.crate==='halloween'&&i.source==='pack'));}
  for(let n=0;n<1000;n++)assert.equal(rollLocker('halloween',n/1000,.5).crate,'halloween');
  const r=shopRotation();assert.ok([...r.daily,...r.weekly,...r.featured,...r.permanent].every(i=>!['nameplate-og','nameplate-staff','nameplate-developer'].includes(i.id)&&i.crate!=='halloween'));
- assert.equal(ITEMS.length,646);
+ assert.equal(ITEMS.length,647);
 });
 test('daily reward display source matches actual payouts, including cycle restart and no double claim',()=>{
  const p=new ProgressionManager({load:()=>defaultSave(),save:()=>true});for(let i=0;i<7;i++){const date=new Date(Date.UTC(2026,9,5+i));assert.equal(p.claimLogin(date).coins,DAILY_REWARDS[i]);assert.equal(p.claimLogin(date),null);}assert.ok(p.data.owned.includes('ball-streak'));assert.equal(p.claimLogin(new Date('2026-10-12')).coins,300);

@@ -7,6 +7,7 @@ import { installHonors } from './honors-ui.js';
 import { installInvites } from './room-invites.js';
 import { isLocalPreview, previewStorage, installLocalPreview } from './local-preview.js';
 import { installPirateEffects } from './pirate-effects.js';
+import { installFlagCelebration } from './flag-celebration.js';
 import { loadAdventureAssets } from './event-scenery.js';
 import { installInterface } from './interface.js';
 import { installCourseAtmosphere } from './course-weather.js';
@@ -75,6 +76,7 @@ try {
   installPirateEffects(world);
   installHoleEffects(world);
   installCourseAdventures(ui);
+  installFlagCelebration(world);
   installLocalPreview(ui);
   installHonors(ui);
   installOpeningUpdate(ui);

@@ -151,11 +151,12 @@ Deno.serve(async req=>{
    await limited('gift:'+p.id,8,600);
    const digest=typeof b.code==='string'?await hash(b.code.trim()):'';
    const rewards:any={
+    'f8f474a55befde8bbea518f35f96edfaa2a72a282104b96df2bf521ebde6a675':{id:'supreme-israel-ball-2026',tokens:0,items:['ball-israel'],message:'Israel Flag ball unlocked. Equip it in your caddie for a flag and fireworks on every sunk putt.'},
     '1e6288fee2b560c035a4d08666ef0038f035ad6b0bccc7f78f96ddc5195d6377':{id:'mystery-driver-2026',tokens:0,items:['driver-mystery'],message:'??? unlocked. Equip your secret driver in the Caddie.'},
     'e0c36904590e80e8a87c3feaf5ba196b706ca6fb6321e433c4a6a6fe0b33912e':{id:'new-hole-effects-2026',tokens:0,items:NEW_HOLE_EFFECT_IDS,message:'All ten new hole effects unlocked. Equip them in your Caddie.'},
     '43b1564ce21d50e46d7e23cccb9a5b5104c75f2bade76dded361c33cc052bf56':{id:'five-custom-plates-2026',tokens:0,items:['nameplate-midnight-ace','nameplate-solar-crown','nameplate-lucky-clover','nameplate-neon-comet','nameplate-royal-flush'],message:'Five custom nameplates unlocked: Midnight Ace, Solar Crown, Lucky Clover, Neon Comet and Royal Flush.'},
     'ad57366865126e55649ecb23ae1d48887544976efea46a48eb5d85a6eeb4d306':{id:'100-ten-thousand-coins-2026',tokens:10000,items:[],message:'10,000 coins added.'},
-    '575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1721f74b':{id:'oliver-everything-2026',tokens:1000000000,items:ITEMS.map(i=>i.id),allCollection:true,lockers:Object.fromEntries(LOCKERS.map(l=>[l.id,1])),message:'Every item, Country Club membership, one of every locker, and 1,000,000,000 coins added.'},
+    '575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1721f74b':{id:'oliver-everything-2026',tokens:1000000000,items:ITEMS.filter(i=>!i.supremeOnly).map(i=>i.id),allCollection:true,lockers:Object.fromEntries(LOCKERS.map(l=>[l.id,1])),message:'Collection items, Country Club membership, one of every locker, and 1,000,000,000 coins added. Exclusive ball codes remain separate.'},
     '1c4e54ee5d38af18f31e3d3053be138dcb77d65e25a415607ea9918939f20a57':{id:'room310-plate-2026',tokens:0,items:['nameplate-room310'],message:'Room310 nameplate unlocked.'},
     '3beeb4070bd955ee402745e021e359e7c9bd0e1d04942feff08a616223b5f793':{id:'oneshotstudios-plate-2026',tokens:0,items:['nameplate-oneshotstudios'],message:'OneShotStudios nameplate unlocked.'},
     '82b2706cdf507848ef25f499d99d7a23d03f671301cdd15604fcedf1cb290a32':{id:'studio-collab-plate-2026',tokens:0,items:['nameplate-studio-collab'],message:'Room310 X OneShotStudios nameplate unlocked.'},

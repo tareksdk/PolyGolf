@@ -258,7 +258,7 @@ export async function proShopAction(ui, name, data) {
   }
   if (name === "shop-code") {
     ui.modal(
-      `<h2>Redeem a gift code</h2><p>Codes are case-sensitive and can be redeemed once per account. Country Club items remain exclusive to membership.</p><form id="gift-form" class="gift-redemption"><label for="gift-code">Gift code</label><input id="gift-code" name="code" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Enter your code" required><button type="submit" class="button yellow wide">${ui.cloud.session ? "Redeem" : "Sign in to redeem"}</button></form>`,
+      `<h2>Redeem a gift code</h2><p>Codes are case-sensitive and can be redeemed once ${ui.cloud.localPreview ? 'in this local preview. Preview rewards save on this device.' : 'per account. Country Club items remain exclusive to membership.'}</p><form id="gift-form" class="gift-redemption"><label for="gift-code">Gift code</label><input id="gift-code" name="code" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Enter your code" required><button type="submit" class="button yellow wide">${ui.cloud.session || ui.cloud.localPreview ? "Redeem" : "Sign in to redeem"}</button></form>`,
     );
     return true;
   }

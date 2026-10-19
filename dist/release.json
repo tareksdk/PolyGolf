@@ -1,8 +1,8 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "long-course-adventures-1.1",
+  "contentVersion": "supreme-flag-ball-1.2",
   "date": "2026-10-18",
-  "items": 646,
+  "items": 647,
   "lockers": 10,
   "patternSeeds": 1000,
   "passTiers": 30,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.1",
+  "appVersion": "1.2",
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,
   "nativeResolutionFloor": true,
@@ -104,5 +104,7 @@
     "[",
     "]"
   ],
-  "pagedCourseBrowser": true
+  "pagedCourseBrowser": true,
+  "israelFlagBall": true,
+  "flagCupCelebration": true
 }

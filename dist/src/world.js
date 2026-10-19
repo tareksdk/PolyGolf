@@ -194,7 +194,7 @@ export class World {
       heightAt(h, cup.t) + 0.06,
       cup.z,
     ).rotation.x = Math.PI / 2;
-    this.mesh("cylinder", "#f5f0dd", cup.x, heightAt(h, cup.t) + 1.7, cup.z, 0.045, 3.4, 0.045);
+    this.flagPole = this.mesh("cylinder", "#f5f0dd", cup.x, heightAt(h, cup.t) + 1.7, cup.z, 0.045, 3.4, 0.045);
     const flag = this.mesh(
       new THREE.PlaneGeometry(1.2, 0.72, 5, 2),
       "#ed8468",

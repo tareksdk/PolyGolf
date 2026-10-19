@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
 import {defaultSave} from '../dist/src/save.js';
 import {ITEMS,ALPHA_ITEMS,shopRotation,shopAvailable} from '../dist/src/catalog.js';
-import {createHmac} from 'node:crypto';
+import {createHmac,createHash} from 'node:crypto';
 import {PhysicsManager,FIXED_STEP} from '../dist/src/physics.js';
 import {getHole,nearestPoint} from '../dist/src/courses.js';
 import {miniStats} from '../dist/src/equipment.js';
@@ -53,6 +53,9 @@ let trading=await readFile(new URL('../backend/trading.ts',import.meta.url),'utf
 source=source.replace("'./trading.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(trading)).toString('base64')));
 let rooms=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');rooms=rooms.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(rooms)).toString('base64')));
+// Exercise the existing all-access reward with a test-only code alias.
+const allAccessTestCode='local-test-all-access';
+source=source.replace('575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1721f74b',createHash('sha256').update(allAccessTestCode).digest('hex'));
 await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
 async function call(action,data={},id='a'){const response=await handler(new Request('http://game.local',{method:'POST',headers:{'Content-Type':'application/json',...(id?{Authorization:'Bearer '+id}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})}));const result=await response.json();if(!response.ok)throw Error(result.error);return result;}
 
@@ -206,6 +209,27 @@ test('100k code is exact, authenticated and grants 100,000 once under concurrent
  assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);
  assert.equal(p.state.coins,before.coins+100000);assert.equal(p.state.totalEarned,before.totalEarned+100000);assert.deepEqual(p.state.owned,before.owned);
  await assert.rejects(call('redeem_code',{code:'100k'}),/already redeemed/);
+});
+test('supreme alone unlocks the Israel ball, requires authentication, and redeems once atomically',async()=>{
+ const p=players.get('a');p.state=defaultSave();const before=structuredClone(p.state);
+ await assert.rejects(call('redeem_code',{code:'Supreme'}),/not active/);
+ await assert.rejects(call('redeem_code',{code:'supreme'},null),/Sign in/);
+ await assert.rejects(call('equip',{id:'ball-israel'}),/before equipping/);
+ await assert.rejects(call('buy',{id:'ball-israel'}),/collection reward/);
+ const attempts=await Promise.allSettled([call('redeem_code',{code:'supreme'}),call('redeem_code',{code:'supreme'})]);
+ assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);
+ assert.deepEqual(attempts.find(r=>r.status==='fulfilled').value.unlocked,['ball-israel']);
+ assert.equal(p.state.coins,before.coins);assert.equal(p.state.owned.filter(id=>id==='ball-israel').length,1);
+ await call('equip',{id:'ball-israel'});assert.equal(p.state.equipment.ball,'ball-israel');
+ await assert.rejects(call('redeem_code',{code:'supreme'}),/already redeemed/);
+});
+test('even the all-access reward excludes the supreme-only ball',async()=>{
+ const p=players.get('a');p.state=defaultSave();
+ await call('redeem_code',{code:allAccessTestCode});
+ assert.ok(!p.state.owned.includes('ball-israel'));
+ assert.ok(ITEMS.filter(i=>!i.supremeOnly).every(i=>p.state.owned.includes(i.id)));
+ await call('redeem_code',{code:'supreme'});
+ assert.ok(p.state.owned.includes('ball-israel'));
 });
 test('server equips owned off-rotation gear and rejects unowned gear without a charge',async()=>{
  const p=players.get('a');p.state=defaultSave();const item=ITEMS.find(i=>i.source==='weekly'&&!shopAvailable(i.id));assert.ok(item);

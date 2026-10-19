@@ -1,10 +1,12 @@
 import * as THREE from "../vendor/three.module.js";
 import { artCanvas } from './art-canvas.js';
+import { israelBallFinish } from './israel-flag.js';
 
 // Shared decorative meshes. These never participate in collision or shot calculations.
 export function ballFinish(w, item, parent, r = 1) {
   const group = new THREE.Group();
   parent.add(group);
+  if (item.motif === 'israel') { israelBallFinish(w, group, r); return group; }
   if (item.finish) return group;
   const color = item.pattern || item.color,
     d = item.design || 0;

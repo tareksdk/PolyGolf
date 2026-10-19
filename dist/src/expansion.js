@@ -1,4 +1,5 @@
 import { APP_VERSION } from './version.js';
+import { redeemPreviewSupreme } from './supreme-ball.js';
 import { flowDirectionGauge } from './shot-meter-ui.js';
 import { LOCKERS } from "./pro-shop.js";
 import { homeMenu } from "./home-menu.js";
@@ -516,7 +517,7 @@ export function installExpansion(ui) {
         return;
       }
       if (action === "redeem-code") {
-        if (!ui.cloud.session) {
+        if (!ui.cloud.session && !ui.cloud.localPreview) {
           accountDialog(ui);
           return;
         }
@@ -524,7 +525,10 @@ export function installExpansion(ui) {
         ui.redeeming = true;
         try {
           const code = document.querySelector("#gift-code").value;
-          const result = await ui.cloud.call("redeem_code", { code });
+          const result = ui.cloud.localPreview
+            ? redeemPreviewSupreme(ui.progress, code)
+            : await ui.cloud.call("redeem_code", { code });
+          ui.closeModal();
           ui.toast(result.message || "Reward redeemed.");
           ui.render();
         } finally {

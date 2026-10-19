@@ -182,7 +182,7 @@ export function buildGolf(world, h) {
     y = world.surfaceHeight(cup.x, cup.z);
   if(!h.meadowcrestRange){
   world.mesh("cylinder", "#223c2b", cup.x, y + 0.012, cup.z, CUP_RADIUS + 0.025, 0.015, CUP_RADIUS + 0.025);
-  world.mesh("cylinder", "#f4edcf", cup.x, y + 1.2, cup.z, 0.017, 2.4, 0.017);
+  world.flagPole = world.mesh("cylinder", "#f4edcf", cup.x, y + 1.2, cup.z, 0.017, 2.4, 0.017);
   world.flag = world.mesh(
     new THREE.PlaneGeometry(0.65, 0.42, 5, 2),
     "#df8667",
