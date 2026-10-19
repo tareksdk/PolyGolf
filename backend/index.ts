@@ -7,6 +7,7 @@ import {grantPattern,rollPattern} from './shared/finishes.js';
 import {claimSocialReward} from './shared/community-rewards.js';
 import {openLocker,openLockers,buyBundle,LOCKERS} from './shared/pro-shop.js';
 import {tradingAction} from './trading.ts';
+import {auctionAction} from './auctions.ts';
 import {socialAction} from './social.ts';
 import {competitiveAction} from './competitive.ts';
 import {publicProfile} from './shared/profile-data.js';
@@ -108,7 +109,7 @@ Deno.serve(async req=>{
   // Gateway JWT checks are disabled because signup is public. Every other action
   // verifies the bearer token with Supabase Auth; IDs supplied by clients never authorize access.
   const token=req.headers.get('authorization')?.replace(/^Bearer /i,'');if(!token)throw Error('Sign in to continue.');const user=await api('/auth/v1/user',undefined,'GET',token);const p=await player(user.id);p.state=progress(p).data;await limited('player:'+p.id,100,60);let result:any;if(['start_round','submit_hole','create_room','join_room','start_room'].includes(action)&&b.rulesVersion!==RULES_VERSION)throw Error('The courses have been updated. Reload PolyGolf before starting or continuing a round.');
-  if(p.is_guest&&(['ranked_queue','ranked_status','ranked_shot','ranked_leave','trades','trade_inventory','trade_create','trade_accept','trade_close','redeem_code','publish_map','unpublish_map','like_map','friend_action'].includes(action)))throw Error('Create an account or sign in to use this feature. Guest multiplayer is available with room codes.');
+  if(p.is_guest&&(['ranked_queue','ranked_status','ranked_shot','ranked_leave','trades','trade_inventory','trade_create','trade_accept','trade_close','auctions','auction_create','auction_bid','auction_buy','auction_cancel','redeem_code','publish_map','unpublish_map','like_map','friend_action'].includes(action)))throw Error('Create an account or sign in to use this feature. Guest multiplayer is available with room codes.');
   if(action==='community_maps')result={maps:await rpc('community_v2',{p_user:p.id,p_offset:Number.isInteger(b.offset)?b.offset:0,p_mode:b.mode==='golf'?'golf':'mini'})};
   else if(action==='me'){const rating=(await table('ratings','user_id=eq.'+p.id))[0],pm=progress(p);if(awardRankPlates(pm,rating)){p.state=await save(p,pm);}result={state:p.state,username:p.username,usernameChanges:p.username_changes||0,profile:publicProfile(p),maps:await table('maps','user_id=eq.'+p.id)};}
   else if(action==='honors_inbox')result={awards:await rpc('accolade_inbox',{p_user:p.id})};
@@ -130,6 +131,7 @@ Deno.serve(async req=>{
    result=await rpc('change_username',{p_user:p.id,p_username:username,p_expected_cost:b.expectedCost,p_request_id:b.requestId});
   }
   else if(['trades','trade_inventory','trade_create','trade_accept','trade_close'].includes(action))result=await tradingAction(action,p,b,{table,rpc,insert,limited});
+  else if(['auctions','auction_create','auction_bid','auction_buy','auction_cancel'].includes(action))result=await auctionAction(action,p,b,{table,rpc,limited});
   else if(['profile','update_profile','search_players','friends','friend_action'].includes(action))result=await socialAction(action,p,b,{table,rpc,update});
   else if(['ranked_status','ranked_queue','ranked_leave','ranked_shot'].includes(action))result=await enrichRanked(p,await competitiveAction(action,p,b,{table,rpc}));
   else if(action==='start_round'){const c=info(b.mode,b.course);if(b.mode==='golf'&&!courseAvailable(b.course))throw Error('This featured course has rotated. Choose the current course.');if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9,rotation_key:b.mode==='golf'?courseRotationKey(b.course):''}))[0];result={roundId:r.id,rotationKey:r.rotation_key};}

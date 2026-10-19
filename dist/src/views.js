@@ -34,7 +34,7 @@ export function header(ui) {
   ]
     .map(
       ([id, label]) =>
-        `<button class="${ui.screen === id ? "active" : ""}" data-action="${id}" ${ui.screen === id ? 'aria-current="page"' : ""}>${label}</button>`,
+        `<button class="${ui.screen === id || (id === "trades" && ui.screen === "auctions") ? "active" : ""}" data-action="${id}" ${ui.screen === id ? 'aria-current="page"' : ""}>${label}</button>`,
     )
     .join(
       "",

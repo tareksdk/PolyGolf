@@ -51,6 +51,8 @@ let competitive=await readFile(new URL('../backend/competitive.ts',import.meta.u
 source=source.replace("'./competitive.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(competitive)).toString('base64')));
 let trading=await readFile(new URL('../backend/trading.ts',import.meta.url),'utf8');trading=trading.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./trading.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(trading)).toString('base64')));
+let auctions=await readFile(new URL('../backend/auctions.ts',import.meta.url),'utf8');auctions=auctions.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
+source=source.replace("'./auctions.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(auctions)).toString('base64')));
 let rooms=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');rooms=rooms.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(rooms)).toString('base64')));
 // Exercise the existing all-access reward with a test-only code alias.
@@ -265,3 +267,9 @@ test('verified final-hole crate grant is atomic and retries return the same comp
  const retry=await call('submit_hole',payload);assert.equal(retry.duplicate,true);assert.deepEqual(retry.bonus,result.bonus);assert.equal(player.state.coins,coins);assert.equal(player.state.lockers[result.bonus.locker],1);
 });
 
+
+test('auction actions route through the verified handler and stay locked below level 5',async()=>{
+ await assert.rejects(call('auctions'),/auction house unlocks for accounts at level 5/);
+ await assert.rejects(call('auction_bid',{auctionId:'x'}),/level 5/);
+ await assert.rejects(call('auctions',{},null),/Sign in/);
+});

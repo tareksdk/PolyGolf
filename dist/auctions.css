@@ -1,0 +1,43 @@
+/* Auction house. Shares the Trading page's surfaces, cards and item pickers. */
+.market-tabs{display:inline-flex;gap:4px;padding:4px;margin:0 0 18px;background:var(--ui-raised);border:1px solid var(--ui-border);border-radius:5px}
+.market-tabs button{padding:9px 16px;border:0;border-radius:3px;background:transparent;color:var(--ui-muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.market-tabs button.active{background:var(--ui-accent,#dfc475);color:#1b2b1f}
+.market-tabs button:not(.active):hover{color:var(--ui-text)}
+.auction-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:20px}
+.auction-toolbar select{height:40px;padding:0 10px;font-size:13px;border-radius:4px;max-width:100%}
+.auction-tabs{display:flex;gap:2px;margin-right:auto}
+.auction-tabs button{position:relative;padding:10px 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--ui-muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.auction-tabs button.active{color:var(--ui-text);border-bottom-color:var(--ui-accent,#dfc475)}
+.auction-dot{display:inline-block;width:7px;height:7px;margin-left:4px;border-radius:50%;background:var(--ui-accent,#dfc475);vertical-align:2px}
+.auction-search{max-width:240px}
+.auction-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.auction-lot{display:flex;flex-direction:column;padding:0;overflow:hidden;border-top:3px solid var(--rarity);content-visibility:auto;contain-intrinsic-size:auto 380px}
+.auction-art{position:relative;background:var(--ui-field)}
+.auction-art img{display:block;width:100%;height:auto;aspect-ratio:1.44;object-fit:cover}
+.auction-tag{position:absolute;left:8px;top:8px;padding:4px 8px;border-radius:3px;background:#0f2a22e0;color:#e7f0dc;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.auction-tag.lead{background:var(--ui-accent,#dfc475);color:#1b2b1f}
+.auction-body{display:flex;flex-direction:column;flex:1;gap:6px;padding:14px}
+.auction-body .rarity-chip{align-self:flex-start;font-size:10px;padding:3px 7px}
+.auction-body h3{margin:2px 0 0;font-size:16px;line-height:1.25;overflow-wrap:anywhere}
+.auction-body>small{color:var(--ui-muted);font-size:11px}
+.auction-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 0}
+.auction-facts div{padding:8px;background:var(--ui-field);border:1px solid var(--ui-border);border-radius:4px;min-width:0}
+.auction-facts dt{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ui-muted)}
+.auction-facts dd{margin:3px 0 0;font-size:14px;font-weight:700}
+.auction-time{display:flex;align-items:center;gap:6px;margin:4px 0 0;font-size:12px;color:var(--ui-accent,#dfc475)}
+.auction-time svg{width:14px;height:14px}
+.auction-time.done{color:var(--ui-muted)}
+.auction-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:10px}
+.auction-actions .button{flex:1;min-width:0;padding:10px 12px;font-size:12px;white-space:nowrap}
+.auction-note{color:var(--ui-muted);font-size:11px;line-height:1.4}
+.auction-compose>p,.auction-confirm>p{font-size:13px;line-height:1.6}
+.auction-fields{display:grid;grid-template-columns:1fr 1fr 150px;gap:12px;margin:16px 0 8px}
+.auction-fields select{width:100%;height:42px;padding:0 10px;border-radius:4px}
+.auction-fields label small{font-weight:400;color:var(--ui-muted)}
+.auction-confirm-item{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;margin:14px 0;padding:10px;background:var(--ui-field);border:1px solid var(--ui-border);border-left:3px solid var(--rarity);border-radius:4px}
+.auction-confirm-item img{width:100%;height:auto;aspect-ratio:1.44;object-fit:cover;border-radius:3px}
+.auction-confirm-item .auction-facts{margin:0}
+.auction-confirm .trade-coins-field{margin:14px 0}
+@media(max-width:700px){.auction-toolbar>.auction-tabs{flex-basis:100%}.auction-search{max-width:none}.auction-fields{grid-template-columns:1fr}.auction-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.auction-confirm-item{grid-template-columns:1fr}}
+@media(max-width:420px){.auction-grid{grid-template-columns:1fr}}
+.clubhouse-menu .auction-search input{background:transparent!important;border:0!important;box-shadow:none!important}
