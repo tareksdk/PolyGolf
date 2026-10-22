@@ -17,22 +17,25 @@ export const EVENT_COURSES = [
 const mod=(a,b)=>((a%b)+b)%b;
 export function rotationSlots(now=Date.now()) {
   const day=Math.floor((Number(now)-EPOCH)/DAY),week=Math.floor(day/7);
-  return {seasonal:halloweenActive(now)?3:null,weekly:4+mod(week,5),daily:9+mod(day,5),day,week,
+  // The former daily sprint joins the weekly shelf. The Wednesday offset
+  // retains the sprint featured when Cinder Crown was introduced (21 Oct).
+  return {seasonal:halloweenActive(now)?3:null,weekly:4+mod(week,5),daily:9+mod(week*7+2,5),day,week,
     dailyEnds:EPOCH+(day+1)*DAY,weeklyEnds:EPOCH+(week+1)*7*DAY,seasonalEnds:HALLOWEEN_END};
 }
 export function courseRotationKey(index,now=Date.now()) {
   const s=rotationSlots(now);
   if(index===17)return 'month-'+new Date(now).toISOString().slice(0,7);
-  return index>=14?'':index===3?'halloween-2026':index>=9?'day-'+s.day:index>=4?'week-'+s.week:'';
+  if(index===18)return 'day-'+s.day;
+  return index>=14?'':index===3?'halloween-2026':index>=9?'week-sprint-'+s.week:index>=4?'week-'+s.week:'';
 }
 export function courseAvailable(index,now=Date.now()) {
   const s=rotationSlots(now);
-  return Number.isInteger(index)&&index>=0&&(index<3||(index>=14&&index<=17)||[s.seasonal,s.weekly,s.daily].includes(index));
+  return Number.isInteger(index)&&index>=0&&(index<3||(index>=14&&index<=18)||[s.seasonal,s.weekly,s.daily].includes(index));
 }
 export function featuredCourses(now=Date.now()) {
   const s=rotationSlots(now);
   const date=new Date(now),monthlyEnds=Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1);
-  return [{index:17,label:'Map of the month',ends:monthlyEnds},{index:s.seasonal,label:'Seasonal course',ends:s.seasonalEnds},{index:s.weekly,label:'Map of the week',ends:s.weeklyEnds},{index:s.daily,label:'Hole of the day',ends:s.dailyEnds},...[14,15,16].map(index=>({index,label:'Nine-hole collection'}))].filter(x=>x.index!==null);
+  return [{index:18,label:'Map of the day',ends:s.dailyEnds},{index:17,label:'Map of the month',ends:monthlyEnds},{index:s.seasonal,label:'Seasonal course',ends:s.seasonalEnds},{index:s.weekly,label:'Map of the week',ends:s.weeklyEnds},{index:s.daily,label:'Weekly sprint',ends:s.weeklyEnds},...[14,15,16].map(index=>({index,label:'Full course'}))].filter(x=>x.index!==null);
 }
 // Stable layouts: the date selects a course, never changes an in-progress replay.
 export function eventLayout(course,index) {

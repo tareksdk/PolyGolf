@@ -86,7 +86,7 @@ export class GameManager {
       };
     this.normalizeAim();
     this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
-    this.world.zoom = this.mode === "golf" ? 13 : 18;
+    this.world.zoom = this.hole.volcanic ? 17 : this.mode === "golf" ? 13 : 18;
     this.world.pitch = 0.24;
     this.shape = this.spin = 0;
     this.autoAim();
@@ -429,7 +429,7 @@ export class GameManager {
       if (document.hidden && this.state === "playing") this.pause();
     });
     document.addEventListener('focusin', (e) => {
-      if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target?.tagName) || e.target?.isContentEditable) this.heldKeys.clear();
+      if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target?.tagName) || e.target?.isContentEditable) this.clearInput();
     });
   }
   aimAt(e) {

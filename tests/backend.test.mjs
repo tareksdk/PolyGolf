@@ -53,6 +53,8 @@ let trading=await readFile(new URL('../backend/trading.ts',import.meta.url),'utf
 source=source.replace("'./trading.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(trading)).toString('base64')));
 let rooms=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');rooms=rooms.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(rooms)).toString('base64')));
+let auctions=await readFile(new URL('../backend/auctions.ts',import.meta.url),'utf8');auctions=auctions.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
+source=source.replace("'./auctions.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(auctions)).toString('base64')));
 // Exercise the existing all-access reward with a test-only code alias.
 const allAccessTestCode='local-test-all-access';
 source=source.replace('575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1721f74b',createHash('sha256').update(allAccessTestCode).digest('hex'));
@@ -67,6 +69,16 @@ test('restored guest play starts Halloween rounds but keeps account-only ranked 
   const round=rounds.get('round-test');assert.equal(round.hole_count,3);assert.equal(round.rotation_key,'halloween-2026');assert.equal(round.rules_version,RULES_VERSION);
   const inactive=Array.from({length:11},(_,i)=>i+3).find(i=>!courseAvailable(i));
   await assert.rejects(call('start_round',{mode:'golf',course:inactive}),/rotated/);
+ }finally{players.set('a',original);rounds.delete('round-test');}
+});
+test('published backend starts Cinder Crown with three holes and retains the auction account gate',async()=>{
+ const original=structuredClone(players.get('a')),p=players.get('a');p.is_guest=true;p.state=defaultSave();
+ try{
+  await assert.rejects(call('auctions'),/accounts at level 5/);
+  await call('start_round',{mode:'golf',course:18});
+  const round=rounds.get('round-test');assert.equal(round.course,18);assert.equal(round.hole_count,3);
+  assert.match(round.rotation_key,/^day-/);assert.equal(round.rules_version,RULES_VERSION);
+  await assert.rejects(call('start_round',{mode:'golf',course:19}),/Unknown course/);
  }finally{players.set('a',original);rounds.delete('round-test');}
 });
 

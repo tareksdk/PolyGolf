@@ -153,7 +153,16 @@ export class GolfCloud {
     return this.refreshing;
   }
   async call(action, data = {}) {
-    if (this.localPreview) throw Error(LOCAL_ONLY);
+    // Public browsing is read-only. Local previews never restore an account,
+    // send a bearer token, or permit mutations through this exception.
+    if (this.localPreview) {
+      if(action!=='community_maps')throw Error(LOCAL_ONLY);
+      const mode=data.mode==='golf'?'golf':'mini',offset=Number.isInteger(data.offset)&&data.offset>=0?data.offset:0;
+      const response=await request(`/__preview/community?mode=${mode}&offset=${offset}`,{signal:AbortSignal.timeout(20000)});
+      const result=await response.json();
+      if(!response.ok||result.error)throw Error(result.error||'Community maps are unavailable. Please try again.');
+      return {maps:Array.isArray(result.maps)?result.maps:[]};
+    }
     if (!["login", "signup", "guest"].includes(action)) await this.refresh();
     const actor=this.session?.user.id;
     const response = await request(SUPABASE_URL + "/functions/v1/little-links", {

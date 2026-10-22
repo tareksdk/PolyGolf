@@ -1,3 +1,5 @@
+import { tradeUp } from './shared/trade-ups.js';
+import {auctionAction} from './auctions.ts';
 import { NEW_HOLE_EFFECT_IDS } from './shared/hole-effects-catalog.js';
 import {courseAvailable,courseRotationKey} from './shared/rotating-courses.js';
 import {roomAction} from './rooms.ts';
@@ -79,7 +81,7 @@ async function submit(p:any,b:any){
  if(r.competitive_id){const s=await rpc('ranked_status',{p_user:p.id});if(s.match?.id!==r.competitive_id||s.match.phase!=='playing')throw Error('This competitive match has ended.');}
  if(r.room_id){const room=(await table('rooms','id=eq.'+r.room_id))[0];if(!room||room.state.phase!=='playing'||room.state.hole!==b.index||!room.state.members.some((m:any)=>m.id===p.id))throw Error('This room is not playing that hole.');}
  const result=verifyHole(r,b.index,b.transcript,b.endTick);const elapsed=(Date.now()-new Date(r.updated_at).getTime())/1000;if(result.time>elapsed+3)throw Error('Replay time is ahead of the server.');
- result.skipped=b.transcript.some((c:any)=>c.kind==='skip');const pm=progress(p);if(result.pirateHit)pm.discoverPirate();if(result.pumpkinHit)pm.discoverPumpkin();if(b.index===0)pm.data.stats.games++;const reward=result.skipped?{coins:0,xp:0}:pm.completeHole({...result,time:elapsed,round:{practice:false}});if(result.collectible&&!result.skipped)pm.collectible(false);
+ result.skipped=b.transcript.some((c:any)=>c.kind==='skip');const pm=progress(p);if(result.pirateHit)pm.discoverPirate();if(result.pumpkinHit)pm.discoverPumpkin();if(result.darbyFound)pm.discoverDarby();if(b.index===0)pm.data.stats.games++;const reward=result.skipped?{coins:0,xp:0}:pm.completeHole({...result,time:elapsed,round:{practice:false}});if(result.collectible&&!result.skipped)pm.collectible(false);
  const holes=[...r.holes,result],count=r.hole_count,finished=holes.length===count;let record=null,bonus={coins:0,xp:0};
  if(finished){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,rotationKey:r.rotation_key,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
  result.finished=finished;if(finished)result.bonus=bonus;const state=await save(p,pm,{p_round:r.id,p_hole:b.index,p_result:result,p_record:record});return{state,result,reward,bonus,finished};
@@ -129,20 +131,21 @@ Deno.serve(async req=>{
    await limited('username-change:'+p.id,12,600);
    result=await rpc('change_username',{p_user:p.id,p_username:username,p_expected_cost:b.expectedCost,p_request_id:b.requestId});
   }
+  else if(['auctions','auction_create','auction_bid','auction_buy','auction_cancel'].includes(action))result=await auctionAction(action,p,b,{table,rpc,limited});
   else if(['trades','trade_inventory','trade_create','trade_accept','trade_close'].includes(action))result=await tradingAction(action,p,b,{table,rpc,insert,limited});
   else if(['profile','update_profile','search_players','friends','friend_action'].includes(action))result=await socialAction(action,p,b,{table,rpc,update});
   else if(['ranked_status','ranked_queue','ranked_leave','ranked_shot'].includes(action))result=await enrichRanked(p,await competitiveAction(action,p,b,{table,rpc}));
   else if(action==='start_round'){const c=info(b.mode,b.course);if(b.mode==='golf'&&!courseAvailable(b.course))throw Error('This featured course has rotated. Choose the current course.');if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9,rotation_key:b.mode==='golf'?courseRotationKey(b.course):''}))[0];result={roundId:r.id,rotationKey:r.rotation_key};}
   else if(action==='submit_hole')result=await submit(p,b);
-  else if(action==='claim_ship'||action==='claim_pumpkin'){
-   const pumpkin=action==='claim_pumpkin',discovery=pumpkin?'pumpkin':'pirate';
+  else if(action==='claim_ship'||action==='claim_pumpkin'||action==='claim_darby'){
+   const darby=action==='claim_darby',pumpkin=action==='claim_pumpkin',discovery=darby?'darby':pumpkin?'pumpkin':'pirate';
    if(pumpkin&&!halloweenActive())throw Error('The Halloween event has ended. Your earned items are yours to keep.');
    if(p.state.achievementRewards?.includes(discovery))result={state:p.state,already:true};
    else {const r=(await table('rounds','id=eq.'+encodeURIComponent(b.roundId)+'&user_id=eq.'+p.id))[0];
-    if(!r||r.finished||r.mode!=='golf'||!(pumpkin?[2,16]:[1,15]).includes(r.course)||r.next_hole!==b.index||r.rules_version!==RULES_VERSION)throw Error('Start an online round on the discovery’s course to claim this reward.');
-    const hit=verifyHole(r,b.index,b.transcript,b.endTick,{featureOnly:pumpkin?'pumpkin':true});
+    if(!r||r.finished||r.mode!=='golf'||!(darby?[0,14]:pumpkin?[2,16]:[1,15]).includes(r.course)||r.next_hole!==b.index||r.rules_version!==RULES_VERSION)throw Error('Start an online round on the discovery’s course to claim this reward.');
+    const hit=verifyHole(r,b.index,b.transcript,b.endTick,{featureOnly:darby?'darby':pumpkin?'pumpkin':true});
     if(hit.time>(Date.now()-Date.parse(r.updated_at))/1000+3)throw Error('Replay time is ahead of the server.');
-    const pm=progress(p);pumpkin?pm.discoverPumpkin():pm.discoverPirate();result={state:await save(p,pm),unlocked:pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate']};
+    const pm=progress(p);darby?pm.discoverDarby():pumpkin?pm.discoverPumpkin():pm.discoverPirate();result={state:await save(p,pm),unlocked:darby?['nameplate-darby']:pumpkin?['ball-pumpkin-find','nameplate-pumpkin-find']:['ball-pirate','nameplate-pirate']};
    }
   }
   else if(action==='claim_social'){const pm=progress(p),outcome=claimSocialReward(pm,b.id);result={state:outcome.duplicate?p.state:await save(p,pm),outcome};}
@@ -150,8 +153,7 @@ Deno.serve(async req=>{
   else if(action==='redeem_code'){
    await limited('gift:'+p.id,8,600);
    const digest=typeof b.code==='string'?await hash(b.code.trim()):'';
-   const rewards:any={
-    'f8f474a55befde8bbea518f35f96edfaa2a72a282104b96df2bf521ebde6a675':{id:'supreme-israel-ball-2026',tokens:0,items:['ball-israel'],message:'Israel Flag ball unlocked. Equip it in your caddie for a flag and fireworks on every sunk putt.'},
+   const rewards:any={'f8f474a55befde8bbea518f35f96edfaa2a72a282104b96df2bf521ebde6a675':{id:'supreme-israel-ball-2026',tokens:0,items:['ball-israel'],message:'Israel Flag ball unlocked. Equip it in your caddie for a flag and fireworks on every sunk putt.'},
     '1e6288fee2b560c035a4d08666ef0038f035ad6b0bccc7f78f96ddc5195d6377':{id:'mystery-driver-2026',tokens:0,items:['driver-mystery'],message:'??? unlocked. Equip your secret driver in the Caddie.'},
     'e0c36904590e80e8a87c3feaf5ba196b706ca6fb6321e433c4a6a6fe0b33912e':{id:'new-hole-effects-2026',tokens:0,items:NEW_HOLE_EFFECT_IDS,message:'All ten new hole effects unlocked. Equip them in your Caddie.'},
     '43b1564ce21d50e46d7e23cccb9a5b5104c75f2bade76dded361c33cc052bf56':{id:'five-custom-plates-2026',tokens:0,items:['nameplate-midnight-ace','nameplate-solar-crown','nameplate-lucky-clover','nameplate-neon-comet','nameplate-royal-flush'],message:'Five custom nameplates unlocked: Midnight Ace, Solar Crown, Lucky Clover, Neon Comet and Royal Flush.'},
@@ -195,6 +197,11 @@ Deno.serve(async req=>{
    const pm=progress(p);let outcome:any=true;
    if(action==='buy'){outcome=pm.buy(b.id);if(!outcome.ok)throw Error(outcome.message);}if(action==='equip'){if(!pm.equip(b.id,b.seed))throw Error('Earn or buy that item and pattern before equipping it.');}
    if(action==='claim_login'){outcome=pm.claimLogin();if(!outcome)throw Error('Today’s reward is already claimed.');}if(action==='claim_challenge'&&!pm.claimChallenge(b.id))throw Error('This challenge is not ready to claim.');if(action==='join_club')joinClub(pm);if(action==='claim_tier')claimTier(pm,b.tier);if(action==='claim_club_daily')claimClubDaily(pm);result={state:await save(p,pm),outcome};
+  }else if(action==='trade_up'){
+   if(p.is_guest)throw Error('Sign in to trade up items.');
+   await limited('trade-up:'+p.id,20,60);const pm=progress(p);
+   const random=await roundRandom('trade-up:'+b.requestId,p.id);
+   const outcome=tradeUp(pm,b.items,b.requestId,random);result={state:await save(p,pm),outcome};
   }else if(action==='open_locker'||action==='buy_bundle'){const pm=progress(p);const random=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296;const outcome=action==='open_locker'?(b.count===undefined?openLocker(pm,b.id,b.requestId,random):openLockers(pm,b.id,b.count,b.requestId,random)):buyBundle(pm,b.id);result={state:await save(p,pm),outcome};}
   else if(action==='claim_achievement'){const pm=progress(p),outcome=pm.claimAchievement(b.id);result={state:await save(p,pm),outcome};}
   else if(action==='save_map'){requireEditor(progress(p));const layout=validateMap(b.map),existing=(await table('maps','user_id=eq.'+p.id+'&name=eq.'+encodeURIComponent(layout.name)))[0];if(existing)await update('maps','id=eq.'+existing.id,{layout,updated_at:new Date().toISOString()});else{const count=await table('maps','user_id=eq.'+p.id+'&select=id');if(count.length>=30)throw Error('Your account holds up to 30 maps. Reuse a name to update one.');await insert('maps',{user_id:p.id,name:layout.name,layout});}result={ok:true};}

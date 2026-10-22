@@ -8,7 +8,8 @@ import { verifyHole } from '../dist/src/replay.js';
 // solution is replayed by the server verifier with the starting equipment.
 const option = name => process.argv.find(a => a.startsWith(name + '='))?.slice(name.length + 1);
 const solutions = [];
-for (let c = 0; c < 3; c++) for (let index = 0; index < golfHoleCount(c); index++) {
+const requestedCourse=option('--course');
+for (const c of requestedCourse===undefined?[0,1,2]:[Number(requestedCourse)]) for (let index = 0; index < golfHoleCount(c); index++) {
   if (option('--course') !== undefined && c !== Number(option('--course'))) continue;
   if (option('--hole') !== undefined && index !== Number(option('--hole'))) continue;
   const h = getGolfHole(c, index), commands = [], landings = [];

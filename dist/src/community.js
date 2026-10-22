@@ -3,11 +3,11 @@ import { buildMap } from "./maps.js";
 export function communityView(ui) {
   return page(
     ui,
-    "Community greens.",
+    "Community Maps",
     ui.mode === "golf"
-      ? "Full-size golf holes made by the community. Play, explore and leave a like."
-      : "Mini-golf courses made by the community. Play, explore and leave a like.",
-    `<div class="community-toolbar">${button("Create a map", "editor", "", "button yellow")}${button("Refresh", "community-refresh", "", "button secondary")}<span>Custom maps are practice rounds.</span></div><div id="community-list" class="course-grid"><section class="panel">Loading community courses…</section></div><div class="community-toolbar">${button("Previous", "community-prev", (ui.communityOffset || 0) === 0 ? "disabled" : "", "button secondary")}${button("Next", "community-next", "", "button secondary")}</div>`,
+      ? "Full-size golf holes made by the community. Find your next favourite."
+      : "Mini-golf courses made by the community. Find your next favourite.",
+    `<div class="community-toolbar">${button("← Official courses", "courses", "", "button secondary")}${button("Create a map", "editor", "", "button yellow")}${button("Refresh", "community-refresh", "", "button secondary")}<span>${ui.localPreview?'Published maps · Play locally · Likes and publishing require the live game.':'Custom maps are practice rounds.'}</span></div><div id="community-list" class="course-grid"><section class="panel">Loading community courses…</section></div><div class="community-toolbar">${button("Previous", "community-prev", (ui.communityOffset || 0) === 0 ? "disabled" : "", "button secondary")}${button("Next", "community-next", "", "button secondary")}</div>`,
   );
 }
 export async function loadCommunity(ui) {
@@ -25,7 +25,7 @@ export async function loadCommunity(ui) {
       ? maps
           .map(
             (m) =>
-              `<article data-card class="course-card panel"><div class="course-image"><img data-course-preview="custom:${m.id}:${Date.parse(m.published_at)}" src="${ui.world.mapThumbnail(m.layout, m.id + ":" + Date.parse(m.published_at))}" alt="${esc(m.name)} course preview"></div><div class="course-body"><span class="course-number">PAR ${m.layout.par} · BY ${esc(m.author)}</span><h2>${esc(m.name)}</h2><div class="community-actions">${button("Play map", "community-play", `data-card-primary data-id="${m.id}"`, "button yellow")}${button((m.liked ? "♥" : "♡") + " " + m.likes, "community-like", `data-id="${m.id}" aria-label="${m.liked ? "Unlike" : "Like"} ${esc(m.name)}" ${m.own ? "disabled" : ""}`, "button secondary")}${button("Edit a copy", "community-copy", `data-id="${m.id}"`, "text-button")}${m.own ? button("Unpublish", "community-unpublish", `data-id="${m.id}"`, "text-button") : ""}</div></div></article>`,
+              `<article data-card class="course-card panel"><div class="course-image"><img data-course-preview="custom:${m.id}:${Date.parse(m.published_at)}" src="${ui.world.mapThumbnail(m.layout, m.id + ":" + Date.parse(m.published_at))}" alt="${esc(m.name)} course preview"></div><div class="course-body"><span class="course-number">PAR ${m.layout.par} · BY ${esc(m.author)}</span><h2>${esc(m.name)}</h2><div class="community-actions">${button("Play map", "community-play", `data-card-primary data-id="${m.id}"`, "button yellow")}${button((m.liked ? "♥" : "♡") + " " + m.likes, "community-like", `data-id="${m.id}" aria-label="${m.liked ? "Unlike" : "Like"} ${esc(m.name)}" ${m.own || ui.localPreview ? "disabled" : ""}`, "button secondary")}${button("Edit a copy", "community-copy", `data-id="${m.id}"`, "text-button")}${m.own ? button("Unpublish", "community-unpublish", `data-id="${m.id}"`, "text-button") : ""}</div></div></article>`,
           )
           .join("")
       : '<section class="panel empty-state"><h2>A fresh patch of green.</h2><p>No maps on this page yet. Publish yours from the map editor.</p></section>';

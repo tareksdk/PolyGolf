@@ -38,6 +38,24 @@ test('Classic remains power first, then a second press locks direction',()=>{
   assert.equal(g.shotPhase,'direction');assert.equal(g.pendingSwing,null);
   pointer.pointerdown(click);pointer.pointerup(click);assert.ok(g.pendingSwing);
 });
+test('Classic locks the last visible direction for both mouse and Space, even if the next frame advanced',()=>{
+  for(const visible of [-1,-.73,0,.73,1])for(const input of ['mouse','keyboard']){
+    const {g,pointer,keys}=game(),space={code:'Space',preventDefault(){}};
+    pointer.pointerdown(click);g.update(.8);pointer.pointerup(click);
+    const power=g.power;g.displayedAccuracy=visible;g.update(.05);
+    const expected=shotDirection(g.direction,visible,false);
+    if(input==='mouse')pointer.pointerdown(click);else keys.keydown(space);
+    assert.deepEqual(g.pendingSwing.dir,expected);assert.equal(g.pendingSwing.power,power);
+    pointer.pointerup(click);keys.keyup(space);g.update(.6);
+    assert.equal(g.strokes,1);assert.equal(g.transcript.length,1);
+  }
+});
+test('a quick Classic second click locks once without starting another power hold',()=>{
+  const {g,pointer}=game();pointer.pointerdown(click);g.update(.8);pointer.pointerup(click);
+  pointer.pointerdown(click);pointer.pointerup(click);pointer.pointerdown(click);pointer.pointerup(click);
+  assert.ok(g.pendingSwing);assert.equal(g.charging,false);g.update(.6);
+  assert.equal(g.strokes,1);assert.equal(g.transcript.length,1);
+});
 test('held arrow aiming and camera orbit are continuous and independent of key-repeat or refresh rate',()=>{
   const angleAt=fps=>{
     const {g,world,keys}=game();const before=Math.atan2(g.direction.z,g.direction.x),orbit=world.orbit;
@@ -165,6 +183,22 @@ test('focus changes clear held navigation keys, and a held Escape does not toggl
   events.focusin({target:{tagName:'SELECT'}});assert.equal(g.heldKeys.size,0);
   const escape={code:'Escape',preventDefault(){}};keys.keydown(escape);keys.keydown({...escape,repeat:true});
   assert.equal(g.state,'paused');keys.keydown(escape);assert.equal(g.state,'playing');
+});
+test('moving focus into a control disarms both meter styles before a delayed key release',()=>{
+  for(const style of ['classic','fluid'])for(const tagName of ['BUTTON','INPUT','SELECT','TEXTAREA']){
+    const {g,keys,events}=game(style),space={code:'Space',preventDefault(){}};
+    keys.keydown(space);g.update(.6);
+    events.focusin({target:{tagName}});keys.keyup(space);g.update(.6);
+    assert.equal(g.charging,false,style+' '+tagName);assert.equal(g.shotPhase,'aim');
+    assert.equal(g.pendingSwing,null);assert.equal(g.strokes,0);
+  }
+});
+test('tabbing away from Classic direction selection cancels it, while returning to the canvas keeps normal input',()=>{
+  const {g,keys,events}=game(),space={code:'Space',preventDefault(){}};
+  keys.keydown(space);g.update(.7);keys.keyup(space);assert.equal(g.shotPhase,'direction');
+  events.focusin({target:{tagName:'BUTTON'}});assert.equal(g.shotPhase,'aim');
+  events.focusin({target:{tagName:'CANVAS'}});keys.keydown(space);g.update(.4);keys.keyup(space);
+  assert.equal(g.shotPhase,'direction');assert.equal(g.strokes,0);
 });
 test('meter rendering clamps invalid power and direction at the display boundary',()=>{
   const {g,world}=game();g.charging=true;

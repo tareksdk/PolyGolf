@@ -1,3 +1,7 @@
+## Cinder Crown and meter cancellation · v1.5
+
+Apply `backend/cinder-crown.sql` to extend only the round-course constraint to 18. Existing scores, accounts and rule keys are retained. The backend source was reconciled against live function version 37, preserving auctions, stacked-item trades, trade-ups and Darby. Deploy the complete 43-file `little-links` bundle before publishing `dist/` to both existing sites. Keep gateway JWT verification at its existing disabled setting; protected actions validate their bearer token inside the handler. Replay rules remain `polygolf-v11`. Verify daily course 18, weekly sprint keys, both meters and both public domains.
+
 ## Long-course adventures · v1.1
 
 Preserve the recovered live First Swing/Meadowcrest, item, profile and rematch features included in this source. Apply `backend/long-courses.sql` once to extend the round-course constraint to 16; it does not modify records. Replay version stays `polygolf-v11`, and existing record keys stay intact. Package/deploy the matching `little-links` function first, including the new shared encounter and layout modules, then publish the same `dist/` snapshot to both existing sites. Do not deploy QA files. Verify v1.1, Classics, Adventures and Long rounds on both domains. New long rounds inherit the original course unlock levels.

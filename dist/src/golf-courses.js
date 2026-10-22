@@ -1,4 +1,5 @@
 import { SKY_COURSE, skyIslandLayout, islandAt, springAt } from './sky-island-layouts.js';
+import { VOLCANIC_COURSE, volcanicLayout, lavaSample, volcanicGround } from './volcanic-layouts.js';
 import { SALTWIND_EXTRA, AUTUMN_EXTRA } from './long-course-layouts.js';
 import { populateForest } from "./forest.js";
 import { samplePath } from "./courses.js";
@@ -56,6 +57,7 @@ GOLF_COURSES.push({...GOLF_COURSES[0], id:"willow-long", name:"Willow Park · Lo
 GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links · Long Course", subtitle:"Nine holes along the cliffs, coves and coastal greens.", tag:"THE SMUGGLER'S NINE", layoutCourse:1, holeCount:9});
 GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine holes through golden woodland and mountain meadows.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
 GOLF_COURSES.push(SKY_COURSE);
+GOLF_COURSES.push(VOLCANIC_COURSE);
 export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");
@@ -427,6 +429,7 @@ layouts[2].push(...AUTUMN_EXTRA);
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function golfLayout(courseIndex,index) {
   const course=GOLF_COURSES[courseIndex];
+  if(course?.id==='cinder-crown')return volcanicLayout(index);
   if(course?.slot==='monthly')return skyIslandLayout(index);
   if(!course||!Number.isInteger(index)||index<0||index>=golfHoleCount(courseIndex))throw Error("Unknown golf hole");
   return course.eventTheme?eventLayout(course,index):layouts[course.layoutCourse??courseIndex][index];
@@ -473,7 +476,7 @@ export function buildGolfLayout(courseIndex, index, layout, scenery = true) {
     moving: [],
     samples: points.map(([x, z], i) => ({ x, z, t: i / 4 })),
   };
-  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure", "islands"])
+  for (const key of ["elevation", "mounds", "fairwayBands", "treeStyle", "glades", "backdrop", "atmosphere", "encounter", "vignette", "longAdventure", "islands", "volcanic", "lavaLevel", "lavaChannels", "volcanoes", "tip"])
     if (layout[key] !== undefined) h[key] = structuredClone(layout[key]);
   h.route = samplePath(points, 64).map((p) => [p.x, p.z]);
   h.trees = [];
@@ -638,9 +641,10 @@ export function terrainHeight(h, x, z) {
     const bank=springAt(h,x,z,1.5);
     if(bank){const u=clamp((bank.width+1.5-bank.distance)/1.5,0,1),blend=u*u*(3-2*u);y=y*(1-blend)+(springWaterLevel(h,bank.spring)-.55)*blend;}
   }
-  return y;
+  return h.volcanic ? volcanicGround(h,x,z,y) : y;
 }
 export function terrainAt(h, x, z) {
+  if(h.volcanic){const lava=lavaSample(h,x,z);if(lava.edge<=0)return {height:lava.level,normal:{x:0,y:1,z:0},surface:'rough',hazard:'water',hazardKind:'lava'};}
   if(h.islands&&!islandAt(h,x,z))return {height:-85,normal:{x:0,y:1,z:0},surface:"rough",hazard:"void"};
   if(h.islands){const spring=springAt(h,x,z);if(spring)return {height:springWaterLevel(h,spring.spring),normal:{x:0,y:1,z:0},surface:'rough',hazard:'water'};}
   if ((h.layoutCourse ?? h.courseIndex) === 1) {

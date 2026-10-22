@@ -10,7 +10,7 @@ create table public.golf_rooms (
 create table public.golf_rounds (
  id uuid primary key default gen_random_uuid(), user_id uuid not null references public.golf_players(id) on delete cascade,
  room_id uuid references public.golf_rooms(id) on delete cascade,
- mode text not null check(mode in ('golf','mini')), course integer not null check((mode='mini' and course between 0 and 4) or (mode='golf' and course between 0 and 16)),
+ mode text not null check(mode in ('golf','mini')), course integer not null check((mode='mini' and course between 0 and 4) or (mode='golf' and course between 0 and 18)),
  next_hole integer not null default 0, holes jsonb not null default '[]', equipment jsonb not null,
  created_at timestamptz not null default now(), updated_at timestamptz not null default now(), finished boolean not null default false
 );

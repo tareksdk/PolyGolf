@@ -6,7 +6,7 @@ export function waterContact(hole, ball) {
   if (hole.mode === 'golf') {
     const surface = terrainAt(hole, ball.x, ball.z);
     if (surface.hazard !== 'water') return null;
-    return {...ball, y: hole.courseIndex === 1 && (surface.height===-43||surface.height===coastWaterLevel(hole)) ? coastWaterLevel(hole) : surface.height};
+    return {...ball,kind:surface.hazardKind||'water', y: hole.courseIndex === 1 && (surface.height===-43||surface.height===coastWaterLevel(hole)) ? coastWaterLevel(hole) : surface.height};
   }
   return {...ball, y: -.04};
 }
@@ -59,9 +59,16 @@ export class WaterEffects {
     if (!contact || ![contact.x,contact.y,contact.z].every(Number.isFinite)) return;
     this.reset();
     const w=this.world, reduced=w.settings?.reducedMotion;
+    const lava=contact.kind==='lava';
+    this.spray.material.color.set(lava?'#ffd867':'#d0f6fa');
+    this.crown.material.color.set(lava?'#8c301c':'#bceef1');
+    for(const ring of this.rings)ring.material.color.set(lava?'#7c3322':'#d9fbf7');
+    for(const mesh of [this.spray,this.crown,...this.rings]){
+      if(mesh.material.toneMapped!==!lava){mesh.material.toneMapped=!lava;mesh.material.needsUpdate=true;}
+    }
     const speed=Math.hypot(contact.vx||0,contact.vy||0,contact.vz||0);
     const size=Math.min(1.8,.85+speed*.018), hold=reduced?.65:1.25;
-    this.moment={age:0, size, hold, x:contact.x,y:contact.y,z:contact.z};
+    this.moment={age:0, size, hold, kind:lava?'lava':'water', x:contact.x,y:contact.y,z:contact.z};
     w.waterMoment=this.moment;
     w.cameraHold={x:contact.x,y:contact.y,z:contact.z};
     this.root.position.set(contact.x,contact.y+.035,contact.z);
@@ -88,7 +95,7 @@ export class WaterEffects {
     const rise=Math.sin(Math.min(1,t/.62)*Math.PI);
     this.crown.visible=t<.62;
     this.crown.scale.set(size*(.2+t*1.8),size*rise*1.25,size*(.2+t*1.8));
-    this.crown.material.opacity=.75*(1-t/.7);
+    this.crown.material.opacity=(m.kind==='lava'?.95:.75)*(1-t/.7);
     this.rings.forEach((ring,i)=>{
       const age=t-i*.16, active=age>=0&&age<1.85;
       ring.visible=active;

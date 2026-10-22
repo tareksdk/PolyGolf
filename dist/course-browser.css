@@ -1,0 +1,20 @@
+/* One scrolling library, with distinct shelves and a permanent community exit. */
+.clubhouse-menu .course-menu .arcade-page-header{display:flex;align-items:center;justify-content:space-between;gap:28px}
+.course-menu .course-page-title{width:auto}
+.course-menu .community-map-link{display:flex!important;align-items:center;justify-content:space-between;gap:24px;flex:none;padding:16px 20px;border:1px solid var(--club-gold);background:#e9cc78;color:#183b2e;min-width:265px;text-align:left;box-shadow:none}
+.community-map-link>span{display:grid;grid-template-columns:22px 1fr;gap:4px 10px}.community-map-link svg{grid-row:span 2;width:21px;height:21px;align-self:center}.community-map-link strong{font-size:15px}.community-map-link small{font-size:11px;font-weight:400}.community-map-link>b{font-size:26px;font-weight:400}
+.course-menu .course-sections{gap:36px}
+.course-menu .course-section{--shelf:#9cb982;border-top:3px solid var(--shelf);padding-top:16px}
+.course-menu .course-section-blitz{--shelf:#e8bb67}.course-menu .course-section-other{--shelf:#93b9c6}
+.course-menu .course-section-heading{margin:0 0 18px;gap:12px;align-items:center}
+.course-section-heading>div{display:flex;gap:12px;align-items:center}.course-section-number{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--shelf);color:var(--shelf);font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.course-menu .course-section-heading h2{font-size:24px;margin:0}.course-menu .course-section-heading>span{font-size:12px;color:var(--club-muted)}
+.clubhouse-menu .course-menu .arcade-courses{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.clubhouse-menu .course-menu .course-section-blitz .arcade-courses{grid-template-columns:repeat(4,minmax(0,1fr))}
+.course-menu .arcade-course-copy{gap:6px}.course-menu .arcade-course h3{font-size:22px;line-height:1.18}.course-menu .arcade-course p{font-size:12px;line-height:1.5}
+.course-menu .arcade-course .course-card-meta{min-height:23px;gap:7px}.course-menu .arcade-course-copy>.arcade-button{margin-top:auto}
+.course-menu .arcade-course.daily-volcano{border:1px solid #e4a556;background:#342d29}.course-menu .daily-volcano :is(h3,p,.arcade-course-record,.course-card-meta){color:#f6e3c6}.course-menu .daily-volcano .course-slot{background:#ffc660;color:#412915;border-color:transparent;font-weight:750}.course-menu .daily-volcano>.arcade-course-copy>.arcade-button{background:#efb75b;color:#392815;border-color:#efb75b}
+.course-weekly-heading{display:flex;align-items:baseline;gap:16px;border-top:1px solid var(--club-line);padding-top:20px;margin:24px 0 16px}.course-weekly-heading h3{font-size:18px;margin:0}.course-weekly-heading span{font-size:11px;color:var(--club-muted)}
+.community-toolbar [data-action=courses]{margin-right:auto}
+@media(max-width:1100px){.clubhouse-menu .course-menu .course-section-blitz .arcade-courses{grid-template-columns:repeat(2,minmax(0,1fr))}.course-menu .arcade-course h3{font-size:20px}.course-menu .community-map-link{min-width:240px}}
+@media(max-width:760px){.clubhouse-menu .course-menu .arcade-page-header{align-items:stretch;flex-direction:column;gap:18px}.course-menu .community-map-link{width:100%;min-width:0;padding:13px 16px}.course-menu .course-section-heading{align-items:flex-start;flex-direction:column;gap:8px}.course-menu .course-section-heading h2{font-size:22px}.course-menu .course-section-heading>span{padding-left:42px}.course-menu .course-sections{gap:28px}.course-weekly-heading{align-items:flex-start;flex-direction:column;gap:7px}.clubhouse-menu .course-menu .arcade-courses{grid-template-columns:1fr}.clubhouse-menu .course-menu .course-section-blitz .arcade-courses{grid-template-columns:1fr}.course-menu .arcade-course h3{font-size:23px}.course-menu .arcade-course p{font-size:13px}}

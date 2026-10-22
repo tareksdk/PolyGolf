@@ -1,5 +1,6 @@
 import { renderScale, effectiveGraphics } from './render-quality.js';
 import { renderFrame } from './render-frame.js';
+import { updateVolcanic } from './volcanic-render.js';
 import { halloweenActive } from './season.js';
 import { ballFinish } from "./item-designs.js";
 import { buildClub, trimClubCache } from "./club-models.js";
@@ -95,6 +96,8 @@ export class World {
     this.camera.updateProjectionMatrix();
   }
   clear() {
+    this.volcanic=null;
+    this.volcanicFalls=[];
     if (!this.group) return;
     this.scene.remove(this.group);
     this.group.traverse((o) => {
@@ -730,6 +733,7 @@ export class World {
     // animation, terrain queries, particle transforms or shadow bookkeeping.
     if (this.suspended) return;
     this.clock += dt;
+    updateVolcanic(this);
     if(this.clock>=(this.nextSeasonCheck||0)){
       this.nextSeasonCheck=this.clock+1;
       const visible=halloweenActive();
@@ -846,15 +850,16 @@ export class World {
       position.set(Math.sin(start + drift) * radius, 85, target.z + Math.cos(start + drift) * radius);
     } else if (this.mode === "play" && ball) {
       ball = this.cameraHold || ball;
+      const lavaImpact=this.waterMoment?.kind==='lava';
       target.set(ball.x, ball.y, ball.z);
-      if (this.hole.mode === "golf") {
+      if (this.hole.mode === "golf"&&!lavaImpact) {
         target.x -= Math.sin(this.orbit) * Math.min(10, this.zoom * 0.22);
         target.z -= Math.cos(this.orbit) * Math.min(10, this.zoom * 0.22);
       }
-      const zoom = this.zoom * (this.hole.mode === "golf" && physics?.airborne ? 1.8 : 1);
+      const zoom = lavaImpact?Math.max(22,Math.min(36,this.zoom)):this.zoom * (this.hole.mode === "golf" && physics?.airborne ? 1.8 : 1);
       position.set(
         ball.x + Math.sin(this.orbit) * zoom,
-        ball.y + (this.hole.mode === "golf" ? Math.max(2.5, zoom * (this.pitch || 0.32)) : zoom * 0.83),
+        ball.y + (lavaImpact?zoom*.9:this.hole.mode === "golf" ? Math.max(2.5, zoom * (this.pitch || 0.32)) : zoom * 0.83),
         ball.z + Math.cos(this.orbit) * zoom,
       );
     } else if (this.mode === "garage") {

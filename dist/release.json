@@ -1,7 +1,7 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "clubhouse-overhaul-1.3",
-  "date": "2026-10-19",
+  "contentVersion": "cinder-crown-meter-1.5",
+  "date": "2026-10-22",
   "items": 648,
   "lockers": 10,
   "patternSeeds": 1000,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.3",
+  "appVersion": "1.5",
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,
   "nativeResolutionFloor": true,
@@ -112,5 +112,12 @@
   "darbyDiscovery": true,
   "itemStacks": true,
   "tradeUps": true,
-  "flowingIslandWater": true
+  "flowingIslandWater": true,
+  "mapOfTheDay": "Cinder Crown",
+  "mapOfTheDayHoles": 3,
+  "courseBrowserSections": [
+    "Full Courses",
+    "Blitz Courses",
+    "Other Maps"
+  ]
 }

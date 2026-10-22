@@ -1,4 +1,5 @@
 import { buildPondWater } from './pond-water.js';
+import { buildVolcanicScenery } from './volcanic-render.js';
 import { buildSkyIslands } from './sky-islands.js';
 import { buildDarby } from './darby.js';
 import { buildLongCourseScenery } from './course-adventure-render.js';
@@ -64,6 +65,8 @@ export function batchScenery(world) {
 export function buildGolf(world, h) {
   world.clear();
   world.pirateShipMesh=null;
+  world.volcanic=null;
+  world.volcanicFalls=[];
   world.pirateShipGlints=[];
   world.hole = h;
   world.group = new THREE.Group();
@@ -78,7 +81,7 @@ export function buildGolf(world, h) {
   world.scene.fog = new THREE.Fog(h.atmosphere?.horizon || c.sky, 750, 2400);
   // Golf cameras stay metres away. Preserve depth precision across the forest.
   world.camera.near = 0.5;
-  world.camera.fov = 45;
+  world.camera.fov = h.volcanic ? 52 : 45;
   world.camera.far = 3000;
   world.camera.updateProjectionMatrix();
   world.renderer.toneMappingExposure = 1.05;
@@ -162,7 +165,8 @@ export function buildGolf(world, h) {
   };
   for (const p of h.water) buildPondWater(world,h,p);
   }
-  if(h.islands)courseAssets(world,h);
+  if(h.volcanic)buildVolcanicScenery(world,h);
+  else if(h.islands)courseAssets(world,h);
   else if(c.eventTheme) eventScenery(world,h);
   else { courseAssets(world,h); if(h.meadowcrestRange)buildMeadowcrestRange(world);else {buildBackdrop(world,h); buildCourseVignettes(world,h);} }
   buildDarby(world,h);

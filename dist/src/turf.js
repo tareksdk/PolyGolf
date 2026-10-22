@@ -26,7 +26,7 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
     : `turfOval(vTurfXZ,vec2(${number(p.x)},${number(p.z)}),vec2(${number(p.rx*scale)},${number(p.rz*scale)}))`;
   const fill=(coverage,color)=>`turf=mix(turf,${rgb(color)},${coverage});`;
   const layers=[fill(oval(h.green,1.12),h.course.stripe||'#648f43'),fill(oval(h.green,1),h.course.green||'#a9d66b'),fill('turfInside(max(abs(vTurfXZ.x)-4.0,abs(vTurfXZ.y)-6.0))',h.course.green||'#97bd65')];
-  for(const b of h.bunkers)layers.push(fill(oval(b,1.035),'#bca16f'),fill(oval(b,1),'#e3c990'));
+  for(const b of h.bunkers)layers.push(fill(oval(b,1.035),h.course.sandEdge||'#bca16f'),fill(oval(b,1),h.course.sand||'#e3c990'));
   for(const p of h.water)layers.push(fill(oval(p,1.07),'#a2a76d'),fill(oval(p,1),h.course.water));
   const fragment=`
     float coverage=texture2D(map,vMapUv).r;
@@ -35,6 +35,7 @@ export function turfMaterial(h, width, depth, top, quality='medium') {
     float stripe=turfInside(abs(mod(-vTurfXZ.y-5.5,22.0)-11.0)-5.5);
     vec3 turf=mix(${rgb(h.course.eventTheme?h.course.grass:(h.layoutCourse ?? h.courseIndex) === 2?'#718e3b':(h.layoutCourse ?? h.courseIndex) === 1?'#6d9645':'#5f923e')},mix(${rgb(h.course.fairway||'#8db954')},${rgb(h.course.stripe||'#80af49')},stripe),fairway);
     ${layers.join('\n')}
+    ${h.volcanic?'turf*=.96+.04*sin(vTurfXZ.x*.13+vTurfXZ.y*.04)*sin(vTurfXZ.y*.09);':''}
     diffuseColor.rgb*=turf;
   `;
   material.onBeforeCompile=shader=>{

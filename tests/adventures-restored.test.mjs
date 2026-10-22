@@ -13,9 +13,9 @@ const october=Date.parse('2026-10-16T12:00:00Z');
 mock.timers.enable({apis:['Date'],now:october});
 
 test('Halloween and rotating adventures coexist with the nine-hole Willow course',()=>{
- assert.equal(GOLF_COURSES.length,18);assert.equal(golfHoleCount(0),3);assert.equal(golfHoleCount(14),9);
+ assert.equal(GOLF_COURSES.length,19);assert.equal(golfHoleCount(0),3);assert.equal(golfHoleCount(14),9);
  assert.equal(GOLF_COURSES[3].name,'Hollow Lanterns');assert.equal(golfHoleCount(3),3);
- const features=featuredCourses(october);assert.equal(features.length,7);assert.equal(features[0].index,17);
+ const features=featuredCourses(october);assert.equal(features.length,8);assert.equal(features[0].index,18);assert.ok(features.some(f=>f.index===17));
  assert.ok(courseAvailable(3,october));assert.equal(courseRotationKey(3,october),'halloween-2026');
  let holes=0;
  for(let course=0;course<GOLF_COURSES.length;course++)for(let index=0;index<golfHoleCount(course);index++){
@@ -23,7 +23,7 @@ test('Halloween and rotating adventures coexist with the nine-hole Willow course
   for(const point of [h.start,h.cup]){const t=terrainAt(h,point.x,point.z);assert.ok(Number.isFinite(t.height));assert.equal(t.hazard,null);}
   assert.equal(verifyHole({mode:'golf',course,equipment:{}},index,[{kind:'skip',tick:0}],0).strokes,h.par+6);
  }
- assert.equal(holes,62);
+ assert.equal(holes,65);
 });
 
 test('Normal keeps the Halloween sky and theme while optional weather remains available',()=>{
@@ -39,10 +39,11 @@ test('Normal keeps the Halloween sky and theme while optional weather remains av
 
 test('season expiry hides Halloween without removing its replay layout or rotating slots',()=>{
  const november=Date.parse('2026-11-02T12:00:00Z');
- assert.equal(courseAvailable(3,november),false);assert.equal(featuredCourses(november).length,6);
+ assert.equal(courseAvailable(3,november),false);assert.equal(featuredCourses(november).length,7);
  assert.equal(getGolfHole(3,0).course.eventTheme,'halloween');
  const today=rotationSlots(october),tomorrow=rotationSlots(october+86400000);
- assert.notEqual(today.daily,tomorrow.daily);assert.notEqual(courseRotationKey(today.daily,october),courseRotationKey(tomorrow.daily,october+86400000));
+ assert.equal(today.daily,tomorrow.daily);assert.equal(courseRotationKey(today.daily,october),courseRotationKey(tomorrow.daily,october+86400000));
+ assert.notEqual(courseRotationKey(18,october),courseRotationKey(18,october+86400000));
  assert.notEqual(courseRecordKey('golf',today.daily,'day-1'),courseRecordKey('golf',today.daily,'day-2'));
 });
 
@@ -58,8 +59,8 @@ test('one course screen contains both featured adventures and all three classics
  const ui={mode:'golf',screen:'courses',progress,world:{thumbnail:()=>''}};
  const menu=courseMenu(ui);assert.match(menu,/Hollow Lanterns/);assert.match(menu,/Play Hollow Lanterns/);
  for(const name of ['Willow Park','Saltwind Links','Autumn Pines'])assert.ok(menu.includes(name));
- assert.match(courseMenu({...ui,moreCoursePage:1}),/9 holes · Par 36/);assert.equal((menu.match(/<article /g)||[]).length,10);
- assert.match(menu,/aria-labelledby="featured-courses-heading"/);assert.match(menu,/aria-labelledby="classic-courses-heading"/);
+ assert.match(courseMenu({...ui,moreCoursePage:1}),/9 holes · Par 36/);assert.equal((menu.match(/<article /g)||[]).length,11);
+ for(const section of ['full','blitz','other'])assert.match(menu,new RegExp(`aria-labelledby="${section}-courses-heading"`));
  assert.ok(!menu.includes('data-action="course-collection"'));
  ui.mode='mini';ui.miniCoursePage=1;assert.equal((courseMenu(ui).match(/<article /g)||[]).length,5);
 });

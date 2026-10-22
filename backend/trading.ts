@@ -43,7 +43,8 @@ export async function tradingAction(action:string,p:any,b:any,db:any) {
   if(t.receiver_id!==p.id)throw Error('Only the recipient can accept an offer.');
   if(t.status==='accepted')return{state:p.state,duplicate:true};
   if(t.status!=='pending'||Date.parse(t.expires_at)<Date.now())throw Error('This offer is no longer available.');
-  if((t.offered_coins||t.requested_coins)&&b.tradeVersion!==2)throw Error('Reload PolyGolf to review the coins in this offer before accepting.');
+  if([...t.offered,...t.requested].some((e:any)=>(e.quantity||1)>1)&&b.tradeVersion!==3)throw Error('Reload PolyGolf to review the item quantities before accepting.');
+  if((t.offered_coins||t.requested_coins)&&![2,3].includes(b.tradeVersion))throw Error('Reload PolyGolf to review the coins in this offer before accepting.');
   const sender=await friend(t.sender_id);
   const states=exchangeItems(sender.state,p.state,t.offered,t.requested,t.offered_coins||0,t.requested_coins||0);
   const outcome=await rpc('trade_accept',{p_user:p.id,p_trade:t.id,p_sender_revision:sender.revision,p_receiver_revision:p.revision,p_sender_state:states.sender,p_receiver_state:states.receiver});
