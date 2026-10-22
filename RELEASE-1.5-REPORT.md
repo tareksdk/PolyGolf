@@ -20,14 +20,28 @@ Both live frontends were still reporting 0.8.2. Compared all 213 published files
 
 ## Checked before publication
 
-- Full automated suite: 240 passed, zero failed, one optional gift-code test skipped because its test secret was not supplied.
+- Final full automated suite: 242 passed, zero failed, one optional gift-code test skipped because its test secret was not supplied (243 tests total).
 - Static checks: 153 modules passed syntax/import checks; seven pages link to existing files.
-- 24 focused meter/input tests cover Classic and Flow, mouse/keyboard, visible direction locking, mixed inputs, lost capture, interruption, reset, pause/resume, held keys the new focus cases, rapid second clicks and Classic locks at five visible marker positions using both input methods.
+- 24 focused meter/input tests cover Classic and Flow, mouse/keyboard, visible direction locking, mixed inputs, lost capture, interruption, reset, pause/resume, held keys, the new focus cases, rapid second clicks and Classic locks at five visible marker positions using both input methods.
 - Normal browser play: Classic mouse hold/release/second click produced one shot and returned to ready on the fairway. Switching to Flow, holding Space and releasing produced one further shot and returned to the idle direction sweep. No runtime warnings/errors were recorded.
 - v1.4 evidence covers all three new holes from tee to cup, replay verification, scorecard/restart, lava penalties, normal/night/rain visuals and desktop/phone-size layouts.
 - Database security advisors: no error-level issues found.
 
-The exact production results and deployment IDs are recorded below after publication. Browser checks use desktop-browser viewports; physical-phone behavior remains unverified.
+Browser checks use desktop-browser viewports; physical-phone behavior remains unverified.
+
+## Publication and live checks
+
+- GitHub main source commit: c728365e95dcfc2ffd2db739066747db7b7ee27c. Its complete source tree matches the locally tested release tree dffd3fc119f52dd17e57a2bddbd6a44f11d0f852.
+- littlelinks.study: production deploy 6ada4d85f963164e5832d71b. The custom domain serves v1.5. Eight critical course, input, menu and version files match the tested files byte for byte.
+- The polygolf.lol Netlify project: production deploy 6ada54f722543633be31de8e, state ready. Its public address https://dapper-mochi-14469a.netlify.app serves v1.5 and the same eight critical files match byte for byte.
+- The polygolf.lol custom domain returned connection resets from both this computer's browser and HTTP client. Netlify reports the correct managed DNS records pointing to the deployed project and an issued certificate valid through January 14, 2027. No DNS or certificate changes were made without evidence of a configuration fault. The custom-domain connection issue remains unresolved; the Netlify address works.
+- Matching little-links backend: active version 38. CrazyGames' separate function was not redeployed. Production preflight checks permit littlelinks.study, polygolf.lol and the working Netlify origin.
+- An online temporary guest completed all three Cinder Crown holes by picking up the ball: pars 4, 3 and 5, finished after hole three, daily key day-10, ineligible for leaderboard submission. No real scores were overwritten.
+- Browser checks on littlelinks.study and the second Netlify address: Cinder Crown starts an online round; Classic hold/release locks power; the second click or Space press fires once; a lava penalty returns the ball to a ready state. No runtime warnings or errors appeared.
+- The live course browser retains Full Courses, Blitz Courses, Other Maps, Halloween content and the weekly section. Community Maps opens and loads actual published community courses.
+- At 390 by 844, the shot HUD remained readable and the final weekly map and footer were reachable by scrolling. Temporary viewport changes were reset after checking.
+
+Local evidence: artifacts/release-1.5-final-tests.log, artifacts/meter-final-classic.log, artifacts/release-1.5-check.log, artifacts/public-http-1.5.json, artifacts/public-preflight-1.5.json, artifacts/online-round-1.5.json, artifacts/live-cinder-1.5.png and artifacts/live-catalog-1.5.png. These test artifacts remain outside the public frontend and Git.
 
 ## Files changed for v1.5
 
@@ -38,7 +52,7 @@ The exact production results and deployment IDs are recorded below after publica
 - backend/trading.ts: retain live stacked-quantity review checks.
 - backend/cinder-crown.sql: admit course 18 without modifying records.
 - backend/schema.sql: align fresh-install course limits with the released catalogue.
-- tests/swing-controls.test.mjs: reproduce and verify focus-cancellation cases.
+- tests/swing-controls.test.mjs: reproduce and verify focus-cancellation cases, rapid second clicks and Classic direction locking at five visible marker positions with mouse and keyboard.
 - tests/backend.test.mjs: load the recovered auction handler and verify the new course's online round shape and account gates.
 - DEPLOY.md: matching backend, constraint and frontend deployment order.
 - RELEASE-1.5-REPORT.md: this release evidence.
