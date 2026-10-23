@@ -5,6 +5,7 @@ import { installHoleEffects } from './hole-effects.js';
 import { readPreferences, savePreferences } from './device-settings.js';
 import { installOpeningUpdate } from './opening-update.js';
 import { installSmartHud } from './smart-hud.js';
+import { installMinimap } from './minimap.js';
 import { installCourseAdventures } from './course-adventure-render.js';
 import { installHonors } from './honors-ui.js';
 import { installInvites } from './room-invites.js';
@@ -86,6 +87,7 @@ try {
   installDarby(ui);
   installSmartHud(ui);
   installPlanetfall(ui);
+  installMinimap(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);

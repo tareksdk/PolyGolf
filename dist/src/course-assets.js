@@ -60,7 +60,10 @@ export function courseAssets(w, h) {
     groups = new Map(),
     ground = (x, z) => w.surfaceHeight?.(x, z) ?? terrainHeight(h, x, z),
     taken = [];
+  // View metadata records only landmarks that actually pass placement checks.
+  const minimapScenery = w.minimapScenery = { hole: h, features: [] };
   const add = (name, x, z, scale = 1, angle = 0, y = null) => {
+    if (/house|cabin|gazebo|hut|barn/.test(name)) minimapScenery.features.push({ name, x, z, scale, angle });
     // Cull distant parts of the forest instead of submitting the entire course
     // whenever one tree enters the camera. Props stay batched by asset.
     const key = TREE.test(name) ? name + ':' + Math.floor(x / 150) + ':' + Math.floor(z / 150) : name;
