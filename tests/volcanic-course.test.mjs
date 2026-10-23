@@ -63,7 +63,7 @@ test('Planetfall daily and Cinder Crown weekly have independent reset windows an
 test('the library shelves are ordered and each available course appears once',()=>{
   const progress=new ProgressionManager({load:defaultSave,save:()=>true}),ui={mode:'golf',screen:'courses',progress,world:{thumbnail:()=>''}};
   const html=courseMenu(ui),ids=[...html.matchAll(/data-course-card="(\d+)"/g)].map(m=>Number(m[1]));
-  assert.deepEqual(ids.slice(0,7),[19,14,15,16,0,1,2]);assert.equal(new Set(ids).size,ids.length);
+  assert.deepEqual(ids.slice(0,7),[14,15,16,0,1,2,19]);assert.equal(new Set(ids).size,ids.length);
   assert.ok(html.indexOf('full-courses-heading')<html.indexOf('blitz-courses-heading'));
   assert.ok(html.indexOf('blitz-courses-heading')<html.indexOf('other-courses-heading'));
   assert.match(html,/Maps of the Week/);assert.match(html,/community-map-link/);

@@ -100,10 +100,11 @@ test('the device leaderboard sorts distance, Sun finishes, shots and time; updat
   storage.setItem(PLANETFALL_BOARD_KEY,'invalid');assert.deepEqual(readPlanetfallBoard(storage),[]);
   assert.throws(()=>recordPlanetfall({id:'x',name:'x',reached:0,shots:1,time:1},{getItem:()=>null,setItem(){throw Error('Storage full');}}),/Storage full/);
 });
-test('the live daily course card describes the actual rules and uses its own device board',()=>{
+test('the live course card stays within Other Maps and uses its own device board',()=>{
   const data=defaultSave(),progress=new ProgressionManager({load:()=>data,save:()=>true});
   const ui={mode:'golf',screen:'courses',localPreview:true,progress,world:{thumbnail:()=>''}};
   const menu=courseMenu(ui);assert.match(menu,/Play Planetfall/);assert.match(menu,/1 continuous hole · No par/);assert.match(menu,/Farthest-planet board/);
-  const live=courseMenu({...ui,localPreview:false});assert.match(live,/Play Planetfall/);assert.match(live,/Hole of the Day/);assert.match(live,/saved on this device/);
+  const live=courseMenu({...ui,localPreview:false});assert.match(live,/Play Planetfall/);assert.match(live,/Hole of the day/);assert.doesNotMatch(live,/daily-courses-heading/);
+  const other=live.match(/<section class="course-section course-section-other"[\s\S]*?<\/section>/)?.[0];assert.ok(other?.includes('data-course-card="19"'));assert.match(live,/saved on this device/);
   assert.match(live,/Hole of the week/);assert.equal((live.match(/data-course-card="18"/g)||[]).length,1);assert.equal((live.match(/data-course-card="19"/g)||[]).length,1);
 });
