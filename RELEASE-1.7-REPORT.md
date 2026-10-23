@@ -40,3 +40,22 @@ Publish one frozen, committed dist snapshot to the two existing projects, after 
 - https://polygolf.lol — dff21fd6-021e-4cf1-a501-16dd349980ba.
 
 GitHub main uses a fast-forward update with an expected-head check. If main changes, fetch and reconcile it before retrying. Deployment results and live checks are recorded under ignored artifacts/ and summarized in the release handoff. Physical touch hardware and sustained mobile frame rates are not covered by the desktop-browser checks.
+
+## Published verification
+
+- Main release commit: c034f69416e1e17d5be2e9499da483675fafb07b, parented directly to Planetfall's final main commit. Its tree 6ffed26b361adec0efd1b9cd99df54310100ac83 exactly matches the tested local source.
+- littlelinks.study: deployment 6adbb3be0a2c0610a607f34c, state ready.
+- polygolf.lol: deployment 6adbb3ec920743eea1a1a21c, state ready.
+- All 224 public files on each domain match the frozen committed release: binary/text files match by SHA-256, and HTML is equivalent after Netlify's existing pretty-URL, attribute-order and RUM transformations. The Netlify configuration is consumed by the host and is not a public file.
+- Both domains display v1.7. Live course browsers retain Planetfall as Hole of the Day, Cinder Crown in Maps of the Week, the three classic and three long courses, Halloween, monthly and community navigation.
+- On littlelinks.study, Planetfall's nine-planet map rendered correctly; dragging moved it without taking a shot, minimize/reopen worked, and Home reset restored its inset. Classic power locked at 54.5%; the second Space press fired once, landed on Uranus, returned to ready and updated the map distance from 942 to 884 metres. Pause and return to course selection worked.
+- On polygolf.lol, an online Willow Park round launched with the forest map. At 390 by 844 the widget was 204 pixels wide, retained its 12-pixel right inset, rendered 112 tree instances and caused no horizontal overflow. The 1280 by 720 view was also inspected. Temporary viewport overrides were reset.
+- No console errors or warnings appeared in these checked flows.
+
+Evidence stays outside the public frontend: artifacts/minimap-publication-check-1.7.json, minimap-release-tests.log, minimap-release-check.log, the two deployment/ready records, live-minimap-planetfall-1.7.png, live-minimap-willow-1.7.png and live-minimap-phone-1.7.png. This documentation follow-up does not change the deployed dist tree.
+
+## Subsequent coordinated v1.8 menu publication
+
+The user requested a further menu correction in the Planetfall chat while this report was being saved. That chat published main 8661cd4a9147ee8d1e9d7d91c320e9158dce7e35: Planetfall becomes a regular card in Other Maps, below Full Courses and Blitz Courses. All minimap, startup, terrain and backend files remain identical to the verified v1.7 release. The expected-head check rejected the earlier documentation update when main advanced, so no newer work was overwritten.
+
+The current combined game is v1.8, with ready deployments 6adbb5e4a56831c182e27660 on littlelinks.study and 6adbb5f57807e4d9cda19fee on polygolf.lol. The v1.7 snapshot was not redeployed. This report is appended as documentation only on the newer main; the v1.7 checks above describe that historical publication. The coordinating chat verified the corrected desktop/phone menu and public launch; the minimap chat separately checked both domains' current v1.8 metadata and source preservation.
