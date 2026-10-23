@@ -46,22 +46,24 @@ test('real tee shots clear the hazards, while an underhit shot receives a lava p
   p.reset();assert.equal(terrainAt(h,p.ball.x,p.ball.z).hazard,null);
 });
 
-test('daily spotlight and the former sprint have independent reset windows and records',()=>{
+test('Planetfall daily and Cinder Crown weekly have independent reset windows and records',()=>{
   const wed=Date.parse('2026-10-21T12:00:00Z'),thu=wed+86400000,mon=Date.parse('2026-10-26T00:00:00Z');
   assert.equal(rotationSlots(wed).daily,13);assert.equal(rotationSlots(thu).daily,13);
   assert.notEqual(rotationSlots(mon).daily,13);
   assert.equal(courseRotationKey(13,wed),courseRotationKey(13,thu));
-  assert.notEqual(courseRotationKey(18,wed),courseRotationKey(18,thu));
+  assert.notEqual(courseRotationKey(19,wed),courseRotationKey(19,thu));
+  assert.equal(courseRotationKey(18,wed),courseRotationKey(18,thu));
+  assert.notEqual(courseRotationKey(18,wed),courseRotationKey(18,mon));
   assert.notEqual(courseRecordKey('golf',13,'day-9'),courseRecordKey('golf',13,courseRotationKey(13,wed)));
-  assert.equal(featuredCourses(wed).filter(f=>f.label==='Map of the day').length,1);
-  assert.equal(featuredCourses(wed).find(f=>f.label==='Map of the day').index,18);
-  assert.ok(courseAvailable(18,wed));assert.equal(courseAvailable(19,wed),false);
+  assert.equal(featuredCourses(wed).filter(f=>f.label==='Hole of the day').length,1);
+  assert.equal(featuredCourses(wed).find(f=>f.label==='Hole of the day').index,19);
+  assert.ok(courseAvailable(18,wed));assert.ok(courseAvailable(19,wed));assert.equal(courseAvailable(20,wed),false);
 });
 
 test('the library shelves are ordered and each available course appears once',()=>{
   const progress=new ProgressionManager({load:defaultSave,save:()=>true}),ui={mode:'golf',screen:'courses',progress,world:{thumbnail:()=>''}};
   const html=courseMenu(ui),ids=[...html.matchAll(/data-course-card="(\d+)"/g)].map(m=>Number(m[1]));
-  assert.deepEqual(ids.slice(0,7),[14,15,16,0,1,2,18]);assert.equal(new Set(ids).size,ids.length);
+  assert.deepEqual(ids.slice(0,7),[19,14,15,16,0,1,2]);assert.equal(new Set(ids).size,ids.length);
   assert.ok(html.indexOf('full-courses-heading')<html.indexOf('blitz-courses-heading'));
   assert.ok(html.indexOf('blitz-courses-heading')<html.indexOf('other-courses-heading'));
   assert.match(html,/Maps of the Week/);assert.match(html,/community-map-link/);

@@ -20,7 +20,9 @@ test('every course and next hole starts Normal after either optional atmosphere'
   const w=worldFixture(),ui={world:w,action(){},root:{querySelectorAll:()=>[]},game:{state:'playing'}};
   installCourseAtmosphere(ui);
   for(const h of [...GOLF_COURSES.map((_,c)=>getGolfHole(c,0)),getGolfHole(14,8),...Array.from({length:5},(_,c)=>getHole(c,0))]){
-    w.load(h);assert.equal(w.weather,'normal');
+    w.load(h);
+    if(h.space){assert.equal(w.weather,'space');assert.equal(w.sky,null);assert.equal(w.setWeather('rainy'),false);assert.equal(w.atmosphere.rainRoot.visible,false);continue;}
+    assert.equal(w.weather,'normal');
     const normalNight=Number(['halloween','space','cyberpunk'].includes(h.course?.eventTheme));
     assert.equal(w.sky.uniforms.night.value,normalNight);
     assert.equal(w.sky.uniforms.rain.value,0);

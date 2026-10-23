@@ -1,3 +1,4 @@
+import { buildPlanetfallWorld } from './planetfall-render.js';
 import { renderScale, effectiveGraphics } from './render-quality.js';
 import { renderFrame } from './render-frame.js';
 import { updateVolcanic } from './volcanic-render.js';
@@ -110,6 +111,7 @@ export class World {
     });
   }
   load(h) {
+    if(h.space)return buildPlanetfallWorld(this,h);
     if (h.mode === "golf") return buildGolf(this, h);
     this.camera.near = 0.1;
     this.camera.fov = 39;
@@ -871,9 +873,16 @@ export class World {
       target.set(-7, 0, 2);
       position.set(30 + Math.sin(t) * 1.7, 30, 40 + Math.cos(t) * 1.5);
     }
+    if(this.hole.space && this.mode==="play" && ball){
+      this.camera.aspect=aspect;this.camera.updateProjectionMatrix();
+      this.cameraRig?.update(dt,ball,physics);
+      this.ball.scale.setScalar(.38/.24);
+      this.ball.position.y=ball.y+.38-.021335;
+    }else{
     this.camera.position.lerp(position, 1 - Math.exp(-dt * 3));
     this.look.lerp(target, 1 - Math.exp(-dt * 4));
     this.camera.lookAt(this.look);
+    }
     if (this.golfer?.visible) this.club.visible = false;
     if (this.clock - (this.lastShadow || 0) > (this.settings?.graphics === "low" ? 0.3 : 0.16)) {
       this.renderer.shadowMap.needsUpdate = true;

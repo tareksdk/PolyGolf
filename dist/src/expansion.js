@@ -80,7 +80,7 @@ function rankings(ui) {
       `<div class="panel ranking-panel"><div class="ranking-filters"><div class="category-tabs">${button("Ranked · Elo", "ranking-metric", 'data-id="elo"', "category-tab " + (ranked ? "active" : ""))}${button("Lowest score", "ranking-metric", 'data-id="score"', "category-tab " + (ui.rankingMetric === "score" ? "active" : ""))}${button("Fastest round", "ranking-metric", 'data-id="time"', "category-tab " + (ui.rankingMetric === "time" ? "active" : ""))}</div><select id="ranking-course" aria-label="Leaderboard course" ${ranked ? "hidden" : ""}>${list(
         ui,
       )
-        .map((c, i) => ui.mode==='golf'&&!courseAvailable(i)?'':`<option value="${i}" ${i === ui.rankingCourse ? "selected" : ""}>${c.name}</option>`)
+        .map((c, i) => ui.mode==='golf'&&(!courseAvailable(i)||GOLF_COURSES[i].id==='planetfall')?'':`<option value="${i}" ${i === ui.rankingCourse ? "selected" : ""}>${c.name}</option>`)
         .join(
           "",
         )}</select></div><div class="table-scroll"><table class="ranking-table"><thead><tr><th>PLACE</th><th>GOLFER</th>${ranked ? "<th>RANK</th><th>ELO</th><th>W / L</th>" : "<th>LEVEL</th><th>TO PAR</th><th>TIME</th>"}</tr></thead><tbody id="rankings-body"><tr><td colspan="5" class="board-message">Loading shared scorecards…</td></tr></tbody></table></div><div class="rankings-sentinel" id="rankings-sentinel" role="status"></div>${button("Refresh board", "refresh-rankings", "", "text-button")}</div>`,
@@ -102,7 +102,7 @@ function multiplayer(ui) {
           )
             .map(
               (c, i) =>
-                ui.mode==='golf'&&!courseAvailable(i)?'':`<option value="${i}" ${i === ui.selectedCourse ? "selected" : ""}>${c.name}${ui.progress.level.level < c.level ? " · Level " + c.level : ""}</option>`,
+                ui.mode==='golf'&&(!courseAvailable(i)||GOLF_COURSES[i].id==='planetfall')?'':`<option value="${i}" ${i === ui.selectedCourse ? "selected" : ""}>${c.name}${ui.progress.level.level < c.level ? " · Level " + c.level : ""}</option>`,
             )
             .join(
               "",

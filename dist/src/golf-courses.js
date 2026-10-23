@@ -1,3 +1,4 @@
+import { PLANETFALL_COURSE, PLANETFALL_INDEX, planetfallHole, planetTerrain } from './planetfall.js';
 import { SKY_COURSE, skyIslandLayout, islandAt, springAt } from './sky-island-layouts.js';
 import { VOLCANIC_COURSE, volcanicLayout, lavaSample, volcanicGround } from './volcanic-layouts.js';
 import { SALTWIND_EXTRA, AUTUMN_EXTRA } from './long-course-layouts.js';
@@ -58,6 +59,7 @@ GOLF_COURSES.push({...GOLF_COURSES[1], id:"saltwind-long", name:"Saltwind Links 
 GOLF_COURSES.push({...GOLF_COURSES[2], id:"autumn-long", name:"Autumn Pines · Long Course", subtitle:"Nine holes through golden woodland and mountain meadows.", tag:"THE ALPINE NINE", layoutCourse:2, holeCount:9});
 GOLF_COURSES.push(SKY_COURSE);
 GOLF_COURSES.push(VOLCANIC_COURSE);
+GOLF_COURSES.push(PLANETFALL_COURSE);
 export const RULES_VERSION = "polygolf-v11";
 export function golfHoleCount(index=0) {
   if(!GOLF_COURSES[index])throw Error("Unknown golf course");
@@ -429,6 +431,7 @@ layouts[2].push(...AUTUMN_EXTRA);
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function golfLayout(courseIndex,index) {
   const course=GOLF_COURSES[courseIndex];
+  if(courseIndex===PLANETFALL_INDEX && index===0)return planetfallHole(course);
   if(course?.id==='cinder-crown')return volcanicLayout(index);
   if(course?.slot==='monthly')return skyIslandLayout(index);
   if(!course||!Number.isInteger(index)||index<0||index>=golfHoleCount(courseIndex))throw Error("Unknown golf hole");
@@ -437,6 +440,7 @@ function golfLayout(courseIndex,index) {
 // Card summaries must not build terrain or thousands of collision trees.
 export function golfPar(courseIndex,index) { return golfLayout(courseIndex,index).par; }
 export function getGolfHole(courseIndex = 0, index = 0, scenery = true) {
+  if(courseIndex===PLANETFALL_INDEX && index===0)return planetfallHole(GOLF_COURSES[courseIndex]);
   const course = GOLF_COURSES[courseIndex],
     layout = golfLayout(courseIndex,index);
   if (!course || !Number.isInteger(index) || !layout) throw Error("Unknown golf hole");
@@ -614,6 +618,7 @@ function baseHeight(h, x, z) {
 }
 export function springWaterLevel(h,spring){return baseHeight(h,spring.x,spring.z)+.16;}
 export function terrainHeight(h, x, z) {
+  if(h.space)return planetTerrain(x,z).height;
   const g = h.green,
     d = Math.sqrt(ellipse(g, x, z)),
     u = clamp((1.6 - d) / 0.6, 0, 1),
@@ -644,6 +649,7 @@ export function terrainHeight(h, x, z) {
   return h.volcanic ? volcanicGround(h,x,z,y) : y;
 }
 export function terrainAt(h, x, z) {
+  if(h.space)return planetTerrain(x,z);
   if(h.volcanic){const lava=lavaSample(h,x,z);if(lava.edge<=0)return {height:lava.level,normal:{x:0,y:1,z:0},surface:'rough',hazard:'water',hazardKind:'lava'};}
   if(h.islands&&!islandAt(h,x,z))return {height:-85,normal:{x:0,y:1,z:0},surface:"rough",hazard:"void"};
   if(h.islands){const spring=springAt(h,x,z);if(spring)return {height:springWaterLevel(h,spring.spring),normal:{x:0,y:1,z:0},surface:'rough',hazard:'water'};}

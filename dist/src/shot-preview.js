@@ -4,7 +4,9 @@ import { GolfPhysics } from './golf-physics.js';
 // browsers without Workers an interruptible fallback instead of a long UI task.
 export function previewTask(hole, ball, dir, power, options) {
   const ghost = new GolfPhysics(), points = [], interval = options.club === 'putter' ? 8 : 12;
-  ghost.load(hole); ghost.ball = {...ball}; ghost.shoot(dir.x, dir.z, power, options);
+  ghost.load(hole); ghost.ball = {...ball};
+  if(hole.space){ghost.clock=options.clock||0;ghost.reached=options.reached||0;}
+  ghost.shoot(dir.x, dir.z, power, options);
   let tick = 0;
   return {
     step(budget = 128) {

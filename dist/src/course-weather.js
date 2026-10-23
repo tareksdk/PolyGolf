@@ -21,6 +21,7 @@ export class CourseAtmosphere {
   load(h) {
     this.sand.reset();
     this.water.reset();
+    if(h.space){this.rainRoot.visible=false;this.world.weather='space';return;}
     if(!this.world.sky)buildSky(this.world,h);
     this.world.group.traverse(o=>{
       if(o.material?.isMeshStandardMaterial&&!this.wetMaterials.has(o.material))this.wetMaterials.set(o.material,o.material.roughness);
@@ -28,6 +29,7 @@ export class CourseAtmosphere {
     this.set(this.world.settings?.courseWeather||'normal');
   }
   set(mode) {
+    if(this.world.hole.space)return false;
     if(!COURSE_WEATHER.includes(mode))return false;
     const w=this.world,p=weatherProfile(w.hole,mode);w.weather=mode;
     w.sky.uniforms.zenith.value.set(p.zenith);w.sky.uniforms.horizon.value.set(p.horizon);w.sky.uniforms.night.value=Number(mode==='night'||Boolean(p.night));w.sky.uniforms.rain.value=Number(mode==='rainy');

@@ -48,7 +48,7 @@ export function createFullShotGuide(world) {
     for (let i = 0; i < beads.count; i++) {
       const index = Math.round(i * (count - 1) / (beads.count - 1));
       dummy.position.fromBufferAttribute(positions, index); dummy.quaternion.identity();
-      dummy.scale.setScalar((putting ? .035 : .085) * (1 - i / beads.count * .35));
+      dummy.scale.setScalar((putting ? .035 : world.hole.space ? .22 : .085) * (1 - i / beads.count * .35));
       dummy.updateMatrix(); beads.setMatrixAt(i, dummy.matrix);
     }
     beads.instanceMatrix.needsUpdate = true;
@@ -63,7 +63,7 @@ export function createFullShotGuide(world) {
       if (!visible) { if (group.visible) reset(); return; }
       group.visible = true;
       const options = world.shotOptions || {club:world.activeClub};
-      const key = [world.hole.seed,ball.x,ball.y,ball.z,dir.x,dir.z,power,options.club,options.shape,options.spin,options.gear?.driverYards].join(':');
+      const key = [world.hole.seed,ball.x,ball.y,ball.z,dir.x,dir.z,power,options.club,options.shape,options.spin,options.gear?.driverYards,world.hole.space?options.reached:'',world.hole.space&&options.reached===3?Math.floor(options.clock*3):''].join(':');
       if (key === cached || world.clock - lastPreview < .08) return;
       cached = key; lastPreview = world.clock;
       preview.request(world.hole, ball, dir, power, options);

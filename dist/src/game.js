@@ -1,3 +1,4 @@
+import { nextPlanet, PLANETFALL_CLUBS } from './planetfall.js';
 import { courseRotationKey } from "./rotating-courses.js";
 import { recommendClub } from "./club-distances.js";
 import { getHole, scoreName } from "./courses.js";
@@ -101,9 +102,10 @@ export class GameManager {
   autoAim() {
     if (this.mode !== "golf") return;
     const b = this.physics.ball;
-    this.club = golfGear(this.world.equipment).mysteryAce ? 'driver' : recommendClub(this.hole, b, this.world.equipment);
-    this.power = 0.85;
-    this.direction = { x: this.hole.cup.x - b.x, z: this.hole.cup.z - b.z };
+    const target = this.hole.space ? (this.physics.reached===8 ? this.hole.cup : nextPlanet(this.physics.reached)) : this.hole.cup;
+    this.club = this.hole.space ? recommendClub({...this.hole,cup:target}, b, this.world.equipment) : golfGear(this.world.equipment).mysteryAce ? 'driver' : recommendClub(this.hole, b, this.world.equipment);
+    this.power = this.hole.space && this.physics.reached<8 ? Math.min(.96,(Math.hypot(target.x-b.x,target.z-b.z)/(CLUBS.find(c=>c.id===this.club)?.carry||128))**.6) : 0.85;
+    this.direction = { x: target.x - b.x, z: target.z - b.z };
     this.normalizeAim();
     this.aimTarget = null;
     this.shape = this.spin = 0;
@@ -115,6 +117,7 @@ export class GameManager {
       club: this.club,
       shape: this.shape,
       spin: this.spin,
+      ...(this.hole?.space?{clock:this.physics.clock,reached:this.physics.reached}:{}),
       ...(this.mode === "mini"
         ? { gear: miniStats(this.world.equipment) }
         : { gear: golfGear(this.world.equipment) }),
@@ -171,7 +174,7 @@ export class GameManager {
       this.state !== "playing" ||
       this.pendingSwing ||
       this.physics.active ||
-      this.strokes >= this.hole.par + 8
+      this.strokes >= (this.hole.strokeLimit ?? this.hole.par + 8)
     )
       return;
     this.charging = false;
@@ -205,6 +208,7 @@ export class GameManager {
   reset() {
     if (this.round?.sudden) return;
     if (this.state !== "playing" || this.pendingSwing || this.physics.sunk) return;
+    if(this.hole.space){this.planetfallMiss('Ball recalled');return;}
     this.clearInput();
     this.transcript.push({ kind: "reset", tick: this.ticks });
     this.strokes++;
@@ -214,7 +218,21 @@ export class GameManager {
     this.accumulator = 0;
     this.onEvent("penalty");
     this.onUpdate();
-    if (this.strokes >= this.hole.par + 8) this.skip();
+    if (this.strokes >= (this.hole.strokeLimit ?? this.hole.par + 8)) this.skip();
+  }
+  planetfallMiss(reason) {
+    if(this.state!=='playing')return;
+    this.clearInput();
+    this.pendingSwing=null;
+    this.world.swingPose=null;
+    this.round.penalties++;
+    this.round.missReason=reason;
+    this.onEvent('space-lost');
+    if(this.round.penalties>=3){this.physics.active=false;this.finishHole();return;}
+    this.physics.reset();
+    this.autoAim();
+    this.world.resetCamera?.(this.physics.ball,{cut:false});
+    this.onUpdate();
   }
   pause() {
     if (!["playing", "paused"].includes(this.state)) return;
@@ -251,6 +269,7 @@ export class GameManager {
   skip() {
     if (this.round?.sudden) return;
     if (!["paused", "playing"].includes(this.state)) return;
+    if(this.hole.space){this.finishHole();return;}
     this.pendingSwing = null;
     this.world.swingPose = null;
     this.transcript.push({ kind: "skip", tick: this.ticks });
@@ -393,6 +412,7 @@ export class GameManager {
         if (!e.repeat) this.pause();
         return;
       }
+      if(e.code==='KeyF' && !e.repeat && this.state==='playing' && !e.ctrlKey && !e.metaKey && !e.altKey && this.hole?.space){this.world.zoom=13;this.world.pitch=.24;this.world.orbit=Math.atan2(-this.direction.x,-this.direction.z);this.world.cameraRig?.reset(this.physics.ball);return;}
       if (this.state !== "playing" || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.code === "KeyR" && !e.repeat) this.reset();
       if (['KeyQ','KeyE','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','ShiftLeft','ShiftRight'].includes(e.code)) {
@@ -400,7 +420,8 @@ export class GameManager {
         if (e.code.startsWith('Arrow')) e.preventDefault();
       }
       if (e.code === "KeyC" && !e.repeat && this.mode === "golf" && !this.charging && !this.physics.active && !this.pendingSwing) {
-        this.club = CLUBS[(CLUBS.findIndex((c) => c.id === this.club) + 1) % CLUBS.length].id;
+        const bag=this.hole.space?CLUBS.filter(c=>PLANETFALL_CLUBS.includes(c.id)||(c.id==='putter'&&this.physics.reached===8)):CLUBS;
+        this.club = bag[(bag.findIndex((c) => c.id === this.club) + 1) % bag.length].id;
         this.onUpdate();
       }
       if (e.code === "Space" && !e.repeat && !this.physics.active && !this.pendingSwing && !this.shotInput && !this.rotating) {
@@ -498,6 +519,7 @@ export class GameManager {
         for (const event of this.physics.events.splice(0)) {
           if (event === "cup") this.finishHole();
           else if (event === "water") {
+            if(this.hole.space){this.planetfallMiss(this.physics.missReason || 'Missed the landing');break;}
             this.world.waterSplash?.(waterContact(this.hole,this.physics.ball));
             if (this.round.sudden) {
               this.finishSudden();
@@ -519,7 +541,7 @@ export class GameManager {
                 break;
               }
               this.autoAim();
-              if (this.strokes >= this.hole.par + 8) this.skip();
+              if (this.strokes >= (this.hole.strokeLimit ?? this.hole.par + 8)) this.skip();
               else this.onUpdate();
             }
           }

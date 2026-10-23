@@ -77,8 +77,10 @@ test('published backend starts Cinder Crown with three holes and retains the auc
   await assert.rejects(call('auctions'),/accounts at level 5/);
   await call('start_round',{mode:'golf',course:18});
   const round=rounds.get('round-test');assert.equal(round.course,18);assert.equal(round.hole_count,3);
-  assert.match(round.rotation_key,/^day-/);assert.equal(round.rules_version,RULES_VERSION);
-  await assert.rejects(call('start_round',{mode:'golf',course:19}),/Unknown course/);
+  assert.match(round.rotation_key,/^week-cinder-/);assert.equal(round.rules_version,RULES_VERSION);
+  await assert.rejects(call('start_round',{mode:'golf',course:19}),/uses its own distance board/);
+  assert.equal(rounds.get('round-test').course,18,'Planetfall never inserts a conventional score round');
+  await assert.rejects(call('start_round',{mode:'golf',course:20}),/Unknown course/);
  }finally{players.set('a',original);rounds.delete('round-test');}
 });
 

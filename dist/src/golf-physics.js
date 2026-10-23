@@ -1,3 +1,4 @@
+import { PLANETFALL_CLUBS, hitsAsteroid, settlePlanet, planetAt } from './planetfall.js';
 import { encounterBoxes, stepEncounter } from './course-encounters.js';
 import { startMysteryFlight, updateMysteryFlight } from './mystery-flight.js';
 import { nearbyTrees } from "./forest.js";
@@ -40,6 +41,8 @@ export class GolfPhysics {
   }
   load(h) {
     this.hole = h;
+    this.reached = 0;
+    this.missReason = null;
     this.encounter={cleared:false,passed:false,boxes:encounterBoxes(h.encounter)};
     this.ship = pirateShipFor(h);
     this.shipHit = false;
@@ -76,6 +79,8 @@ export class GolfPhysics {
       return false;
     const c = CLUBS.find((c) => c.id === club);
     if (!c) return false;
+    if(this.hole.space && !PLANETFALL_CLUBS.includes(club) && !(club==='putter' && this.reached===8))return false;
+    if(this.hole.space)this.missReason=null;
     const n = Math.hypot(dx, dz);
     if (!n) return false;
     if(club === "driver" && gear.mysteryAce === true) {
@@ -87,7 +92,7 @@ export class GolfPhysics {
     shape = clamp(shape, -1, 1);
     spin = clamp(spin, -1, 1);
     const lie = terrainAt(this.hole, this.ball.x, this.ball.z).surface;
-    const lieFactor = lie === "sand" ? (c.loft > 25 ? 0.87 : 0.56) : lie === "rough" ? 0.87 : 1;
+    const lieFactor = this.hole.space ? 1 : lie === "sand" ? (c.loft > 25 ? 0.87 : 0.56) : lie === "rough" ? 0.87 : 1;
     const driverSpeed = club === "driver" ? driverLaunchSpeed(gear.driverYards || 265) : c.speed;
     const speed = driverSpeed * power * lieFactor,
       loft = ((c.loft + spin * 3) * Math.PI) / 180,
@@ -163,6 +168,12 @@ export class GolfPhysics {
       const next=terrainAt(this.hole,b.x,b.z);if(next.hazard==='void')this.airborne=true;else b.y=next.height+GOLF_RADIUS;
     }
     stepEncounter(this,old,b);
+    if(this.hole.space && (b.y < -7 || hitsAsteroid(old,b,this.clock))) {
+      this.missReason = b.y < -7 ? 'Missed the landing' : 'Asteroid collision';
+      this.active = false;
+      this.events.push('space-miss','water');
+      return;
+    }
     for (const tree of nearbyTrees(this.hole, b.x, b.z)) {
       const dx = b.x - old.x,
         dz = b.z - old.z,
@@ -274,8 +285,10 @@ export class GolfPhysics {
     // The visible cup is smaller; a slightly forgiving lip catches firm, centred putts.
     if (
       !this.airborne &&
+      (!this.hole.space || this.reached>=7) &&
       cupCapture(old, b, cup, CUP_CAPTURE_RADIUS, 4.2)
     ) {
+      if(this.hole.space){this.reached=8;this.events.push('planet');}
       Object.assign(b, { x: cup.x, z: cup.z, y: cup.y - 0.08, vx: 0, vy: 0, vz: 0 });
       this.sunk = true;
       this.active = false;
@@ -287,12 +300,15 @@ export class GolfPhysics {
       if (this.still > 0.3) {
         b.vx = b.vy = b.vz = 0;
         this.active = false;
+        if(this.hole.space && !settlePlanet(this))return;
         this.events.push("rest");
       }
     } else this.still = 0;
     if (this.shotTime > 45) {
       this.active = false;
       b.vx = b.vy = b.vz = 0;
+      if(this.hole.space && (this.airborne || !planetAt(b.x,b.z))){this.missReason='Missed the landing';this.events.push('space-miss','water');return;}
+      if(this.hole.space && !settlePlanet(this))return;
       this.events.push("rest");
     }
   }

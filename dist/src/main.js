@@ -1,3 +1,4 @@
+import { installPlanetfall } from './planetfall-ui.js';
 import { loadSkyDarbyAssets } from './sky-islands.js';
 import { installDarby } from './darby.js';
 import { installHoleEffects } from './hole-effects.js';
@@ -84,6 +85,7 @@ try {
   installOpeningUpdate(ui);
   installDarby(ui);
   installSmartHud(ui);
+  installPlanetfall(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);
