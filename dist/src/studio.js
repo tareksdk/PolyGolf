@@ -1,3 +1,4 @@
+import { progressStorage } from './progress-storage.js';
 import { page, button, esc } from "./views.js";
 import { icon } from "./icons.js";
 import { requireEditor } from "./equipment.js";
@@ -35,9 +36,9 @@ export class CourseStudio {
     this.tab = "setup";
     this.showTrees = true;
     try {
-      const saved = JSON.parse(localStorage.getItem(cfg.savedKey) || "[]");
+      const saved = JSON.parse(progressStorage().getItem(cfg.savedKey) || "[]");
       this.saved = Array.isArray(saved) ? saved.map((m) => cfg.validate(m)) : [];
-      const draft = localStorage.getItem(cfg.draftKey);
+      const draft = progressStorage().getItem(cfg.draftKey);
       if (draft) this.draft = cfg.validate(JSON.parse(draft));
     } catch {}
     document.addEventListener("change", (e) => this.change(e));
@@ -59,16 +60,18 @@ export class CourseStudio {
   }
   persist() {
     try {
-      localStorage.setItem(this.cfg.draftKey, JSON.stringify(this.draft));
+      progressStorage().setItem(this.cfg.draftKey, JSON.stringify(this.draft));
     } catch {
-      this.ui.toast("Your draft couldn’t be saved on this device. Export a copy to keep it.");
+      this.ui.toast("Your draft couldn’t be saved. Export a copy to keep it.");
     }
   }
   storeSaved() {
     try {
-      localStorage.setItem(this.cfg.savedKey, JSON.stringify(this.saved));
+      progressStorage().setItem(this.cfg.savedKey, JSON.stringify(this.saved));
+      return true;
     } catch {
-      this.ui.toast("This device is out of storage. Export your map to keep a copy.");
+      this.ui.toast("Progress storage is full or unavailable. Export your map to keep a copy.");
+      return false;
     }
   }
   // Apply a change; invalid results are rolled back with a clear message.
@@ -141,13 +144,13 @@ export class CourseStudio {
   sharePanel() {
     const key = this.previewKey(),
       signedIn = !!this.ui.cloud?.session;
-    return `<div class="share-preview"><img data-course-preview="custom:${key}" src="${this.ui.world.mapThumbnail(this.draft, key)}" alt="3D preview of ${esc(this.draft.name)}"><span class="badge">3D preview</span></div>${button(icon("play") + "Play test in 3D", "editor-test", "", "button yellow wide")}<div class="studio-actions">${button("Save on this device", "editor-save", "", "button")}${signedIn ? button("Save to account", "editor-cloud", "", "button secondary") : ""}</div><h3 class="studio-subhead">Share</h3><p class="small-note">Anyone with the code or link can open this ${this.cfg.mode === "golf" ? "hole" : "course"} as a practice round.</p><div class="studio-actions">${button("Copy share code", "editor-share-code", "", "button secondary")}${button("Copy link", "editor-share-link", "", "button secondary")}</div><form id="share-code-form" class="code-import"><label>Open a share code<input id="share-code-input" autocomplete="off" spellcheck="false" placeholder="PG1.…"></label><button class="button secondary" type="submit">Open</button></form><div class="studio-actions">${button("Export file", "editor-export", "", "button secondary")}<label class="button secondary file-button">Import file<input id="studio-import" type="file" accept="application/json,.json" hidden></label></div>${button(signedIn ? "Publish to community" : "Sign in to publish", "editor-publish", "", "button wide")}${button("Browse community maps", "community", "", "text-button")}<h3 class="studio-subhead">Your saved ${this.cfg.mode === "golf" ? "holes" : "courses"} <span class="muted">${this.saved.length}</span></h3><div class="saved-list">${
+    return `<div class="share-preview"><img data-course-preview="custom:${key}" src="${this.ui.world.mapThumbnail(this.draft, key)}" alt="3D preview of ${esc(this.draft.name)}"><span class="badge">3D preview</span></div>${button(icon("play") + "Play test in 3D", "editor-test", "", "button yellow wide")}<div class="studio-actions">${button("Save map", "editor-save", "", "button")}${signedIn ? button("Save to account", "editor-cloud", "", "button secondary") : ""}</div><h3 class="studio-subhead">Share</h3><p class="small-note">Anyone with the code or link can open this ${this.cfg.mode === "golf" ? "hole" : "course"} as a practice round.</p><div class="studio-actions">${button("Copy share code", "editor-share-code", "", "button secondary")}${button("Copy link", "editor-share-link", "", "button secondary")}</div><form id="share-code-form" class="code-import"><label>Open a share code<input id="share-code-input" autocomplete="off" spellcheck="false" placeholder="PG1.…"></label><button class="button secondary" type="submit">Open</button></form><div class="studio-actions">${button("Export file", "editor-export", "", "button secondary")}<label class="button secondary file-button">Import file<input id="studio-import" type="file" accept="application/json,.json" hidden></label></div>${button(signedIn ? "Publish to community" : "Sign in to publish", "editor-publish", "", "button wide")}${button("Browse community maps", "community", "", "text-button")}<h3 class="studio-subhead">Your saved ${this.cfg.mode === "golf" ? "holes" : "courses"} <span class="muted">${this.saved.length}</span></h3><div class="saved-list">${
       this.saved
         .map(
           (m, i) =>
             `<div class="saved-row"><div><strong>${esc(m.name)}</strong><small>Par ${m.par}${this.cfg.mode === "golf" ? ` · ${Math.round(-m.points.at(-1)[1])} m` : ` · ${m.points.length} points`}</small></div>${button("Load", "editor-load", `data-index="${i}"`, "text-button")}${button("Delete", "editor-delete-saved", `data-index="${i}" aria-label="Delete ${esc(m.name)}"`, "text-button danger")}</div>`,
         )
-        .join("") || '<p class="empty-list">Nothing saved yet. “Save on this device” keeps a copy here.</p>'
+        .join("") || '<p class="empty-list">Nothing saved yet. “Save map” keeps a copy here.</p>'
     }</div>${button("Start a new " + (this.cfg.mode === "golf" ? "hole" : "course"), "editor-new", "", "button secondary wide")}`;
   }
 
@@ -363,11 +366,12 @@ export class CourseStudio {
         ui.game.start(0, true, { mode: this.cfg.mode, customHole: this.cfg.build(d) });
         return;
       case "editor-save": {
+        const previous = [...this.saved];
         const i = this.saved.findIndex((m) => m.name === d.name);
         if (i < 0) this.saved.push(structuredClone(d));
         else this.saved[i] = structuredClone(d);
-        this.storeSaved();
-        ui.toast(i < 0 ? "Saved on this device." : "Updated your saved copy.");
+        if (!this.storeSaved()) { this.saved = previous; return; }
+        ui.toast(i < 0 ? "Saved your map." : "Updated your saved copy.");
         ui.render();
         return;
       }
@@ -388,13 +392,13 @@ export class CourseStudio {
         if (!m) return;
         if (!this.confirmDelete || this.confirmDelete !== i) {
           this.confirmDelete = i;
-          ui.toast(`Press Delete again to remove “${m.name}” from this device.`);
+          ui.toast(`Press Delete again to remove “${m.name}” from your saved maps.`);
           setTimeout(() => (this.confirmDelete = null), 4000);
           return;
         }
         this.confirmDelete = null;
         this.saved.splice(i, 1);
-        this.storeSaved();
+        if (!this.storeSaved()) { this.saved.splice(i, 0, m); return; }
         ui.toast(`Removed “${m.name}”. Account and community copies are unchanged.`);
         ui.render();
         return;

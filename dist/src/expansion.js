@@ -748,6 +748,10 @@ export function installExpansion(ui) {
   });
 }
 function accountDialog(ui) {
+  if (ui.platform?.active) {
+    ui.modal('<h2>Your CrazyGames save</h2><p>Your golfer is saved through CrazyGames. Sign in using the CrazyGames page to sync progress between devices. Guests can keep playing without signing in.</p><button class="button yellow" data-action="close-modal">Got it</button>');
+    return;
+  }
   if (ui.cloud.session && !ui.cloud.isGuest) {
     ui.modal(
       `<h2>Hello, ${esc(ui.cloud.username)}.</h2><p>Your inventory, progression, maps and verified scorecards are saved to your account.</p>${button("Sign out", "logout", "", "button secondary")}`,

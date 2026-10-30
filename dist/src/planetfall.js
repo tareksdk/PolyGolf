@@ -1,3 +1,4 @@
+import { progressStorage } from './progress-storage.js';
 // Metres, deliberately compressed and progressively harder; this is a golf route,
 // not an astronomical scale model. The renderer and collisions share these data.
 export const PLANETFALL_INDEX = 19;
@@ -87,13 +88,13 @@ export function settlePlanet(physics) {
 }
 
 export const PLANETFALL_BOARD_KEY = 'polygolf.planetfall.records.v1';
-export function readPlanetfallBoard(storage = globalThis.localStorage) {
+export function readPlanetfallBoard(storage = progressStorage()) {
   try {
     const rows = JSON.parse(storage.getItem(PLANETFALL_BOARD_KEY) || '[]');
     return Array.isArray(rows) ? rows.filter(r => typeof r.name === 'string' && Number.isInteger(r.reached) && r.reached >= 0 && r.reached <= 8 && Number.isFinite(r.shots) && Number.isFinite(r.time)) : [];
   } catch { return []; }
 }
-export function recordPlanetfall(run, storage = globalThis.localStorage) {
+export function recordPlanetfall(run, storage = progressStorage()) {
   const rows = readPlanetfallBoard(storage), clean = {
     id: run.id, name: String(run.name || 'Sunday Golfer').slice(0, 30), reached: run.reached,
     finished: !!run.finished, shots: run.shots, time: run.time, date: run.date || Date.now(),

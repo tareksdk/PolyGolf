@@ -1,8 +1,9 @@
+import { progressStorage } from './progress-storage.js';
 // Appearance is a browser preference, shared by guest and signed-in sessions.
 export const THEME_KEY = 'little-links.theme';
 export function readTheme(fallback = 'dark') {
   try {
-    const value = localStorage.getItem(THEME_KEY);
+    const value = progressStorage().getItem(THEME_KEY);
     if (value === 'light' || value === 'dark') return value;
   } catch {}
   return fallback === 'light' ? 'light' : 'dark';
@@ -25,7 +26,7 @@ export function installTheme(ui) {
     if (input.dataset.setting === 'theme') {
       theme = input.value === 'light' ? 'light' : 'dark';
       input.value = theme;
-      try { localStorage.setItem(THEME_KEY, theme); } catch {}
+      try { progressStorage().setItem(THEME_KEY, theme); } catch {}
       apply();
     }
     changeSetting(input);

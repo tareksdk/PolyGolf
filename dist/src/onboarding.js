@@ -1,3 +1,4 @@
+import { progressStorage } from './progress-storage.js';
 import { buildGolfLayout } from './golf-courses.js';
 import { readSession } from './session-store.js';
 import { DEFAULT_EQUIPMENT } from './catalog.js';
@@ -16,11 +17,11 @@ export function drivingRange() {
 }
 export function shouldStartTutorial({session,done,played,preview,linked}) {return !session&&!done&&!played&&!preview&&!linked;}
 export function installOnboarding(ui) {
-  let done=false;try{done=localStorage.getItem(TUTORIAL_KEY)==='done';}catch{}
+  let done=false;try{done=progressStorage().getItem(TUTORIAL_KEY)==='done';}catch{}
   const params=new URLSearchParams(location.search);
-  const eligible=shouldStartTutorial({session:readSession(),done,played:ui.progress.data.stats.holes>0||ui.progress.data.stats.games>0,preview:ui.localPreview,linked:params.has('invite')||params.has('map')||!!location.hash});
+  const eligible=shouldStartTutorial({session:ui.platform?.active ? null : readSession(),done,played:ui.progress.data.stats.holes>0||ui.progress.data.stats.games>0,preview:ui.localPreview,linked:params.has('invite')||params.has('map')||!!location.hash});
   let active=false,step=0,oldMeter=null,lesson='putt',rangeResultShown=false;
-  const remember=()=>{try{localStorage.setItem(TUTORIAL_KEY,'done');}catch{}};
+  const remember=()=>{try{progressStorage().setItem(TUTORIAL_KEY,'done');}catch{}};
   const restore=()=>{active=false;ui.tutorialActive=false;document.querySelector('#first-swing')?.remove();document.querySelector('#hole-intro')?.remove();if(oldMeter){ui.world.settings.shotMeter=oldMeter;oldMeter=null;}ui.world.equip(ui.progress.data.equipment,ui.items);};
   const leave=()=>{remember();restore();ui.closeModal();ui.game.leave();ui.screen='home';ui.render();};
   const draw=()=>{

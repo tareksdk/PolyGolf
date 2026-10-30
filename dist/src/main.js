@@ -1,3 +1,5 @@
+import { initializeCrazyGames } from './crazygames.js';
+import { setProgressStorage } from './progress-storage.js';
 import { installPlanetfall } from './planetfall-ui.js';
 import { loadSkyDarbyAssets } from './sky-islands.js';
 import { installDarby } from './darby.js';
@@ -35,15 +37,26 @@ import { installShopExtras } from "./pro-shop-ui.js";
 import { installSharing } from "./map-share.js";
 let ui;
 try {
+  const platform = await initializeCrazyGames();
+  if (platform.active) setProgressStorage(platform.storage);
+  const localPreview = !platform.active && isLocalPreview();
   await Promise.all([loadCourseAssets(),loadAdventureAssets(),loadSkyDarbyAssets()]);
-  const repository = new LocalSaveRepository(isLocalPreview() ? previewStorage() : undefined);
+  const repository = new LocalSaveRepository(platform.active ? platform.storage : localPreview ? previewStorage() : undefined);
   const progress = new ProgressionManager(repository, (message, type) => {
     ui?.toast(message);
     audio?.play(type);
   });
-  if (!isLocalPreview()) progress.data.settings = readPreferences(progress.data.settings);
+  if (!localPreview) progress.data.settings = readPreferences(progress.data.settings, platform.storage);
   const save = progress.save.bind(progress);
-  progress.save = () => { if (!isLocalPreview()) savePreferences(progress.data.settings); return save(); };
+  let saveWarning = false;
+  progress.save = () => {
+    if (platform.locked) return false;
+    if (!localPreview) savePreferences(progress.data.settings, platform.storage);
+    const saved = save();
+    if (!saved && !saveWarning) ui?.toast(platform.active ? 'CrazyGames couldn’t save your progress. Keep this tab open and check your connection or storage settings.' : repository.error);
+    saveWarning = !saved;
+    return saved;
+  };
   const audio = new AudioManager(progress.data.settings);
   const world = new World(document.querySelector("#world"));
   installItemThumbnails(world);
@@ -66,6 +79,7 @@ try {
     },
   });
   ui = new UIManager(world, game, progress, audio);
+  ui.platform = platform;
   installExpansion(ui);
   installClubhouse(ui);
   installCompetitive(ui);
@@ -92,6 +106,7 @@ try {
   installInvites(ui);
   registerTools(ui);
   document.querySelector("#loading").remove();
+  if (platform.active) platform.loadingComplete();
   if (repository.error) ui.toast(repository.error);
   let last = performance.now(),
     saveTimer = 0,
@@ -109,6 +124,7 @@ try {
     const dt = Math.min(elapsed, 0.05);
     last = now;
     game.update(dt);
+    if (platform.active) platform.updateGameplay(game.state);
     audio.update(dt, game.state === "playing" && game.physics.active);
     if (game.state === "playing") progress.data.stats.playTime += dt;
     saveTimer += dt;
@@ -128,6 +144,8 @@ try {
   window.addEventListener("pagehide", () => progress.save());
 } catch (error) {
   document.querySelector("#loading").innerHTML =
-    '<div class="panel"><h2>The course couldn’t open.</h2><p>Enable hardware acceleration and WebGL in your browser, then reload to try again.</p><button class="button" onclick="location.reload()">Try again</button></div>';
-  console.error(error);
+    error.crazygamesSave
+      ? '<div class="panel"><h2>Your CrazyGames save couldn’t open.</h2><p>Check your connection, then reload the game from CrazyGames. Your existing save has not been replaced.</p><button class="button" onclick="location.reload()">Try again</button></div>'
+      : '<div class="panel"><h2>The course couldn’t open.</h2><p>Enable hardware acceleration and WebGL in your browser, then reload to try again.</p><button class="button" onclick="location.reload()">Try again</button></div>';
+  if (!error.crazygamesSave) console.error(error);
 }

@@ -25,6 +25,8 @@ export class GolfCloud {
     this.lastPresence = 0;
     this.busy = false;
     this.guestRepository = ui.progress.repository;
+    this.crazyGames = ui.platform?.active === true;
+    if (this.crazyGames) { this.localPreview = false; this.status = 'Progress saved through CrazyGames'; return; }
     this.localPreview = isLocalPreview();
     if (this.localPreview) { this.status = 'Local preview · saved on this device'; return; }
     this.timer = setInterval(() => this.poll(), 500);
@@ -50,6 +52,7 @@ export class GolfCloud {
     } catch {}
   }
   async restore() {
+    if (this.crazyGames) return;
     if(this.localPreview)return;
     if(this.restoring)return;
     this.restoring=true;
@@ -153,6 +156,7 @@ export class GolfCloud {
     return this.refreshing;
   }
   async call(action, data = {}) {
+    if (this.crazyGames) throw Error('Online accounts and multiplayer are not available in this CrazyGames build. Your solo progress saves through CrazyGames.');
     // Public browsing is read-only. Local previews never restore an account,
     // send a bearer token, or permit mutations through this exception.
     if (this.localPreview) {
@@ -196,6 +200,7 @@ export class GolfCloud {
     this.attach(await this.call("me"));
   }
   async ensureGuest() {
+    if (this.crazyGames) return;
     if (this.localPreview) return;
     if (this.session) return;
     if (this.joiningGuest) return this.joiningGuest;
