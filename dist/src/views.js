@@ -20,16 +20,20 @@ export const coins = (n) => `<span class="money"><i class="coin-icon" aria-hidde
 export const button = (text, action, extra = "", cls = "button") =>
   `<button class="${cls}" data-action="${action}" ${action === "favorites" ? 'aria-label="Show favorite cosmetics"' : ""} ${extra}>${text}</button>`;
 export const minutes = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+export const moreSummary = (active = false) => `<summary${active ? ' class="active" aria-current="page"' : ""}>
+  <span class="more-closed">More</span><span class="more-open">Less</span>
+  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg>
+</summary>`;
 export function header(ui) {
   const d = ui.progress.data, l = ui.progress.level;
   const primary = [['courses', 'Play'], ['garage', 'Caddie'], ['shop', 'Shop']];
-  const other = [['multiplayer', 'Multiplayer'], ['competitive', 'Competitive'], ['community', 'Community maps'], ['editor', 'Editor'], ['club-pass', 'Country Club'], ['friends', 'Friends'], ['leaderboards', 'Rankings'], ['trades', 'Trading'], ['auctions', 'Auction house'], ['account', 'Account']];
+  const other = [['achievements', 'Achievements'], ['multiplayer', 'Multiplayer'], ['competitive', 'Competitive'], ['community', 'Community maps'], ['editor', 'Editor'], ['club-pass', 'Country Club'], ['friends', 'Friends'], ['leaderboards', 'Rankings'], ['trades', 'Trading'], ['auctions', 'Auction house'], ['account', 'Account']];
   const selected = id => ui.screen === id;
   const link = ([id, label]) => `<button class="${selected(id) ? 'active' : ''}" data-action="${id}" ${selected(id) ? 'aria-current="page"' : ''}>${label}</button>`;
   return `<header class="topbar">
     <button class="logo" data-action="home" aria-label="PolyGolf clubhouse">${brandMark()}<span class="wordmark">Poly<span>Golf</span> <small>v${APP_VERSION}</small></span></button>
     <nav class="nav" aria-label="Main menu">${primary.map(link).join('')}
-      <details class="menu-more"><summary class="${other.some(([id]) => selected(id)) ? 'active' : ''}" aria-label="More pages" ${other.some(([id]) => selected(id)) ? 'aria-current="page"' : ''}>More <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></summary>
+      <details class="menu-more">${moreSummary(other.some(([id]) => selected(id)))}
         <nav class="menu-more-links" aria-label="More pages">${other.map(link).join('')}</nav>
       </details>
     </nav>

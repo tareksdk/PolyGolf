@@ -3,7 +3,9 @@ import { nameplate } from "./nameplates.js";
 import { achievementsView } from "./collection-ui.js";
 import { creditsDialog } from "./credits.js";
 import { proShopView, proShopAction } from "./pro-shop-ui.js";
-import { itemDescription, driverYards, MINI_EFFECTS } from "./equipment.js";
+import { itemDescription, driverYards, MINI_EFFECTS, memberRotation, memberPrice, membership } from "./equipment.js";
+import { shopBundles } from "./pro-shop.js";
+import { shopCover } from "./shop-art.js";
 import { finishItem, validSeed, patternLabel } from './finishes.js';
 import { page, button, esc, coins, itemCard, rarityClass, profileView } from "./views.js";
 import { ITEMS, ITEM_BY_ID, CATEGORIES, RARITY, shopRotation, itemSource, shopAvailable } from "./catalog.js";
@@ -254,22 +256,61 @@ export function installClubhouse(ui) {
         ui.render();
         return;
       }
-      if (name === "item-detail" || name === "buy") {
+      if (name === "item-detail" || name === "buy" || name === "member-offer") {
         const item = ITEM_BY_ID[data.id];
         if (!item) return;
+        const inShop = ui.screen === "shop";
+        const memberOffer = (name === "member-offer" || ui.screen === "club-pass")
+          && memberRotation().some(offer => offer.id === item.id);
+        const bundle = inShop && data.bundle
+          ? shopBundles().find(offer => offer.id === data.bundle && offer.items.some(piece => piece.id === item.id))
+          : null;
+        const needsMembership = memberOffer && !membership(ui.progress).member;
+        const price = memberOffer ? memberPrice(item) : item.price;
+        let source = itemSource(item);
+        if (memberOffer) source = "Country Club offers";
+        else if (bundle) source = bundle.name;
+        else if (inShop) {
+          const stock = shopRotation();
+          const shelf = [["featured", "Featured"], ["daily", "Daily"], ["weekly", "Weekly"], ["permanent", "Novelty Rack"]]
+            .find(([key]) => stock[key].some(offer => offer.id === item.id));
+          if (shelf) source = shelf[1];
+        }
         const owned = ui.progress.data.owned.includes(item.id),
-          available = shopAvailable(item.id),
+          available = memberOffer ? !needsMembership : shopAvailable(item.id),
           equipped = ui.progress.data.equipment[item.category] === item.id,
-          short = !owned && available && ui.progress.data.coins < item.price,
+          short = !owned && available && ui.progress.data.coins < price,
           facts = [
-            ["Source", itemSource(item)],
+            ["Source", source],
             ...(item.category === "driver" ? [["Full golf", driverYards({ driver: item.id }) + " yd driver"]] : []),
             ...(["ball", "club"].includes(item.category) && (MINI_EFFECTS[item.id] || item.id.includes("-edition-"))
               ? [["Mini-golf", itemDescription({ ...item, flavor: "" }).split(" Full golf")[0].replace("Mini-golf: ", "")]]
               : []),
           ];
+        const actionLabel = owned ? (equipped ? "Equipped" : "Equip")
+          : needsMembership ? "View membership"
+          : bundle ? "View collection"
+          : !available ? "Not in the shop now"
+          : short ? "Need more coins" : "Buy item";
+        const offerAction = owned ? "equip" : needsMembership ? "club-pass"
+          : bundle ? "bundle-detail" : memberOffer ? "buy-member-item" : "confirm-buy";
+        const disabled = equipped || (!owned && !needsMembership && !bundle && (!available || short));
+        const storeDetail = inShop || memberOffer;
         ui.modal(
-          `<div class="item-detail-v2 ${rarityClass(item)}" style="--rarity:${RARITY[item.rarity]}"><div class="detail-art"><img src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"></div><div class="detail-copy"><span class="rarity-chip" style="--rarity:${RARITY[item.rarity]}">${item.rarity} · ${CATEGORIES.find((c) => c.id === item.category).name}</span><h2>${esc(item.name)}</h2><p>${esc(item.flavor || (item.category === "driver" ? "A driver finish for your full-golf bag." : "A finish for your collection."))}</p><dl class="detail-facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl><div class="detail-actions">${owned ? `<span class="pg-owned">${equipped ? "Equipped" : "In your caddie"}</span>` : item.price ? coins(item.price) : `<span class="pg-source">${itemSource(item)}</span>`}${button(owned ? (equipped ? "Equipped" : "Equip") : available ? (short ? "Need more tokens" : "Buy item") : "Not in the shop now", owned ? "equip" : "confirm-buy", `data-id="${item.id}" ${equipped || (!owned && (!available || short)) ? "disabled" : ""}`, "button yellow")}</div>${short ? `<p class="small-note">${(item.price - ui.progress.data.coins).toLocaleString()} more tokens needed. Earn tokens on the course.</p>` : ""}</div></div>`,
+          `<div class="item-detail-v2 ${storeDetail ? "shop-offer-detail" : ""} ${rarityClass(item)}" style="--rarity:${RARITY[item.rarity]}">
+            <div class="detail-art"><img src="${storeDetail ? shopCover(item) : ui.world.itemThumbnail(item)}" alt="" decoding="async"></div>
+            <div class="detail-copy">
+              <span class="rarity-chip" style="--rarity:${RARITY[item.rarity]}">${item.rarity} · ${CATEGORIES.find(c => c.id === item.category).name}</span>
+              <h2>${esc(item.name)}</h2>
+              <p>${esc(storeDetail ? itemDescription(item) : item.flavor || (item.category === "driver" ? "A driver finish for your full-golf bag." : "A finish for your collection."))}</p>
+              <dl class="detail-facts">${facts.map(([key, value]) => `<div><dt>${key}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>
+              <div class="detail-actions">
+                ${owned ? `<span class="pg-owned">${equipped ? "Equipped" : "In your caddie"}</span>` : bundle ? `<span>${esc(bundle.name)}</span>` : price ? coins(price) : `<span class="pg-source">${esc(itemSource(item))}</span>`}
+                ${button(actionLabel, offerAction, `data-id="${bundle && !owned ? bundle.id : item.id}" ${disabled ? "disabled" : ""}`, "button yellow")}
+              </div>
+              ${short ? `<p class="small-note">${(price - ui.progress.data.coins).toLocaleString()} more coins needed.</p>` : needsMembership && !owned ? '<p class="small-note">Country Club membership required.</p>' : ""}
+            </div>
+          </div>`,
           { wide: true },
         );
         return;

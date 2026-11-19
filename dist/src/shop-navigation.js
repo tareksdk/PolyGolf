@@ -20,14 +20,23 @@ export function trackShopSections(page) {
   const links = new Map([...rail.querySelectorAll("[data-shop-link]")].map(link => [link.dataset.id, link]));
   let active = rail.querySelector('[aria-current="location"]');
   let frame = 0;
+  let starts = [], maxScroll = 0, inset = 0;
+
+  function measure() {
+    const origin = page.getBoundingClientRect().top - page.scrollTop;
+    starts = sections.map(section => section.getBoundingClientRect().top - origin);
+    maxScroll = page.scrollHeight - page.clientHeight;
+    inset = shopScrollInset(page) + 3;
+    schedule();
+  }
 
   function update() {
     frame = 0;
     if (!page.isConnected) return;
 
-    const boundary = page.getBoundingClientRect().top + shopScrollInset(page) + 3;
-    const atEnd = page.scrollTop > 0 && page.scrollTop + page.clientHeight >= page.scrollHeight - 2;
-    const section = atEnd ? sections.at(-1) : sections.findLast(node => node.getBoundingClientRect().top <= boundary);
+    const top = page.scrollTop;
+    const atEnd = top > 0 && top >= maxScroll - 2;
+    const section = atEnd ? sections.at(-1) : sections[starts.findLastIndex(start => start <= top + inset)];
     const next = links.get((section || sections[0]).dataset.shopSection);
     if (!next || next === active) return;
 
@@ -43,7 +52,14 @@ export function trackShopSections(page) {
   }
 
   const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+  const resize = new ResizeObserver(measure);
+  resize.observe(page);
+  resize.observe(page.querySelector(".store"));
   page.addEventListener("scroll", schedule, { passive: true });
-  schedule();
-  return schedule;
+  measure();
+  return () => {
+    cancelAnimationFrame(frame);
+    resize.disconnect();
+    page.removeEventListener("scroll", schedule);
+  };
 }

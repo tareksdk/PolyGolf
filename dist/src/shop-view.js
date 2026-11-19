@@ -1,11 +1,13 @@
 import { socialRewards } from "./social-view.js";
-import { achievementCards } from './collection-ui.js';
+import { coinChestArt } from "./shop-coin-art.js";
+import { shopRailPreview } from "./shop-backdrops.js";
 import { LOCKERS, availableLockers, shopBundles, lockerContents, lockerOpenLimit, lockerQuote } from "./pro-shop.js";
 import { halloweenActive } from './season.js';
 import { CATEGORIES, RARITY, shopRotation } from "./catalog.js";
-import { itemDescription } from "./equipment.js";
+import { itemDescription, memberRotation, memberPrice, nextMemberRotation, MEMBERSHIP_COST } from "./equipment.js";
 import { header, button, esc, coins } from "./views.js";
 import { icon } from "./icons.js";
+import { shopCover, shopLockerCover, shopBundleCover } from "./shop-art.js";
 
 const RANK = { Common: 0, Uncommon: 1, Rare: 2, Epic: 3, Legendary: 4, "Black Market": 5 };
 const hours = (ms) => {
@@ -15,7 +17,7 @@ const hours = (ms) => {
 };
 
 export function lockerArt(ui, p) {
-  return ui.world.itemThumbnail({ id: "locker-" + p.id, category: "locker", color: p.color, pattern: p.pattern, gem: p.gem, tier: p.tier });
+  return shopLockerCover(p);
 }
 
 export function oddsBar(p) {
@@ -66,21 +68,21 @@ function gearType(item) {
   return `${item.rarity} · ${category.name}`;
 }
 
-function gearPrice(ui, item) {
+function gearPrice(ui, item, price = item.price) {
   const { equipment, owned } = ui.progress.data;
   if (owned.includes(item.id)) {
     return `<span class="store-owned">${icon("check")}${equipment[item.category] === item.id ? "Equipped" : "Owned"}</span>`;
   }
-  return coins(item.price);
+  return coins(price);
 }
 
-function gearCard(ui, item) {
-  return `<button type="button" class="store-tile" data-action="item-detail" data-id="${item.id}" style="--store-tint:${RARITY[item.rarity]}">
-    <span class="store-tile-art"><img src="${ui.world.itemThumbnail(item)}" alt="" width="864" height="600" loading="lazy" decoding="async"></span>
+function gearCard(ui, item, members = false) {
+  return `<button type="button" class="store-tile store-gear" data-action="${members ? "member-offer" : "item-detail"}" data-id="${item.id}" style="--store-tint:${RARITY[item.rarity]}">
+    <span class="store-tile-art"><img src="${shopCover(item)}" alt="" loading="lazy" decoding="async"></span>
     <span class="store-tile-copy">
       <span class="store-tile-type">${gearType(item)}</span>
       <strong class="store-tile-name">${esc(item.name)}</strong>
-      <span class="store-tile-footer">${gearPrice(ui, item)}${icon("arrow")}</span>
+      <span class="store-tile-footer">${gearPrice(ui, item, members ? memberPrice(item) : item.price)}${icon("arrow")}</span>
     </span>
   </button>`;
 }
@@ -105,7 +107,7 @@ function featuredGear(ui, items) {
       </div>
     </div>
     <div class="store-spotlight-art">
-      <img src="${ui.world.itemThumbnail(spotlight)}" alt="" width="864" height="600" decoding="async">
+      <img src="${shopCover(spotlight)}" alt="" fetchpriority="high" decoding="async">
     </div>
   </article>${rest.length ? gearGrid(ui, rest, true) : ""}`;
 }
@@ -115,7 +117,7 @@ function lockerCard(ui, pack) {
   const details = `data-id="${pack.id}"`;
   return `<article class="store-tile store-locker" style="--store-tint:${pack.color}">
     <button type="button" class="store-tile-art" data-action="locker-detail" ${details} aria-label="View ${esc(pack.name)} rewards">
-      <img src="${lockerArt(ui, pack)}" alt="" width="864" height="600" loading="lazy" decoding="async">
+      <img src="${lockerArt(ui, pack)}" alt="" loading="lazy" decoding="async">
       ${earned ? `<span class="store-earned">${earned} earned</span>` : ""}
     </button>
     <div class="store-tile-copy">
@@ -172,8 +174,7 @@ function bundleCard(ui, bundle) {
   const missing = bundle.items.filter(item => !ui.progress.data.owned.includes(item.id)).length;
   const cost = Math.ceil((bundle.price * missing) / bundle.items.length);
   return `<button type="button" class="store-tile" data-action="bundle-detail" data-id="${bundle.id}" style="--store-tint:${RARITY[bundle.items[0].rarity]}">
-    <span class="store-tile-art store-bundle-art">${bundle.items.slice(0, 3).map(item =>
-      `<img src="${ui.world.itemThumbnail(item)}" alt="" width="864" height="600" loading="lazy" decoding="async">`).join("")}</span>
+    <span class="store-tile-art store-bundle-art"><img src="${shopBundleCover(bundle)}" alt="" loading="lazy" decoding="async"></span>
     <span class="store-tile-copy">
       <span class="store-tile-type">${bundle.items.length} pieces · ${missing ? missing + " to collect" : "Complete"}</span>
       <strong class="store-tile-name">${esc(bundle.name)}</strong>
@@ -184,18 +185,12 @@ function bundleCard(ui, bundle) {
 
 function coinShop() {
   const packs = [[1000, "0.99"], [6000, "4.99"], [14000, "9.99"]];
-  return `<article class="store-membership">
-    <div><h3>Country Club</h3><p>Unlock 30 reward tiers and a separate weekly collection for members.</p></div>
-    <div class="store-membership-actions">
-      ${coins(50000)}
-      ${button("View membership", "club-pass", "", "button yellow")}
-      ${button("$5.99 USD · Coming soon", "purchase-coming-soon", 'data-product="Country Club membership"', "text-button")}
+  return `<div class="store-coin-packs">${packs.map(([amount, price], index) => `<article>
+    <div class="store-coin-art">${coinChestArt(index + 1)}</div>
+    <div class="store-coin-copy"><h3>${coins(amount)} coins</h3>
+      <p>$${price} USD</p>
+      ${button("Coming soon", "purchase-coming-soon", `data-product="${amount} coins" aria-label="${amount.toLocaleString()} coins, coming soon"`, "button secondary")}
     </div>
-  </article>
-  <div class="store-coin-packs">${packs.map(([amount, price]) => `<article>
-    <h3>${coins(amount)} coins</h3>
-    <p>$${price} USD</p>
-    ${button("Coming soon", "purchase-coming-soon", `data-product="${amount} coins" aria-label="${amount.toLocaleString()} coins, coming soon"`, "button secondary")}
   </article>`).join("")}</div>
   <p class="store-note">Real-money purchases are coming soon. You can spend coins earned by playing today.</p>`;
 }
@@ -213,11 +208,14 @@ export function shopView(ui, now = new Date()) {
     ["novelty", "Novelty Rack", gearGrid(ui, rotation.permanent), "Always in stock"],
     ["bundles", "Bundles", `<p class="store-note">You only pay for the pieces you’re missing.</p>
       <div class="store-grid store-grid-bundles">${shopBundles(now).map(bundle => bundleCard(ui, bundle)).join("")}</div>`, reset(rotation.nextWeek)],
+    ["country-club", "Country Club", `<div class="store-club-intro">
+      <p class="store-note">These six offers are for members. Join at level 10 for ${MEMBERSHIP_COST.toLocaleString()} coins.</p>
+      ${button("View membership " + icon("arrow"), "club-pass", "", "button secondary")}</div>
+      <div class="store-grid store-grid-members">${memberRotation(now).map(item => gearCard(ui, item, true)).join("")}</div>`, reset(nextMemberRotation(now))],
     ["lockers", "Lockers", `<p class="store-note">Finish a full round for a 10% chance to earn a locker. Check any locker for its rewards and odds.${halloweenActive(now) ? " The Halloween event ends November 1." : ""}</p>
       ${lockerQuantity(ui)}<div class="store-grid store-grid-lockers">${lockerStock.map(pack => lockerCard(ui, pack)).join("")}</div>`],
-    ["rewards", "Achievements", achievementCards(ui)],
-    ["coins", "Coins &amp; membership", coinShop()],
-    ["socials", "Community rewards", socialRewards(ui, { showIntro: false })],
+    ["coins", "Coins", coinShop()],
+    ["socials", "Community rewards", socialRewards(ui, { showIntro: false, showChest: true })],
   ];
   const earned = Object.values(lockers || {}).some(Boolean);
 
@@ -237,8 +235,8 @@ export function shopView(ui, now = new Date()) {
             <span class="store-index-label">Browse</span>
             <div class="store-index-links">
               ${shelves.map(([id, label]) => button(
-                `${label}${id === "lockers" && earned ? '<span class="store-index-dot" aria-label="Earned lockers ready"></span>' : ""}`,
-                "shop-jump", `type="button" data-shop-link data-id="${id}" aria-controls="shop-section-${id}"${id === "featured" ? ' aria-current="location"' : ""}`,
+                `<span class="store-index-text">${label}${id === "lockers" && earned ? '<span class="store-index-dot" aria-label="Earned lockers ready"></span>' : ""}</span>`,
+                "shop-jump", `type="button" data-shop-link data-id="${id}" style="${shopRailPreview(id)}" aria-controls="shop-section-${id}"${id === "featured" ? ' aria-current="location"' : ""}`,
                 "store-index-link")).join("")}
             </div>
           </nav>

@@ -119,10 +119,13 @@ for(let row=0;passItems.length<30;row++)for(const category of categories){
 }
 const collectionByCategory=categories.map(c=>memberItems.filter(i=>i.category===c&&!passItems.includes(i.id)));
 export const MEMBER_COLLECTION = Array.from({length:Math.max(...collectionByCategory.map(a=>a.length))},(_,row)=>collectionByCategory.map(a=>a[row]).filter(Boolean)).flat();
+const MEMBER_ROTATION_MS = 7 * 86400000;
 export function memberRotation(now=Date.now()) {
-  const week=Math.floor(Number(now)/604800000);
+  const week=Math.floor(Number(now)/MEMBER_ROTATION_MS);
   return Array.from({length:6},(_,i)=>MEMBER_COLLECTION[(week*6+i)%MEMBER_COLLECTION.length]);
 }
+export const nextMemberRotation = (now = Date.now()) =>
+  (Math.floor(Number(now) / MEMBER_ROTATION_MS) + 1) * MEMBER_ROTATION_MS;
 export const memberPrice = item => ({Common:4000,Uncommon:6000,Rare:9000,Epic:14000,Legendary:22000,'Black Market':28000}[item.rarity] || 9000);
 export function buyMemberItem(progress,id) {
   const p=membership(progress),item=MEMBER_COLLECTION.find(i=>i.id===id);

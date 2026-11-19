@@ -125,7 +125,8 @@ try {
     if (world.frameTimes.length > 240) world.frameTimes.shift();
     const dt = Math.min(elapsed, 0.05);
     last = now;
-    game.update(dt);
+    // The shop backdrops cover the course and animate independently.
+    if (game.state !== "menu" || ui.screen !== "shop") game.update(dt);
     if (platform.active) platform.updateGameplay(game.state);
     audio.update(dt, game.state === "playing" && game.physics.active);
     if (game.state === "playing") progress.data.stats.playTime += dt;

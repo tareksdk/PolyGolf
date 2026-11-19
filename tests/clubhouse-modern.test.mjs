@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { defaultSave, ProgressionManager } from '../dist/src/save.js';
 import { LOCKERS, lockerContents, availableLockers, shopBundles } from '../dist/src/pro-shop.js';
 import { shopRotation } from '../dist/src/catalog.js';
+import { memberRotation, memberPrice, nextMemberRotation } from '../dist/src/equipment.js';
 import { lockerDetail, shopView } from '../dist/src/shop-view.js';
 import { visibleTrades, tradingView, installTrading } from '../dist/src/trading-ui.js';
 
@@ -13,10 +14,16 @@ test('the continuous shop includes every rotating item, bundle and available loc
   const ui = { screen: 'shop', progress: progress(), world: { itemThumbnail: () => 'art.png' }, cloud: { session: null } };
   ui.progress.data.lockers = { halloween: 1 };
   const html = shopView(ui, now);
+  assert.match(html, /<nav class="menu-more-links"[^>]*>\s*<button[^>]+data-action="achievements"/);
+  assert.doesNotMatch(html, /data-shop-section="rewards"/);
   const idsFor = action => [...html.matchAll(new RegExp(`data-action="${action}"\\s+data-id="([^"]+)"`, 'g'))]
     .map(match => match[1]).sort();
   const { featured, daily, weekly, permanent } = shopRotation(now);
   assert.deepEqual(idsFor('item-detail'), [...featured, ...daily, ...weekly, ...permanent].map(item => item.id).sort());
+  const members = memberRotation(now);
+  assert.deepEqual(idsFor('member-offer'), members.map(item => item.id).sort());
+  assert.ok(members.every(item => html.includes(memberPrice(item).toLocaleString())));
+  assert.equal(new Date(nextMemberRotation(now)).toISOString(), '2026-11-26T00:00:00.000Z');
   assert.deepEqual(idsFor('bundle-detail'), shopBundles(now).map(bundle => bundle.id).sort());
   assert.deepEqual(
     [...new Set(idsFor('locker-detail'))],

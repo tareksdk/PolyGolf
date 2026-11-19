@@ -6,6 +6,8 @@ import { button, esc, coins, rarityClass } from "./views.js";
 import { icon } from "./icons.js";
 import { patternLabel, finishItem } from './finishes.js';
 import { lockerMotion } from './locker-motion.js';
+import { shopCover, shopBundleCover } from "./shop-art.js";
+import { mountShopBackdrops } from "./shop-backdrops.js";
 
 const priceFor = (ui, b) =>
   Math.ceil((b.price * b.items.filter((i) => !ui.progress.data.owned.includes(i.id)).length) / b.items.length);
@@ -294,7 +296,18 @@ export async function proShopAction(ui, name, data) {
     if (!b) throw Error("This bundle has rotated out.");
     const cost = priceFor(ui, b);
     ui.modal(
-      `<span class="eyebrow">Bundle exclusive</span><h2>${esc(b.name)}</h2><div class="bundle-detail-items">${b.items.map((i) => `<button class="odds-item ${ui.progress.data.owned.includes(i.id) ? "is-owned" : ""}" data-action="item-detail" data-id="${i.id}" style="--rarity:${RARITY[i.rarity]}"><img src="${ui.world.itemThumbnail(i)}" alt=""><span>${esc(i.name)}</span><small>${ui.progress.data.owned.includes(i.id) ? "Owned" : i.rarity}</small></button>`).join("")}</div><div class="modal-actions"><span>Only missing pieces are charged.</span>${coins(cost)}${button("Buy collection", "buy-bundle", `data-id="${b.id}" ${!cost || ui.progress.data.coins < cost ? "disabled" : ""}`, "button yellow")}</div>`,
+      `<div class="shop-bundle-detail">
+        <div class="shop-bundle-hero">
+          <img src="${shopBundleCover(b)}" alt="" decoding="async">
+          <div><span class="eyebrow">Bundle exclusive</span><h2>${esc(b.name)}</h2><p>${b.items.length} pieces · ${coins(b.price)} for the full collection</p></div>
+        </div>
+        <h3>Included in the collection</h3>
+        <div class="bundle-detail-items">${b.items.map(item => {
+          const owned = ui.progress.data.owned.includes(item.id);
+          return `<button class="odds-item ${owned ? "is-owned" : ""}" data-action="item-detail" data-id="${item.id}" data-bundle="${b.id}" style="--rarity:${RARITY[item.rarity]}"><img src="${shopCover(item)}" alt="" loading="lazy" decoding="async"><span>${esc(item.name)}</span><small>${owned ? "Owned" : item.rarity}</small></button>`;
+        }).join("")}</div>
+        <div class="modal-actions"><span>Only missing pieces are charged.</span>${coins(cost)}${button(cost ? "Buy collection" : "Collection owned", "buy-bundle", `data-id="${b.id}" ${!cost || ui.progress.data.coins < cost ? "disabled" : ""}`, "button yellow")}</div>
+      </div>`,
       { wide: true },
     );
     return true;
@@ -325,8 +338,8 @@ export async function proShopAction(ui, name, data) {
 
 export function installShopExtras(ui) {
   listen(ui);
-  let updateIndex = null;
-  window.addEventListener("resize", () => updateIndex?.());
+  let removeIndex = null;
+  let removeBackdrops = null;
   ui.root.addEventListener("pointerdown", (event) => {
     const filters = ui.root.querySelector(".store-filters[open]");
     if (filters && !filters.contains(event.target)) filters.open = false;
@@ -342,9 +355,12 @@ export function installShopExtras(ui) {
   const render = ui.render.bind(ui);
   ui.render = () => {
     ui.shopFiltersOpen = ui.root.querySelector(".store-filters")?.open ?? false;
+    removeIndex?.();
+    removeBackdrops?.();
     render();
     const page = ui.root.querySelector(".shop-page");
-    updateIndex = page ? trackShopSections(page) : null;
+    removeIndex = page ? trackShopSections(page) : null;
+    removeBackdrops = page ? mountShopBackdrops(page, { reducedMotion: ui.progress.data.settings.reducedMotion }) : null;
   };
   const reveal = ui.revealItems;
   ui.revealItems = (ids) => {

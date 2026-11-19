@@ -1,13 +1,12 @@
 import { APP_VERSION } from './version.js';
-import { button, coins, esc } from './views.js';
+import { button, coins, esc, moreSummary } from './views.js';
 import { icon, brandMark } from './icons.js';
-
-const chevron = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>';
 
 export function homeMenu(ui) {
   const d = ui.progress.data;
   const guest = !ui.cloud.session || ui.cloud.isGuest;
   const more = [
+    ['trophy', 'Achievements', 'achievements'],
     ['flag', 'Community maps', 'community'],
     ['flag', 'Editor', 'editor'],
     ['user', 'Friends', 'friends'],
@@ -35,7 +34,7 @@ export function homeMenu(ui) {
           ${button(icon('user') + '<span>Multiplayer</span>', 'multiplayer', '', 'home-quick')}
           ${button(icon('trophy') + '<span>Competitive</span>', 'competitive', '', 'home-quick')}
           <details class="home-more">
-            <summary aria-label="More options">More ${chevron}</summary>
+            ${moreSummary()}
             <nav class="home-secondary home-more-links" aria-label="More options">
               ${more.map(([i, label, action]) => button(icon(i) + `<span>${label}</span>`, action)).join('')}
               ${button(icon('user') + '<span>Account</span>', 'account')}
@@ -89,6 +88,14 @@ export function installHomeMenu(ui) {
   document.addEventListener('pointerdown', event => {
     const menu = ui.root.querySelector('.home-more[open], .menu-more[open]');
     if (menu && !menu.contains(event.target)) menu.open = false;
+  });
+  ui.root.addEventListener('focusin', event => {
+    const link = event.target.closest('.home-more-links button, .menu-more-links button');
+    if (!link) return;
+    const rail = link.parentElement;
+    const viewport = rail.getBoundingClientRect(), item = link.getBoundingClientRect();
+    if (item.left < viewport.left) rail.scrollLeft -= viewport.left - item.left + 4;
+    if (item.right > viewport.right) rail.scrollLeft += item.right - viewport.right + 4;
   });
   document.addEventListener('click', event => {
     if (!event.target.closest('.home-more-links [data-action], .menu-more-links [data-action]')) return;

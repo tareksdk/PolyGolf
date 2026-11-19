@@ -18,7 +18,19 @@ export function installRelease(ui) {
     if(name==='equip-pattern'){await equipPattern(ui,data.id,Number(data.seed));return;}
     if(name==='buy-member-item'){
       if(ui.memberPurchaseBusy)return;ui.memberPurchaseBusy=true;
-      try{if(ui.cloud.session)await ui.cloud.call('buy_member_item',{id:data.id});else buyMemberItem(ui.progress,data.id);ui.revealItems([data.id]);ui.render();}catch(e){ui.toast(e.message);}finally{ui.memberPurchaseBusy=false;}return;
+      const detail = ui.modalRoot?.querySelector('.shop-offer-detail');
+      try {
+        if (ui.cloud.session) await ui.cloud.call('buy_member_item', {id:data.id});
+        else buyMemberItem(ui.progress, data.id);
+        if (detail?.isConnected) ui.closeModal();
+        ui.revealItems([data.id]);
+        ui.render();
+      } catch (error) {
+        ui.toast(error.message);
+      } finally {
+        ui.memberPurchaseBusy = false;
+      }
+      return;
     }
     if (name === 'socials') {
       if (ui.game.state !== 'menu') return;

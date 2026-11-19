@@ -1,6 +1,6 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "continuous-shop-1.14",
+  "contentVersion": "shop-scenic-navigation-1.16",
   "date": "2026-11-19",
   "items": 648,
   "lockers": 10,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.14",
+  "appVersion": "1.16",
   "crazyGamesDataModule": true,
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,

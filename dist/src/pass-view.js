@@ -1,6 +1,7 @@
 import { PASS_TIERS, PASS_TIER_XP, PASS_TIER_COUNT, membership, tierClaimed, MEMBERSHIP_COST, MEMBER_DAILY, memberRotation, memberPrice } from './equipment.js';
 import { ITEM_BY_ID } from './catalog.js';
 import { page, button, esc, coins } from './views.js';
+import { shopCover } from './shop-art.js';
 
 export function clubPassView(ui) {
   const d = ui.progress.data, p = membership(ui.progress);
@@ -23,5 +24,5 @@ export function clubPassView(ui) {
         <div class="tier-items">${items.length ? items.map(item=>`<button data-action="item-detail" data-id="${item.id}" class="tier-item"><img loading="lazy" src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><span>${esc(item.name)}</span></button>`).join('') : `<img src="${ui.world.itemThumbnail({id:'token-chest',category:'tokens',color:'#e8c162'})}" alt="Pocket of Sunshine"><h3>Pocket of Sunshine</h3>`}</div>
         <small>Member-exclusive item</small></div>
         ${button(claimed?'Collected':open?'Claim tier':'Keep playing','claim-tier',`data-tier="${t.tier}" ${!open||claimed?'disabled':''}`,'button secondary wide')}</article>`;
-    }).join('')}</div><section class="member-collection"><div class="section-heading"><div><h2>Members’ collection</h2><p>Six additional member-only finishes each week. Separate from the pass.</p></div></div><div class="member-collection-grid">${collection.map(item=>`<article><button class="member-preview" data-action="item-detail" data-id="${item.id}"><img loading="lazy" src="${ui.world.itemThumbnail(item)}" alt="${esc(item.name)}"><strong>${esc(item.name)}</strong></button><span>${item.rarity}</span>${button(d.owned.includes(item.id)?'Owned':!p.member?'Membership required':memberPrice(item).toLocaleString()+' coins','buy-member-item',`data-id="${item.id}" ${!p.member||d.owned.includes(item.id)||d.coins<memberPrice(item)?'disabled':''}`,'button secondary wide')}</article>`).join('')}</div></section>`).replace('class="page"','class="page pass-page"');
+    }).join('')}</div><section class="member-collection"><div class="section-heading"><div><h2>Members’ collection</h2><p>Six additional member-only finishes each week. Separate from the pass.</p></div></div><div class="member-collection-grid">${collection.map(item=>`<article><button class="member-preview" data-action="member-offer" data-id="${item.id}"><img loading="lazy" decoding="async" src="${shopCover(item)}" alt=""><strong>${esc(item.name)}</strong></button><span>${item.rarity}</span>${button(d.owned.includes(item.id)?'Owned':!p.member?'Membership required':memberPrice(item).toLocaleString()+' coins','buy-member-item',`data-id="${item.id}" ${!p.member||d.owned.includes(item.id)||d.coins<memberPrice(item)?'disabled':''}`,'button secondary wide')}</article>`).join('')}</div></section>`).replace('class="page"','class="page pass-page"');
 }

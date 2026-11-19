@@ -1,0 +1,65 @@
+#app.clubhouse-menu .shop-page.shop-scenery-scroll {
+  isolation: isolate;
+}
+
+.shop-scenery {
+  position: sticky;
+  top: 0;
+  z-index: -1;
+  height: 0;
+  pointer-events: none;
+}
+
+.screen-enter .shop-page > .shop-scenery {
+  animation: none;
+}
+
+.shop-scenery-scene {
+  position: absolute;
+  inset: 0 0 auto;
+  inset-inline: calc(0px - var(--page-gutter, 20px));
+  height: var(--shop-scenery-height, 100dvh);
+  overflow: hidden;
+  contain: strict;
+}
+
+.shop-scenery-scene[hidden] {
+  display: none;
+}
+
+.shop-scenery-course,
+.shop-scenery-clouds {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.shop-scenery-clouds {
+  opacity: .55;
+  animation: shop-cloud-drift 30s ease-in-out infinite alternate;
+}
+
+.shop-scenery::after {
+  position: absolute;
+  z-index: 2;
+  content: "";
+  inset: 0 0 auto;
+  inset-inline: calc(0px - var(--page-gutter, 20px));
+  height: var(--shop-scenery-height, 100dvh);
+  background: linear-gradient(180deg, #081329aa 0%, #08132928 31%, #08132916 57%, #08132963 100%),
+    linear-gradient(90deg, #07152b88 0%, #07152b2c 30%, #07152b15 70%, #07152b33 100%);
+}
+
+@keyframes shop-cloud-drift {
+  from { transform: translateX(-2.4%); }
+  to { transform: translateX(4.8%); }
+}
+
+.shop-scenery.is-paused .shop-scenery-clouds,
+#app[inert] .shop-scenery .shop-scenery-clouds { animation-play-state: paused; }
+.shop-scenery.is-reduced .shop-scenery-clouds { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-scenery-clouds { animation: none; }
+}

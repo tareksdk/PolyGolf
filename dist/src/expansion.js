@@ -553,6 +553,7 @@ export function installExpansion(ui) {
         return await ui.editor.action(action, data);
       }
       if (["editor", "club-pass", "multiplayer", "community"].includes(action)) {
+        if (action === "club-pass" && ui.modalRoot?.querySelector(".shop-offer-detail")) ui.closeModal();
         ui.navigate(action);
         return;
       }
