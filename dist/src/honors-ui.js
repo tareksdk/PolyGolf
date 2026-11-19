@@ -1,15 +1,16 @@
 import {AccoladeQueue,honorDefinition} from './honors.js';
 import {accoladeChoices,accoladeConfirmation,accoladeCelebration,honorIcon,medalGuide} from './honors-view.js';
 import {esc} from './views.js';
+import {BACKGROUND_POLL_MS,retryDelay} from './network-policy.js';
 
 export function installHonors(ui){
  const queue=new AccoladeQueue(),action=ui.action.bind(ui),close=ui.closeModal.bind(ui);
- let nextPoll=0,pending=false,sending=false,active=null,lastState=ui.game.state;
+ let nextPoll=0,pending=false,sending=false,active=null,lastState=ui.game.state,failures=0;
  const actor=()=>ui.cloud.session?.user.id||null;
  function syncActor(){
   if(actor()===queue.actor)return;
   if(active){active=null;close();}
-  queue.reset(actor());nextPoll=0;
+  queue.reset(actor());nextPoll=0;failures=0;
  }
  async function acknowledgements(){
   const user=queue.actor;
@@ -40,16 +41,17 @@ export function installHonors(ui){
   if(active&&(ui.game.state!=='menu'||ui.cloud.room?.state?.phase==='playing')){active=null;close();}
   if(lastState!=='menu'&&ui.game.state==='menu')nextPoll=0;
   lastState=ui.game.state;
+  if(ui.cloud.isGuest||ui.game.state!=='menu'||ui.cloud.room?.state?.phase==='playing')return;
   showNext();
   if(pending||Date.now()<nextPoll)return;
-  const user=queue.actor;pending=true;nextPoll=Date.now()+45000;
+  const user=queue.actor;pending=true;nextPoll=Date.now()+BACKGROUND_POLL_MS;
   try{
    await acknowledgements();
    if(actor()!==user)return;
    const data=await ui.cloud.call('honors_inbox');
    if(actor()!==user)return;
-   queue.ingest(user,data.awards);showNext();
-  }catch{nextPoll=Date.now()+90000;}
+   failures=0;queue.ingest(user,data.awards);showNext();
+  }catch{nextPoll=Date.now()+retryDelay(++failures,BACKGROUND_POLL_MS,1800000);}
   finally{pending=false;}
  }
  // Polling is lightweight. The presentation gate excludes the entire round,

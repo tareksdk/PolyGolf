@@ -1,3 +1,4 @@
+import { installHomeMenu } from './home-menu.js';
 import { initializeCrazyGames } from './crazygames.js';
 import { setProgressStorage } from './progress-storage.js';
 import { installPlanetfall } from './planetfall-ui.js';
@@ -102,6 +103,7 @@ try {
   installSmartHud(ui);
   installPlanetfall(ui);
   installMinimap(ui);
+  installHomeMenu(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);

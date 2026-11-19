@@ -1,0 +1,203 @@
+/* One clubhouse language: quiet navigation, open galleries, and useful dividers. */
+:root{--club-bg:#10291f;--club-panel:#18382b;--club-raised:#264a37;--club-line:#a8b99a30;--club-ink:#f5f2df;--club-muted:#b8c9b2;--club-gold:#e9cc78}
+html[data-theme=light]{--club-bg:#f1f2e9;--club-panel:#fbfcf5;--club-raised:#e3e9dc;--club-line:#56745635;--club-ink:#244532;--club-muted:#536b56;--club-gold:#7b5f1b}
+#app.clubhouse-menu{--ui-surface:var(--club-panel);--ui-raised:var(--club-raised);--ui-field:var(--club-bg);--ui-text:var(--club-ink);--ui-muted:var(--club-muted);--ui-border:var(--club-line);--ui-accent:var(--club-gold);--page-gutter:clamp(20px,4.5vw,72px);color:var(--club-ink);background:var(--club-bg)}
+#app.clubhouse-menu .panel-backdrop{background:var(--club-bg)}
+#app.clubhouse-menu .topbar{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px 30px;align-items:center;
+  position:relative;inset:auto;z-index:10;width:100%;min-height:78px;padding:14px var(--page-gutter);
+  background:var(--club-bg);border-bottom:1px solid var(--club-line);box-shadow:none;
+}
+#app.clubhouse-menu .topbar .logo{gap:8px;min-height:44px}
+#app.clubhouse-menu .topbar .logo .brand-mark{width:23px;height:29px}
+#app.clubhouse-menu .topbar .wordmark{font-size:25px;letter-spacing:-.7px}
+#app.clubhouse-menu .topbar .wordmark small{font-size:10px;margin-left:5px;color:var(--club-muted)}
+#app.clubhouse-menu .topbar .nav{grid-column:2;grid-row:1;display:flex!important;align-items:center;justify-content:flex-start;width:auto;gap:8px;padding:0;margin:0;overflow:visible;background:none;border:0}
+#app.clubhouse-menu .topbar .nav>button,#app.clubhouse-menu .menu-more>summary{
+  display:flex;align-items:center;justify-content:center;gap:6px;position:relative;min-height:44px;
+  padding:10px 13px;color:var(--club-muted);background:none;border:0;border-radius:3px;font-size:13px;font-weight:500;
+}
+#app.clubhouse-menu .topbar .nav>button.active,#app.clubhouse-menu .menu-more>summary.active{background:transparent!important;color:var(--club-ink)!important;box-shadow:inset 0 -2px var(--club-gold)!important;border-radius:0}
+#app.clubhouse-menu .topbar .nav>button:hover:not(.active),#app.clubhouse-menu .menu-more>summary:hover{background:transparent;color:var(--club-gold);box-shadow:none}
+#app.clubhouse-menu .topbar .player-bar{grid-column:3;grid-row:1;margin:0;gap:12px}
+#app.clubhouse-menu .topbar .player-button strong{font-size:12px}#app.clubhouse-menu .topbar .player-button small{font-size:10px}
+#app.clubhouse-menu .topbar .wallet .money{font-size:13px}#app.clubhouse-menu .topbar .avatar{width:30px;height:30px;border-radius:5px}
+#app.clubhouse-menu .topbar .header-settings{width:44px;height:44px;min-height:44px;background:transparent;border:1px solid var(--club-line);border-radius:5px}
+#app.clubhouse-menu .menu-more{position:relative}
+#app.clubhouse-menu .menu-more>summary{cursor:pointer;list-style:none}
+#app.clubhouse-menu .menu-more>summary::-webkit-details-marker{display:none}
+.menu-more>summary svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;transition:transform .15s}
+.menu-more[open]>summary svg{transform:rotate(180deg)}
+#app.clubhouse-menu .menu-more-links{position:absolute;top:calc(100% + 10px);right:0;z-index:40;display:grid;grid-template-columns:1fr 1fr;width:350px;max-width:calc(100vw - 32px);gap:3px;padding:10px;border:1px solid var(--club-line);border-radius:8px;background:var(--club-panel);box-shadow:0 12px 35px #00100840}
+#app.clubhouse-menu .topbar .menu-more-links button{width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:4px;background:transparent;color:var(--club-ink);text-align:left;font-size:12px;font-weight:500;white-space:normal;box-shadow:none!important}
+#app.clubhouse-menu .topbar .menu-more-links button:hover,#app.clubhouse-menu .topbar .menu-more-links button.active{color:var(--club-gold)!important;background:var(--club-raised)!important;box-shadow:none!important}
+#app.clubhouse-menu .page{padding:34px var(--page-gutter) 44px}
+#app.clubhouse-menu .page-heading{margin-bottom:30px;gap:20px}
+#app.clubhouse-menu :is(.page-heading h1,.course-page-title h1){font:600 clamp(28px,3vw,38px)/1.15 'Outfit',sans-serif;letter-spacing:-.035em}
+#app.clubhouse-menu .page-heading p{font-size:13px;line-height:1.65;max-width:750px;margin-top:9px}
+#app.clubhouse-menu :is(h2,h3){font-family:'Outfit',sans-serif;font-weight:550;letter-spacing:-.02em}
+#app.clubhouse-menu :is(.button,.chip,.category-tab,.arcade-button){min-height:44px;border-radius:6px;box-shadow:none;transition:background .15s,color .15s,border-color .15s;transform:none}
+#app.clubhouse-menu :is(.button,.chip,.category-tab,.arcade-button):hover{transform:none;box-shadow:none}
+#app.clubhouse-menu :is(.button.secondary,.chip,.category-tab){background:transparent;color:var(--club-ink);border:1px solid var(--club-line)}
+#app.clubhouse-menu :is(.button.yellow,.arcade-primary){background:#e9cc78;color:#183b2e;border-color:#e9cc78}
+#app.clubhouse-menu :is(.button.yellow,.arcade-primary):hover{background:#f3da96;border-color:#f3da96}
+#app.clubhouse-menu :is(.chip.active,.category-tab.active){background:var(--club-raised);color:var(--club-ink);border-color:var(--club-gold)}
+#app.clubhouse-menu :is(input:not([type=checkbox]):not([type=range]),select){min-height:44px;border-radius:6px;background:var(--club-panel)!important;border-color:var(--club-line)!important;box-shadow:none}
+#app.clubhouse-menu .text-button{min-height:44px;font-weight:500;color:var(--club-gold)}
+#app.clubhouse-menu :is(.ranking-panel,.profile-details,.profile-card,.lobby-panel,.empty-state,.creator-entry,.multiplayer-grid>.panel){background:transparent;border:0;border-radius:0;box-shadow:none;padding:24px 0}
+#app.clubhouse-menu .multiplayer-grid{gap:48px}#app.clubhouse-menu .multiplayer-grid>.panel+ .panel{border-left:1px solid var(--club-line);padding-left:40px}
+#app.clubhouse-menu .ranking-filters{padding-bottom:18px;border-bottom:1px solid var(--club-line)}
+#app.clubhouse-menu .ranking-table{border-collapse:collapse}#app.clubhouse-menu .ranking-table th{font-weight:500;font-size:10px;letter-spacing:.08em;color:var(--club-muted);background:transparent}
+#app.clubhouse-menu .ranking-table :is(th,td){border-color:var(--club-line);padding-block:16px}
+#app.clubhouse-menu .category-tabs{gap:8px}
+#app.clubhouse-menu .friends-list>div,#app.clubhouse-menu .feature-row{border:0;border-bottom:1px solid var(--club-line);background:transparent;border-radius:0}
+#app.clubhouse-menu .profile-stats{gap:20px;border:0}#app.clubhouse-menu .profile-stats>div{padding:16px 0;background:none;border:0;border-bottom:1px solid var(--club-line);border-radius:0}
+#app.clubhouse-menu .profile-layout{gap:40px}#app.clubhouse-menu .profile-card{border-right:1px solid var(--club-line);padding-right:30px}
+/* Art stays framed by its own silhouette instead of another large panel. */
+#app.clubhouse-menu :is(.crate-card,.pg-card,.bundle-card,.shop-hero,.promo-card){border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+#app.clubhouse-menu :is(.crate-card,.pg-card,.bundle-card):hover{transform:none;border-color:transparent;box-shadow:none}
+#app.clubhouse-menu :is(.pg-art,.crate-art,.bundle-images){border-radius:8px;overflow:hidden}
+#app.clubhouse-menu .pg-card::before{display:none}
+#app.clubhouse-menu .pg-card :is(.pg-body,.pg-foot){padding-inline:0;background:transparent;color:var(--club-ink)}
+#app.clubhouse-menu .pg-body h3{font-size:16px;font-weight:550}#app.clubhouse-menu .pg-foot{border-color:var(--club-line);padding-bottom:6px}
+#app.clubhouse-menu .crate-body{padding:16px 0 8px}#app.clubhouse-menu .crate-foot{border-top:1px solid var(--club-line)}
+#app.clubhouse-menu .shop-featured{gap:32px}#app.clubhouse-menu .shop-hero{border-bottom:1px solid var(--club-line);padding-bottom:24px}
+#app.clubhouse-menu .shop-hero .hero-copy{padding:16px 24px 16px 0;background:transparent}
+#app.clubhouse-menu .shop-hero .hero-art{background:transparent;border-radius:8px;overflow:hidden}
+#app.clubhouse-menu .promo-card>div{padding:16px 0;background:transparent}#app.clubhouse-menu .promo-card>img{border-radius:8px}
+#app.clubhouse-menu .shop-tabs .shop-tab{border-radius:0;padding-left:0;background:none;box-shadow:none}
+#app.clubhouse-menu .shop-tabs .shop-tab.active{background:none;color:var(--club-ink);box-shadow:inset 2px 0 var(--club-gold);padding-left:12px}
+#app.clubhouse-menu .shop-toolbar{border-color:var(--club-line)}
+#app.clubhouse-menu .locker-quantity{background:transparent;border:0;border-bottom:1px solid var(--club-line);border-radius:0;padding:0 0 18px}
+#app.clubhouse-menu .shop-rail{margin-top:34px}#app.clubhouse-menu .rail-head{margin-bottom:18px}
+#app.clubhouse-menu .bundle-card{border-bottom:1px solid var(--club-line);padding:0 0 20px}
+/* The course library keeps its existing Full / Blitz / Other order. */
+#app.clubhouse-menu .course-menu{background:var(--club-bg);padding-top:28px}
+#app.clubhouse-menu .course-menu .arcade-page-header{padding-top:0}
+#app.clubhouse-menu .course-menu .arcade-course{background:transparent;border:0;border-radius:0;overflow:visible;box-shadow:none}
+#app.clubhouse-menu .course-menu .arcade-course>img{border-radius:8px;height:clamp(160px,16vw,220px);object-fit:cover}
+#app.clubhouse-menu .course-menu .arcade-course-copy{padding:17px 0 0;gap:8px}
+#app.clubhouse-menu .course-menu .arcade-course h3{font-size:22px;font-weight:550;margin:8px 0}
+#app.clubhouse-menu .course-menu .arcade-course-record{margin-bottom:8px}
+#app.clubhouse-menu .course-menu .arcade-course-copy>.arcade-button{align-self:flex-start;width:auto;min-width:110px;margin-top:10px;padding:11px 20px}
+#app.clubhouse-menu .course-menu .course-section{border-top-width:1px;border-color:var(--club-line);padding-top:20px}
+#app.clubhouse-menu .course-section-number{border:0;min-width:20px;width:auto;color:var(--club-muted);font-size:10px}
+#app.clubhouse-menu .course-menu .arcade-courses{gap:28px}
+#app.clubhouse-menu .course-menu .course-section-heading h2{font-size:23px;font-weight:550}
+#app.clubhouse-menu .course-menu .community-map-link{background:none;color:var(--club-muted);border:0;min-width:0;gap:10px;padding:10px 0;box-shadow:none}
+#app.clubhouse-menu .community-map-link strong{font-size:13px;font-weight:500}#app.clubhouse-menu .community-map-link small{display:none}
+#app.clubhouse-menu .community-map-link>span{display:flex;align-items:center;gap:8px}#app.clubhouse-menu .community-map-link>b{font-size:20px}
+#app.clubhouse-menu .course-menu .arcade-switch>button{background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--club-muted)}
+#app.clubhouse-menu .course-menu .arcade-switch>button[aria-pressed=true]{background:transparent;border-color:var(--club-gold);color:var(--club-ink)}
+#app.clubhouse-menu .planetfall-card-actions{justify-items:start;margin-top:0;gap:0}#app.clubhouse-menu .planetfall-card-actions .arcade-button{width:auto;min-width:110px;padding-inline:20px}
+#app.clubhouse-menu .planetfall-card-board{padding-left:0;text-align:left}
+/* Keep the 3D caddie preview, with the same calm backdrop as the collection. */
+#app.clubhouse-menu[data-screen=garage]{background:transparent}
+#app.clubhouse-menu .garage-page{gap:36px;padding-top:28px;padding-bottom:30px}
+#app.clubhouse-menu .caddie-preview-label{background:transparent;padding:0 0 20px;border-radius:0}
+#app.clubhouse-menu .caddie-preview-label h1{font-size:30px;font-weight:550}
+#app.clubhouse-menu .garage-inventory{background:var(--club-bg);border:0;border-left:1px solid var(--club-line);border-radius:0;padding:0 0 0 28px}
+#app.clubhouse-menu .garage-inventory .garage-equipped{padding-top:0}
+#app.clubhouse-menu .hud-cosmetic{background:transparent;border:0;border-top:1px solid var(--club-line);border-bottom:1px solid var(--club-line);border-radius:0}
+#app.clubhouse-menu .caddie-filter-toggle{background:transparent;border:1px solid var(--club-line)}
+/* Lists and reward tracks use separators rather than nested boxes. */
+#app.clubhouse-menu .trade-inbox .trade-empty{background:transparent;border:0;border-top:1px solid var(--club-line);border-radius:0;padding-inline:10px}
+#app.clubhouse-menu .trade-guide{border-color:var(--club-line)}
+#app.clubhouse-menu .trade-offer{background:transparent;border:0;border-top:1px solid var(--club-line);border-bottom:1px solid var(--club-line);border-radius:0;padding-inline:0}
+#app.clubhouse-menu .pass-page .pass-summary{background:transparent;border:0;border-bottom:1px solid var(--club-line);border-radius:0;padding:0 0 30px}
+#app.clubhouse-menu .pass-column{background:transparent;border:0;border-top:1px solid var(--club-line);border-radius:0;box-shadow:none}
+#app.clubhouse-menu .pass-column :is(header,.pass-free,.pass-premium){background:transparent;border-color:var(--club-line)}
+#app.clubhouse-menu .member-collection-grid>article{background:transparent;border:0;border-bottom:1px solid var(--club-line);border-radius:0;padding:0 0 18px}
+#app.clubhouse-menu .auction-card{border:0;border-bottom:1px solid var(--club-line);border-radius:0;background:transparent;box-shadow:none}
+/* Competitive is a page of the clubhouse too. */
+#app.clubhouse-menu .competitive-page{inset:var(--header-height,78px) 0 0;background:var(--club-bg);color:var(--club-ink)}
+#app.clubhouse-menu .competitive-content{max-width:1320px;padding:36px var(--page-gutter) 44px}
+#app.clubhouse-menu .ranked-identity h1{font-size:clamp(30px,3.6vw,46px);line-height:1.12;font-weight:550}
+#app.clubhouse-menu .ranked-identity>p,#app.clubhouse-menu .ranked-fairplay,#app.clubhouse-menu .competitive-ladder>p{color:var(--club-muted)}
+#app.clubhouse-menu .ranked-queue-card{background:transparent;border:0;border-left:1px solid var(--club-line);border-radius:0;box-shadow:none;padding:18px 0 18px 30px;color:var(--club-ink)}
+#app.clubhouse-menu .ranked-queue-card h2{color:var(--club-ink)}#app.clubhouse-menu .ranked-queue-card :is(.eyebrow,.rank-next,small){color:var(--club-muted)}
+#app.clubhouse-menu .ranked-course-strip>div{background:transparent;border:0;border-radius:0}#app.clubhouse-menu .ranked-course-strip img{border-radius:6px}#app.clubhouse-menu .ranked-course-strip span{padding-left:0}
+#app.clubhouse-menu .competitive-ladder{border-color:var(--club-line)}
+#app.clubhouse-menu .competitive-ladder article{background:transparent;border:0;border-bottom:2px solid var(--rank-color);border-radius:0;outline:0;padding:18px 10px}
+#app.clubhouse-menu .competitive-ladder article.is-current{background:var(--club-raised);outline:0}#app.clubhouse-menu .competitive-ladder article small{color:var(--club-muted)}
+/* Dialogs keep their controls and scrolling; only their visual framing changes. */
+:is(#modal-root,#modal-exit) .modal{background:var(--club-bg);color:var(--club-ink);border:1px solid var(--club-line);border-radius:9px;box-shadow:0 18px 60px #00100855}
+:is(#modal-root,#modal-exit) .modal h2{color:var(--club-ink);font-weight:550}
+:is(#modal-root,#modal-exit) .modal :is(input:not([type=checkbox]):not([type=range]),select){border-radius:6px}
+:is(#modal-root,#modal-exit) .modal .settings-group{background:transparent;border:0;border-bottom:1px solid var(--club-line);border-radius:0;padding-inline:0}
+#app.clubhouse-menu :is(button,summary,a,input,select):focus-visible{outline:2px solid var(--club-gold);outline-offset:4px}
+@media(max-width:1050px){
+  #app.clubhouse-menu .topbar{grid-template-columns:1fr auto;gap:4px 16px;padding-block:10px}
+  #app.clubhouse-menu .topbar .nav{grid-column:1/-1;grid-row:2;gap:8px}
+  #app.clubhouse-menu .topbar .player-bar{grid-column:2;grid-row:1}
+  #app.clubhouse-menu .menu-more{position:static}#app.clubhouse-menu .menu-more-links{top:100%;right:var(--page-gutter)}
+}
+@media(max-width:760px){
+  #app.clubhouse-menu{--page-gutter:20px}
+  #app.clubhouse-menu .topbar{padding:9px 16px 0;gap:1px 8px;min-height:104px}
+  #app.clubhouse-menu .topbar .wordmark{font-size:22px}#app.clubhouse-menu .topbar .logo .brand-mark{width:22px;height:27px}
+  #app.clubhouse-menu .topbar .player-bar{gap:8px}#app.clubhouse-menu .topbar .player-button>div{display:none}
+  #app.clubhouse-menu .topbar .wallet{display:none}#app.clubhouse-menu .topbar .header-settings{border:0;width:40px;min-height:44px}
+  #app.clubhouse-menu .topbar .nav{gap:10px}#app.clubhouse-menu .topbar .nav>button,#app.clubhouse-menu .menu-more>summary{font-size:12px;padding:11px 10px}
+  #app.clubhouse-menu .menu-more-links{right:16px;max-width:calc(100vw - 32px)}
+  #app.clubhouse-menu .page{padding:26px var(--page-gutter) 36px}
+  #app.clubhouse-menu .page-heading{margin-bottom:24px}#app.clubhouse-menu .page-heading h1{font-size:30px}
+  #app.clubhouse-menu .multiplayer-grid{gap:24px}#app.clubhouse-menu .multiplayer-grid>.panel+ .panel{border-left:0;border-top:1px solid var(--club-line);padding:24px 0}
+  #app.clubhouse-menu .profile-card{border:0;border-bottom:1px solid var(--club-line);padding:0 0 24px}
+  #app.clubhouse-menu .profile-layout{gap:24px}
+  #app.clubhouse-menu .shop-tabs{display:flex;flex-direction:row;flex-wrap:nowrap;overflow:auto;gap:18px;scrollbar-width:thin}
+  #app.clubhouse-menu .shop-tabs .shop-tab{width:auto;flex:none;padding:10px 0;min-height:44px;background:none;box-shadow:none;justify-content:flex-start;font-size:12px;white-space:nowrap}
+  #app.clubhouse-menu .shop-tabs .shop-tab.active{background:none;color:var(--club-ink);box-shadow:inset 0 -2px var(--club-gold);padding-left:0}
+  #app.clubhouse-menu .shop-toolbar{gap:8px;min-width:0;max-width:100%}#app.clubhouse-menu .shop-toolbar>.text-button{align-self:flex-start;min-height:36px;padding:5px 0}
+  #app.clubhouse-menu .shop-featured{gap:24px}#app.clubhouse-menu .shop-hero .hero-copy{padding:12px 16px 12px 0}
+  #app.clubhouse-menu .crate-grid{gap:22px 14px}#app.clubhouse-menu .crate-body{padding:12px 0}
+  #app.clubhouse-menu .crate-body h3{font-size:20px}#app.clubhouse-menu .pg-body h3{font-size:14px}
+  #app.clubhouse-menu .course-menu{padding:24px 20px 34px}#app.clubhouse-menu .course-menu .arcade-courses{gap:30px}
+  #app.clubhouse-menu .course-menu .arcade-course>img{height:auto;aspect-ratio:1.9}
+  #app.clubhouse-menu .course-menu .arcade-course-copy{padding:14px 0 0}
+  #app.clubhouse-menu .course-menu .community-map-link{width:auto;align-self:flex-start}
+  #app.clubhouse-menu .garage-page{gap:16px;padding:20px var(--page-gutter);grid-template-rows:130px minmax(0,1fr)}
+  #app.clubhouse-menu .caddie-preview-label{padding:0 12px 0 0}#app.clubhouse-menu .caddie-preview-label h1{font-size:25px}
+  #app.clubhouse-menu .garage-inventory{border-left:0;border-top:1px solid var(--club-line);padding:18px 0 0}
+  #app.clubhouse-menu .competitive-content{padding:28px 20px 36px}
+  #app.clubhouse-menu .ranked-queue-card{border-left:0;border-top:1px solid var(--club-line);border-bottom:1px solid var(--club-line);padding:24px 0}
+  #app.clubhouse-menu .competitive-ladder>div{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){#app.clubhouse-menu :is(button,summary svg){transition:none}}
+#app[data-menu-motion=reduced] .home-center{animation:none}
+#app[data-menu-motion=reduced] :is(button,summary svg){transition:none}
+#app.clubhouse-menu .course-menu .daily-volcano :is(h3,p,.arcade-course-record,.course-card-meta){color:var(--club-ink)}
+#app.clubhouse-menu .course-menu .course-section-blitz .arcade-courses{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){#app.clubhouse-menu .course-menu .course-section-blitz .arcade-courses{grid-template-columns:1fr}}
+@media(max-width:760px){
+  #app.clubhouse-menu .course-menu .arcade-page-header>.community-map-link{display:none!important}
+  #app.clubhouse-menu .shop-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}
+  #app.clubhouse-menu .shop-tabs{grid-column:1/-1}
+  #app.clubhouse-menu .shop-toolbar>.text-button{align-self:center;justify-self:start;min-height:44px}
+  #app.clubhouse-menu .shelf-heading>.eyebrow{display:none}
+  #app.clubhouse-menu .shelf-heading h2{font-size:24px;margin-top:0}
+  #app.clubhouse-menu .shop-hero{display:flex;flex-direction:column;padding-bottom:20px}
+  #app.clubhouse-menu .shop-hero .hero-art{order:-1;width:100%;height:200px;min-width:0}
+  #app.clubhouse-menu .shop-hero .hero-art img{width:100%;height:100%;object-fit:contain}
+  #app.clubhouse-menu .shop-hero .hero-copy{padding:16px 0 0;width:100%;min-width:0}
+  #app.clubhouse-menu .promo-card{gap:18px;grid-template-columns:110px minmax(0,1fr)}
+  #app.clubhouse-menu .promo-card>img{height:130px;width:110px;object-fit:contain}
+  #app.clubhouse-menu .promo-card>div{padding-top:0}
+}
+#app.clubhouse-menu .mode-tabs{background:transparent;border:0;gap:10px;padding:0;border-radius:0}
+#app.clubhouse-menu .mode-tab{background:transparent;color:var(--club-muted);border:0;border-bottom:2px solid transparent;border-radius:0;min-height:44px;padding:10px 8px}
+#app.clubhouse-menu .mode-tab.active{background:transparent;color:var(--club-ink);border-bottom-color:var(--club-gold)}
+@media(min-width:761px) and (max-height:640px){#app.clubhouse-menu .shop-toolbar{position:static}}
+/* The editor keeps its workspace and tools, using the same lighter framing. */
+#app.clubhouse-menu :is(.studio-shell,.studio-topbar,.studio-toolbar,.studio-sidebar,.studio-inspector,.studio-footer,.studio-panel,.editor-sidebar,.editor-toolbar,.map-editor-panel,.golf-editor-panel){background:var(--club-bg);color:var(--club-ink);border-color:var(--club-line);border-radius:0;box-shadow:none}
+#app.clubhouse-menu :is(.studio-tabs,.studio-tools,.studio-status,.studio-section,.studio-mode,.studio-heading,.tool-group){background:transparent;color:var(--club-ink);border-color:var(--club-line);border-radius:0}
+#app.clubhouse-menu :is(.studio-tab,.pe-tool,.palette-item,.saved-row){background:transparent;color:var(--club-ink);border-color:var(--club-line);border-radius:5px;box-shadow:none}
+#app.clubhouse-menu :is(.studio-tab.active,.pe-tool.active){background:var(--club-gold);color:var(--club-bg)}
+#app.clubhouse-menu .studio-shell :is(p,small,.studio-hint){color:var(--club-muted)}
+#app.clubhouse-menu .studio-shell :is(label,output,.studio-status,.studio-subhead){color:var(--club-muted)}
+/* Short windows scroll the whole collection instead of squeezing its item area. */
+@media(max-height:640px){
+  #app.clubhouse-menu .garage-inventory{display:block;overflow-y:auto;scrollbar-width:thin}
+  #app.clubhouse-menu .garage-inventory .garage-items{overflow:visible;min-height:auto;margin-top:12px}
+  #app.clubhouse-menu .garage-inventory>.garage-bottom{margin-bottom:8px}
+}

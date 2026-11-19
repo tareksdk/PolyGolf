@@ -1,3 +1,4 @@
+import {networkPauseUntil} from './cloud.js';
 // Supabase private Broadcast. No positions are written to Postgres.
 export class LiveTransport {
   constructor({url,key,token,user,scope,receive,status=()=>{},socket=WebSocket}) {
@@ -11,6 +12,8 @@ export class LiveTransport {
   }
   connect(){
     if(this.closed)return;
+    const pause=networkPauseUntil()-Date.now();
+    if(pause>0){this.status('reconnecting');this.retry=setTimeout(()=>this.connect(),pause);return;}
     this.joined.clear();this.refs.clear();this.joins=new Map();this.status('connecting');
     const ws=this.ws=new this.Socket(this.url.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(this.key)+'&vsn=1.0.0');
     this.deadline=setTimeout(()=>ws.close(),12000);
@@ -37,7 +40,7 @@ export class LiveTransport {
     ws.onerror=()=>ws.close();
     ws.onclose=()=>{
       clearTimeout(this.deadline);clearInterval(this.heartbeat);this.pendingHeartbeat=null;this.joined.clear();
-      if(!this.closed){this.status('reconnecting');this.retry=setTimeout(()=>this.connect(),Math.min(30000,1500*2**Math.min(this.failures++,5)));}
+      if(!this.closed){this.status('reconnecting');this.retry=setTimeout(()=>this.connect(),Math.min(300000,1500*2**Math.min(this.failures++,8)));}
     };
   }
   publish(state){return this.joined.has(this.user)&&this.send('broadcast',{type:'broadcast',event:'state',payload:state},this.topic(this.user));}

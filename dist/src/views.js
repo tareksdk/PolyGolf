@@ -21,25 +21,20 @@ export const button = (text, action, extra = "", cls = "button") =>
   `<button class="${cls}" data-action="${action}" ${action === "favorites" ? 'aria-label="Show favorite cosmetics"' : ""} ${extra}>${text}</button>`;
 export const minutes = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
 export function header(ui) {
-  const d = ui.progress.data,
-    l = ui.progress.level;
-  return `<header class="topbar"><button class="logo" data-action="home" aria-label="PolyGolf clubhouse">${brandMark()}<span class="wordmark">Poly<span>Golf</span> <small>v${APP_VERSION}</small></span></button><nav class="nav" aria-label="Main menu">${[
-    ["home", "Home"],
-    ["courses", "Courses"],
-    ["garage", "Caddie"],
-    ["shop", "Shop"],
-    ["leaderboards", "Rankings"],
-    ["friends", "Friends"],
-    ["trades", "Trading"],
-    ["club-pass", "Country Club"],
-  ]
-    .map(
-      ([id, label]) =>
-        `<button class="${ui.screen === id ? "active" : ""}" data-action="${id}" ${ui.screen === id ? 'aria-current="page"' : ""}>${label}</button>`,
-    )
-    .join(
-      "",
-    )}</nav><div class="player-bar"><span class="wallet" aria-label="${d.coins} coins">${coins(d.coins)}</span><button class="player-button" data-action="profile" aria-label="${esc(d.name)} profile"><span class="avatar">${ui.cloud?.profile?.avatar ? `<img src="${esc(ui.cloud.profile.avatar)}" alt="Your profile picture">` : esc(d.name.charAt(0).toUpperCase())}</span><div><strong>${esc(d.name)}</strong><small>Level ${l.level} · ${l.xp} / ${l.required} XP</small><span class="tiny-xp"><i style="width:${l.progress * 100}%"></i></span></div></button><button class="header-settings" data-action="settings" aria-label="Settings">${icon("sliders")}</button></div></header>`;
+  const d = ui.progress.data, l = ui.progress.level;
+  const primary = [['courses', 'Play'], ['garage', 'Caddie'], ['shop', 'Shop']];
+  const other = [['multiplayer', 'Multiplayer'], ['competitive', 'Competitive'], ['community', 'Community maps'], ['editor', 'Editor'], ['club-pass', 'Country Club'], ['friends', 'Friends'], ['leaderboards', 'Rankings'], ['trades', 'Trading'], ['auctions', 'Auction house'], ['account', 'Account']];
+  const selected = id => ui.screen === id;
+  const link = ([id, label]) => `<button class="${selected(id) ? 'active' : ''}" data-action="${id}" ${selected(id) ? 'aria-current="page"' : ''}>${label}</button>`;
+  return `<header class="topbar">
+    <button class="logo" data-action="home" aria-label="PolyGolf clubhouse">${brandMark()}<span class="wordmark">Poly<span>Golf</span> <small>v${APP_VERSION}</small></span></button>
+    <nav class="nav" aria-label="Main menu">${primary.map(link).join('')}
+      <details class="menu-more"><summary class="${other.some(([id]) => selected(id)) ? 'active' : ''}" aria-label="More pages" ${other.some(([id]) => selected(id)) ? 'aria-current="page"' : ''}>More <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <nav class="menu-more-links" aria-label="More pages">${other.map(link).join('')}</nav>
+      </details>
+    </nav>
+    <div class="player-bar"><span class="wallet" aria-label="${d.coins} coins">${coins(d.coins)}</span><button class="player-button" data-action="profile" aria-label="${esc(d.name)} profile" ${selected('profile') ? 'aria-current="page"' : ''}><span class="avatar">${ui.cloud?.profile?.avatar ? `<img src="${esc(ui.cloud.profile.avatar)}" alt="Your profile picture">` : esc(d.name.charAt(0).toUpperCase())}</span><div><strong>${esc(d.name)}</strong><small>Level ${l.level} · ${l.xp} / ${l.required} XP</small><span class="tiny-xp"><i style="width:${l.progress * 100}%"></i></span></div></button><button class="header-settings" data-action="settings" aria-label="Settings">${icon('sliders')}</button></div>
+  </header>`;
 }
 export function homeView(ui) {
   const c = COURSES[ui.selectedCourse];

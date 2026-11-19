@@ -1,6 +1,6 @@
 import {botPresentation} from './bots.js';
 import { SUPABASE_URL, PUBLISHABLE_KEY } from './cloud.js';
-import { liveScope, liveHole, cleanLiveState } from './live-state.js';
+import { liveScope, liveHole, cleanLiveState, compactLiveState } from './live-state.js';
 import { LiveTransport } from './live-transport.js';
 import { LiveOpponent } from './live-opponents.js';
 
@@ -21,6 +21,7 @@ export function installLiveRound(ui){
   };
   const update=world.update.bind(world);
   world.update=(dt,...args)=>{
+    if(document.hidden){if(key)clear();update(dt,...args);return;}
     const next=liveScope(ui),id=ui.cloud.session?.user.id;
     const nextKey=next?`${id}:${next.key}:${next.members.map(p=>p.id).sort().join(',')}`:null;
     if(nextKey!==key){
@@ -33,9 +34,9 @@ export function installLiveRound(ui){
     const now=performance.now();
     if(scope){
       const moving=game.physics.active||game.pendingSwing||world.emotePose;
-      const interval=moving?(peers.size>3?334:167):1000;
+      const interval=moving?(peers.size>3?334:167):3000;
       const flags=`${liveHole(game)}:${!!game.physics.active}:${!!game.physics.sunk}:${swing?.id}:${emote?.id}`;
-      if(transport&&(now-lastSend>=interval||flags!==lastFlags)){const state=capture();if(state&&transport.publish(state)){lastSend=now;lastFlags=flags;}}
+      if(transport&&(now-lastSend>=interval||flags!==lastFlags)){const state=capture(),packet=state&&compactLiveState(state);if(packet&&transport.publish(packet)){lastSend=now;lastFlags=flags;}}
       if(now-lastRefresh>30000){lastRefresh=now;ui.cloud.refresh?.().then(()=>transport?.updateToken(ui.cloud.session?.access_token)).catch(()=>{});}
       for(const p of peers.values())if(p.member.bot&&now-(p.botSampleAt||0)>=100){
         p.botSampleAt=now;
@@ -56,4 +57,5 @@ export function installLiveRound(ui){
   game.fire=shot=>{if(game.mode==='mini'){const b=game.physics.ball;anchor={x:b.x,y:b.y,z:b.z};anchorHole=liveHole(game);swing={id:Date.now(),at:Date.now()};lastSend=0;}return fire(shot);};
   ui.liveRound={emote:id=>{emote={id:Date.now(),at:Date.now(),item:id};lastSend=0;},clear};
   window.addEventListener('pagehide',clear);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
 }

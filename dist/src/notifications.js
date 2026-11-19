@@ -1,8 +1,9 @@
 import { PASS_TIERS, membership, tierClaimed } from './equipment.js';
 import { ACHIEVEMENTS } from './save.js';
+import { BACKGROUND_POLL_MS, retryDelay } from './network-policy.js';
 
 export function notificationSections(ui, seen={}) {
-  const d=ui.progress.data,p=membership(ui.progress),f=ui.friendsData;
+  const d=ui.progress.data,p=membership(ui.progress),f=ui.friendNotices || ui.friendsData;
   return {
     'club-pass':PASS_TIERS.some(t=>d.xp>=t.xp&&!tierClaimed(ui.progress,t)),
     trades:(ui.tradeInbox||0)>0,
@@ -16,9 +17,9 @@ export function installNotifications(ui) {
   function persist(){try{localStorage.setItem('polygolf-notices:'+account,JSON.stringify(seen));}catch{}}
   function refresh(){
     const id=ui.cloud.session?.user?.id||'guest';
-    if(id!==account){account=id;ui.friendsData=null;nextPoll=0;failures=0;try{seen=JSON.parse(localStorage.getItem('polygolf-notices:'+id)||'{}');}catch{seen={};}if(!seen||typeof seen!=='object')seen={};if(!Array.isArray(seen.owned))seen.owned=[...ui.progress.data.owned];if(!Array.isArray(seen.friends))seen.friends=[];persist();}
+    if(id!==account){account=id;ui.friendsData=null;ui.friendNotices=null;nextPoll=0;failures=0;try{seen=JSON.parse(localStorage.getItem('polygolf-notices:'+id)||'{}');}catch{seen={};}if(!seen||typeof seen!=='object')seen={};if(!Array.isArray(seen.owned))seen.owned=[...ui.progress.data.owned];if(!Array.isArray(seen.friends))seen.friends=[];persist();}
     if(ui.screen==='garage'){seen.owned=[...ui.progress.data.owned];persist();}
-    if(ui.screen==='friends'&&ui.friendsData){seen.friends=ui.friendsData.friends.map(x=>x.id);persist();}
+    if(ui.screen==='friends'&&ui.friendsData){ui.friendNotices=ui.friendsData;seen.friends=ui.friendsData.friends.map(x=>x.id);persist();}
     const flags=notificationSections(ui,seen);flags.shop=flags.achievements;flags.friends=flags.friends||flags.trades;
     for(const node of ui.root.querySelectorAll('[data-action]')){
       const on=!!flags[node.dataset.action];
@@ -30,10 +31,10 @@ export function installNotifications(ui) {
   ui.render=()=>{render();refresh();};
   setInterval(async()=>{
     refresh();
-    if(!ui.cloud.session||document.hidden||ui.game.state!=='menu'||ui.screen==='friends'||pending||Date.now()<nextPoll)return;
-    pending=true;const id=account;nextPoll=Date.now()+60000;
-    try{const data=await ui.cloud.call('friends');if(account===id){ui.friendsData=data;failures=0;refresh();}}
-    catch{failures++;nextPoll=Date.now()+Math.min(600000,60000*2**failures);}
+    if(!ui.cloud.session||ui.cloud.isGuest||document.hidden||ui.game.state!=='menu'||ui.screen==='friends'||pending||Date.now()<nextPoll)return;
+    pending=true;const id=account;nextPoll=Date.now()+BACKGROUND_POLL_MS;
+    try{const data=await ui.cloud.call(ui.cloud.usageVersion>=1?'notifications':'friends');if(account===id&&ui.cloud.session?.user.id===id){ui.friendNotices=data;ui.tradeInbox=data.tradeInbox||0;failures=0;refresh();}}
+    catch{failures++;nextPoll=Date.now()+retryDelay(failures,BACKGROUND_POLL_MS,1800000);}
     finally{pending=false;}
   },10000);
 }

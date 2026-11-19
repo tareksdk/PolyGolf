@@ -38,6 +38,18 @@ export function cleanLiveState(s) {
     club:s.club,active:!!s.active,sunk:!!s.sunk,equipment,emote,swing};
 }
 
+// Keep the v1 wire format for older clients. Centimetre precision avoids sending
+// long physics floats; only equipped finishes travel with cosmetic snapshots.
+export function compactLiveState(state) {
+  const s = cleanLiveState(state);
+  if (!s) return null;
+  const round = n => Math.round(n * 100) / 100;
+  for (const p of [s.ball, s.anchor]) for (const k of Object.keys(p)) p[k] = round(p[k]);
+  s.dx = Math.round(s.dx * 10000) / 10000;
+  s.dz = Math.round(s.dz * 10000) / 10000;
+  return s;
+}
+
 // Arrival-time interpolation avoids relying on synchronized clocks. Extrapolation is
 // bounded so a disconnected player can never keep flying across the course.
 export class LiveBuffer {

@@ -1,5 +1,5 @@
 import { nameplate } from "./nameplates.js";
-import { page, button, esc } from "./views.js";
+import { page, header, button, esc } from "./views.js";
 import { icon } from "./icons.js";
 import { ITEMS } from "./catalog.js";
 import { GOLF_COURSES, golfHoleCount } from "./golf-courses.js";
@@ -26,7 +26,7 @@ function rankedPage(ui) {
   const rank=rankFor(r.elo), index=RANKS.indexOf(rank), next=RANKS[index+1];
   const progress=next?Math.max(0,Math.min(100,(r.elo-rank.min)/(next.min-rank.min)*100)):100;
   const queue=(!ui.cloud.session||ui.cloud.isGuest)?button('Sign in to compete','account','','button yellow wide'):!unlocked?`<p class="ranked-lock">Sign in to join the competition.</p>${button('Play a casual round','courses','','button secondary wide')}`:active(m)?button('Return to match','ranked-resume','','button yellow wide'):s.queued?`<div class="ranked-search" role="status"><span></span>Finding an opponent…</div><p class="small-note">${r.elo<1300?"Silver and below: a bot joins after one minute if no player is available.":"Gold and above: human opponents only."}</p>${button('Cancel search','ranked-cancel','','button secondary wide')}`:button('Find a match','ranked-queue','','button yellow wide');
-  return `<main class="competitive-page"><header class="competitive-header">${button('← Main menu','home','','button secondary')}<div><span>POLYGOLF</span><strong>Competitive</strong></div>${button(icon('sliders'),'settings','aria-label="Settings"','button secondary')}</header><div class="competitive-content"><section class="ranked-stage"><div class="ranked-identity"><span class="eyebrow">1 VS 1 · RANKED GOLF</span><h1>Every shot.<br>Everything to play for.</h1><p>Three holes. Lowest score wins.</p><div class="ranked-rules"><span>${icon('flag')}3-hole rounds</span><span>${icon('clock')}18-minute limit</span><span>${icon('trophy')}Closest-to-pin tiebreak</span></div>${matchCard(ui)}<div class="ranked-course-strip">${GOLF_COURSES.slice(0,3).map((c,i)=>`<div><img data-course-preview="golf:${i}" src="${ui.world.thumbnail(i,'golf')}" alt="${esc(c.name)}"><span>${esc(c.name)}</span></div>`).join('')}</div><p class="ranked-fairplay">The server checks every score. Leaving an active match counts as a loss.</p></div><aside class="ranked-queue-card" style="--rank-color:${rank.color}"><div class="rank-emblem">${icon('trophy')}</div><span class="eyebrow">${r.matches?'YOUR RANK':'STARTING RANK'}</span><h2>${rank.name}</h2><div class="ranked-elo">${r.elo}<small>ELO</small></div><div class="rank-progress"><i style="width:${progress}%"></i></div><p class="rank-next">${next?Math.max(0,next.min-r.elo)+' Elo to '+next.name:'Highest rank reached'}</p><div class="ranked-record"><div><strong>${r.wins}</strong><span>Wins</span></div><div><strong>${r.losses}</strong><span>Losses</span></div></div>${queue}<small>Any account level · Live matchmaking</small></aside></section><section class="competitive-ladder"><h2>The ranks</h2><div>${RANKS.map((tier,i)=>`<article class="${tier.name===rank.name?'is-current':''}" style="--rank-color:${tier.color}"><span class="rank-number">${i===6?'★':String(i+1).padStart(2,'0')}</span><strong>${tier.name}</strong><small>${tier.min}+ Elo</small>${tier.name===rank.name?'<span class="rank-you">YOU</span>':''}</article>`).join('')}</div><p>Win to climb. Earn a nameplate for every rank you reach.</p></section></div></main>`;
+  return `${header(ui)}<main class="competitive-page"><div class="competitive-content"><section class="ranked-stage"><div class="ranked-identity"><span class="eyebrow">1 VS 1 · RANKED GOLF</span><h1>Every shot. <br>Everything to play for.</h1><p>Three holes. Lowest score wins.</p><div class="ranked-rules"><span>${icon('flag')}3-hole rounds</span><span>${icon('clock')}18-minute limit</span><span>${icon('trophy')}Closest-to-pin tiebreak</span></div>${matchCard(ui)}<div class="ranked-course-strip">${GOLF_COURSES.slice(0,3).map((c,i)=>`<div><img data-course-preview="golf:${i}" src="${ui.world.thumbnail(i,'golf')}" alt="${esc(c.name)}"><span>${esc(c.name)}</span></div>`).join('')}</div><p class="ranked-fairplay">The server checks every score. Leaving an active match counts as a loss.</p></div><aside class="ranked-queue-card" style="--rank-color:${rank.color}"><div class="rank-emblem">${icon('trophy')}</div><span class="eyebrow">${r.matches?'YOUR RANK':'STARTING RANK'}</span><h2>${rank.name}</h2><div class="ranked-elo">${r.elo}<small>ELO</small></div><div class="rank-progress"><i style="width:${progress}%"></i></div><p class="rank-next">${next?Math.max(0,next.min-r.elo)+' Elo to '+next.name:'Highest rank reached'}</p><div class="ranked-record"><div><strong>${r.wins}</strong><span>Wins</span></div><div><strong>${r.losses}</strong><span>Losses</span></div></div>${queue}<small>Any account level · Live matchmaking</small></aside></section><section class="competitive-ladder"><h2>The ranks</h2><div>${RANKS.map((tier,i)=>`<article class="${tier.name===rank.name?'is-current':''}" style="--rank-color:${tier.color}"><span class="rank-number">${i===6?'★':String(i+1).padStart(2,'0')}</span><strong>${tier.name}</strong><small>${tier.min}+ Elo</small>${tier.name===rank.name?'<span class="rank-you">YOU</span>':''}</article>`).join('')}</div><p>Win to climb. Earn a nameplate for every rank you reach.</p></section></div></main>`;
 }
 export function installCompetitive(ui) {
   const render = ui.render.bind(ui),
@@ -138,12 +138,12 @@ export function installCompetitive(ui) {
     try {
       const s = await ui.cloud.call(name, payload);
       failures = 0;
-      nextPoll = Date.now() + (s.queued ? 10000 : 5000);
+      nextPoll = Date.now() + (document.hidden ? 30000 : 10000);
       accept(s);
       return s;
     } catch (e) {
       failures++;
-      nextPoll = Date.now() + Math.min(30000, 5000 * 2 ** failures);
+      nextPoll = Date.now() + Math.min(60000, 5000 * 2 ** failures);
       throw e;
     } finally {
       busy = false;
@@ -271,6 +271,7 @@ export function installCompetitive(ui) {
       nextPoll = 0;
       ui.ranked = null;
     }
+    if (document.hidden && !queued && !active(ui.ranked?.match)) return;
     if (busy || Date.now() < nextPoll || (ui.ranked && !queued && !active(ui.ranked.match))) return;
     request(queued ? "ranked_queue" : "ranked_status").catch((e) => {
       if (failures === 1) ui.toast("Competitive connection interrupted. Reconnecting…");
