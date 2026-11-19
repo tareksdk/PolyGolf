@@ -1,0 +1,416 @@
+/* The shop uses the clubhouse palette with larger frames for real item art. */
+#app.clubhouse-menu .shop-page {
+  background: var(--club-bg);
+  padding-top: 0;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scroll-padding-top: 22px;
+}
+
+.shop-page .store {
+  max-width: 1360px;
+  margin-inline: auto;
+  padding-top: 34px;
+}
+
+.store-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: clamp(20px, 3vw, 38px);
+  border-bottom: 1px solid var(--club-line);
+  padding-bottom: 16px;
+}
+
+.store-title,
+.store-tools,
+.store-spotlight-actions,
+.store-membership-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.store-title h1 {
+  margin: 0;
+  font: 650 clamp(33px, 4vw, 54px)/1 "Outfit", "DM Sans", sans-serif;
+  letter-spacing: -.045em;
+}
+
+.store-wallet { display: none; }
+
+.store-tools .text-button,
+.store-filters > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--club-ink);
+  min-height: 44px;
+  font-size: 13px;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.store-tools svg { width: 16px; height: 16px; }
+.store-filters { position: relative; }
+.store-filters > summary { cursor: pointer; list-style: none; }
+.store-filters > summary::-webkit-details-marker { display: none; }
+#app .store-tools .text-button:hover,
+#app .store-filters > summary:hover,
+#app .store-filters[open] > summary { color: var(--club-gold); }
+
+.store-filter-fields {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  right: 0;
+  display: grid;
+  gap: 10px;
+  width: min(260px, calc(100vw - 40px));
+  padding: 14px;
+  background: var(--club-panel);
+  color: var(--club-ink);
+  border: 1px solid var(--club-line);
+  border-radius: 8px;
+  box-shadow: 0 10px 26px #051a1230;
+}
+
+.store-filter-fields p { margin: 0; color: var(--club-muted); font-size: 12px; line-height: 1.4; }
+.store-filter-fields label { display: grid; gap: 4px; font-size: 13px; }
+.store-filter-fields select { width: 100%; }
+.store-filter-fields .store-owned-filter { display: flex; align-items: center; gap: 7px; min-height: 36px; }
+.store-owned-filter input { accent-color: var(--club-gold); }
+
+.store-layout {
+  display: grid;
+  grid-template-columns: minmax(148px, 176px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(20px, 3vw, 44px);
+}
+
+.store-index {
+  position: sticky;
+  top: 22px;
+  z-index: 3;
+  min-width: 0;
+}
+
+.store-index-label {
+  display: block;
+  padding: 0 12px 8px;
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.store-index-links {
+  display: grid;
+  gap: 1px;
+  border-inline-start: 1px solid var(--club-line);
+}
+
+.store-index-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 6px 10px;
+  margin-inline-start: -1px;
+  border-inline-start: 2px solid transparent;
+  background: transparent;
+  color: var(--club-muted);
+  font-size: 13px;
+  text-align: start;
+}
+
+#app .store-index-link:hover,
+#app .store-index-link[aria-current="location"] {
+  color: var(--club-ink);
+  background: var(--club-panel);
+  transform: none;
+}
+
+.store-index-link[aria-current="location"] {
+  border-color: var(--club-gold);
+  font-weight: 700;
+}
+
+.store-index-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--club-gold); }
+.store-catalog { min-width: 0; }
+
+.store-section + .store-section {
+  margin-top: clamp(38px, 6vw, 78px);
+  padding-top: clamp(20px, 3vw, 34px);
+  border-top: 1px solid var(--club-line);
+}
+
+.store-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 16px;
+}
+
+#app .store-section-heading h2 {
+  margin: 0;
+  font-size: clamp(23px, 2.5vw, 34px);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.store-section-heading h2:focus-visible { outline: 2px solid var(--club-gold); outline-offset: 4px; }
+.store-section-meta, .store-note, .store-empty { color: var(--club-muted); font-size: 13px; line-height: 1.5; }
+.store-reset { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.store-reset svg { width: 14px; height: 14px; }
+.store-note { margin: 0 0 16px; }
+.store-empty { margin: 0; padding: 18px 0; }
+
+.store-spotlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  min-height: clamp(254px, 27vw, 342px);
+  margin-bottom: 16px;
+  border: 1px solid var(--club-line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--club-panel), var(--store-tint) 12%);
+}
+
+.store-spotlight-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(19px, 3.4vw, 44px);
+}
+
+.store-spotlight-type,
+.store-tile-type {
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.store-spotlight-type {
+  padding-inline-start: 8px;
+  border-inline-start: 2px solid var(--store-tint);
+}
+
+#app .store-spotlight h3 {
+  font-size: clamp(27px, 3.7vw, 52px);
+  line-height: 1.03;
+  font-weight: 650;
+  letter-spacing: -.042em;
+  margin: 11px 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.store-spotlight-copy p { margin: 0 0 17px; max-width: 34ch; color: var(--club-muted); line-height: 1.5; font-size: 14px; }
+.store-spotlight-actions .money { font-size: 17px; }
+.store-spotlight-actions .button { padding-inline: 14px; }
+.store-spotlight-art { position: relative; isolation: isolate; overflow: hidden; background: color-mix(in srgb, var(--store-tint), var(--club-panel) 35%); }
+.store-spotlight-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.5vw, 18px);
+}
+
+.store-grid-featured,
+.store-grid-lockers,
+.store-grid-bundles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.store-tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  text-align: start;
+  background: color-mix(in srgb, var(--club-panel), var(--store-tint) 7%);
+  color: var(--club-ink);
+  border: 1px solid var(--club-line);
+  border-radius: 9px;
+  overflow: hidden;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+#app button.store-tile:hover, #app button.store-tile:active {
+  transform: none;
+  border-color: var(--club-gold);
+  background: color-mix(in srgb, var(--club-raised), var(--store-tint) 10%);
+}
+
+.store-tile-art {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--store-tint), var(--club-panel) 35%);
+  aspect-ratio: 1.6;
+}
+
+.store-tile-art img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .2s ease-out; }
+button.store-tile:hover .store-tile-art:not(.store-bundle-art) img,
+button.store-tile-art:hover img { transform: scale(1.045); }
+#app button.store-tile-art:hover, #app button.store-tile-art:active { transform: none; }
+#app button.store-tile-art:focus-visible { outline-offset: -4px; }
+
+.store-tile-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  border-top: 2px solid color-mix(in srgb, var(--store-tint), var(--club-line) 25%);
+  gap: 5px;
+  padding: 12px;
+}
+
+.store-tile .store-tile-name {
+  color: var(--club-ink);
+  font-family: "Outfit", "DM Sans", sans-serif;
+  font-weight: 600;
+  font-size: clamp(15px, 1.6vw, 21px);
+  line-height: 1.14;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.store-tile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.store-tile-footer > svg { width: 17px; height: 17px; color: var(--club-muted); }
+.store-tile:hover .store-tile-footer > svg { color: var(--club-gold); }
+.store-owned { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.store-owned svg { width: 14px; height: 14px; }
+
+.store-bundle-art {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+.store-bundle-art img:first-child { grid-row: span 2; }
+
+.store-earned {
+  position: absolute;
+  inset: 9px auto auto 9px;
+  background: #e9cc78;
+  color: #183b2e;
+  border-radius: 4px;
+  padding: 4px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.store-locker p { margin: 3px 0 6px; font-size: 13px; color: var(--club-muted); line-height: 1.45; }
+.store-locker .odds-bar { height: 5px; background: var(--club-line); }
+.store-locker-total { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 30px; margin-top: auto; padding-top: 7px; }
+.store-locker-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding-top: 6px; }
+.store-locker-actions .button { padding: 7px 6px; font-size: 12px; line-height: 1.25; }
+
+.store-membership {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  background: var(--club-panel);
+  border: 1px solid var(--club-line);
+  border-radius: 9px;
+  padding: clamp(15px, 2.1vw, 26px);
+}
+
+.store-membership h3, .store-coin-packs h3 { margin: 0; font-size: 22px; }
+.store-membership p, .store-coin-packs p { margin: 6px 0 0; color: var(--club-muted); font-size: 13px; line-height: 1.45; }
+.store-coin-packs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+.store-coin-packs article { border-bottom: 1px solid var(--club-line); padding-block: 10px 16px; }
+.store-coin-packs .money { font-size: inherit; }
+.store-coin-packs .button { margin-top: 9px; padding: 8px 10px; }
+.store-section .community-menu-content { max-width: none; margin: 0; }
+.store-section .community-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.store-section .community-link { min-width: 0; }
+.store-footer { margin-top: 20px; border-top: 1px solid var(--club-line); padding-top: 12px; }
+
+@media (max-width: 1180px) {
+  .store-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px), (max-height: 640px) {
+  #app.clubhouse-menu .shop-page { scroll-padding-top: 73px; }
+  .store-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .store-index {
+    top: 0;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding-inline: var(--page-gutter);
+    background: var(--club-bg);
+    border-bottom: 1px solid var(--club-line);
+  }
+  .store-index-label { display: none; }
+  .store-index-links {
+    display: flex;
+    border: 0;
+    gap: 5px;
+    overflow: auto hidden;
+    padding: 5px 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--club-line) transparent;
+  }
+  .store-index-link {
+    flex: 0 0 auto;
+    min-height: 44px;
+    margin: 0;
+    padding: 6px 9px;
+    white-space: nowrap;
+    border-inline-start: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+  }
+  #app .store-index-link:focus-visible { outline-offset: -2px; }
+}
+
+@media (max-width: 760px) {
+  .shop-page .store { padding-top: 20px; }
+  .store-header { display: block; margin-bottom: 6px; padding-bottom: 0; border: 0; }
+  .store-title { justify-content: space-between; }
+  .store-wallet { display: inline-flex; }
+  .store-tools { margin-top: 7px; }
+  .store-filter-fields { right: auto; left: 0; }
+  .store-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .store-spotlight-copy { padding: 19px; }
+  .store-spotlight h3 { font-size: 30px; }
+  .store-locker-actions { grid-template-columns: 1fr; }
+  .store-section .community-links { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 510px) {
+  .store-spotlight { grid-template-columns: minmax(0, 1fr); }
+  .store-spotlight-art { order: -1; aspect-ratio: 2; }
+  .store-spotlight-copy p { font-size: 13px; }
+  .store-tile-copy { padding: 8px; }
+  .store-tile-type, .store-locker p { font-size: 11px; }
+  .store-coin-packs { grid-template-columns: minmax(0, 1fr); }
+  .store-coin-packs article { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+  .store-coin-packs .button { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-page .store-tile-art img { transition: none; }
+}
+#app[data-menu-motion=reduced] .store-tile-art img { transition: none; }

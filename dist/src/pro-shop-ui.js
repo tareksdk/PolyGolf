@@ -1,4 +1,5 @@
 import { shopView, lockerDetail, lockerArt, selectedLockerCount } from "./shop-view.js";
+import { jumpToShopSection, trackShopSections } from "./shop-navigation.js";
 import { LOCKERS, shopBundles, openLockers, buyBundle, lockerPool, lockerQuote } from "./pro-shop.js";
 import { ITEM_BY_ID, CATEGORIES, RARITY } from "./catalog.js";
 import { button, esc, coins, rarityClass } from "./views.js";
@@ -21,8 +22,10 @@ function listen(ui) {
   if (listening) return;
   listening = true;
   document.addEventListener("change", (e) => {
-    if (e.target.id !== "shop-sort") return;
-    ui.shopSort = e.target.value;
+    if (e.target.id === "shop-sort") ui.shopSort = e.target.value;
+    else if (e.target.id === "shop-gear-type") ui.shopCategory = e.target.value;
+    else if (e.target.id === "shop-hide-owned") ui.shopHideOwned = e.target.checked;
+    else return;
     ui.render();
   });
   document.addEventListener("keydown", (e) => {
@@ -259,15 +262,8 @@ export async function proShopAction(ui, name, data) {
     }
     return true;
   }
-  if (name === "shop-shelf") {
-    ui.shopShelf = data.id;
-    ui.shopCategory = "all";
-    ui.render();
-    return true;
-  }
-  if (name === "shop-owned") {
-    ui.shopHideOwned = !ui.shopHideOwned;
-    ui.render();
+  if (name === "shop-jump") {
+    jumpToShopSection(ui, data.id);
     return true;
   }
   if (name === "shop-code") {
@@ -329,6 +325,27 @@ export async function proShopAction(ui, name, data) {
 
 export function installShopExtras(ui) {
   listen(ui);
+  let updateIndex = null;
+  window.addEventListener("resize", () => updateIndex?.());
+  ui.root.addEventListener("pointerdown", (event) => {
+    const filters = ui.root.querySelector(".store-filters[open]");
+    if (filters && !filters.contains(event.target)) filters.open = false;
+  });
+  ui.root.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const filters = event.target.closest(".store-filters[open]");
+    if (!filters) return;
+    event.preventDefault();
+    filters.open = false;
+    filters.querySelector("summary").focus();
+  });
+  const render = ui.render.bind(ui);
+  ui.render = () => {
+    ui.shopFiltersOpen = ui.root.querySelector(".store-filters")?.open ?? false;
+    render();
+    const page = ui.root.querySelector(".shop-page");
+    updateIndex = page ? trackShopSections(page) : null;
+  };
   const reveal = ui.revealItems;
   ui.revealItems = (ids) => {
     if (ui.crateOpening || document.getElementById("crate-stage")) return;

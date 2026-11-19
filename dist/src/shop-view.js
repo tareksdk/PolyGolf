@@ -2,24 +2,12 @@ import { socialRewards } from "./social-view.js";
 import { achievementCards } from './collection-ui.js';
 import { LOCKERS, availableLockers, shopBundles, lockerContents, lockerOpenLimit, lockerQuote } from "./pro-shop.js";
 import { halloweenActive } from './season.js';
-import { ITEMS, CATEGORIES, RARITY, shopRotation } from "./catalog.js";
+import { CATEGORIES, RARITY, shopRotation } from "./catalog.js";
 import { itemDescription } from "./equipment.js";
-import { page, button, esc, coins, itemCard, rarityClass } from "./views.js";
+import { header, button, esc, coins } from "./views.js";
 import { icon } from "./icons.js";
 
 const RANK = { Common: 0, Uncommon: 1, Rare: 2, Epic: 3, Legendary: 4, "Black Market": 5 };
-export const SHELVES = [
-  ["featured", "Featured"],
-  ["daily", "Daily"],
-  ["weekly", "Weekly"],
-  ["novelty", "Novelty Rack"],
-  ["lockers", "Lockers"],
-  ["bundles", "Bundles"],
-  ["rewards", "Achievements"],
-  ["coins", "Coins & membership"],
-  ["socials", "Community rewards"],
-];
-
 const hours = (ms) => {
   const h = Math.max(0, Math.floor(ms / 3600000)),
     m = Math.max(0, Math.floor((ms % 3600000) / 60000));
@@ -40,51 +28,107 @@ export function oddsBar(p) {
     .join("")}</div>`;
 }
 
-function sortItems(ui, items) {
-  const sort = ui.shopSort || "featured",
-    list = items.filter((i) => (ui.shopCategory || "all") === "all" || i.category === ui.shopCategory).filter((i) => !ui.shopHideOwned || !ui.progress.data.owned.includes(i.id));
-  if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
-  if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
-  if (sort === "rarity") list.sort((a, b) => RANK[b.rarity] - RANK[a.rarity] || a.price - b.price);
-  return list;
-}
-
-function filters(ui, items) {
-  const cat = ui.shopCategory || "all",
-    counts = Object.fromEntries(CATEGORIES.map((c) => [c.id, items.filter((i) => i.category === c.id).length]));
-  return `<div class="shop-filters"><div class="chip-row" role="group" aria-label="Category">${[{ id: "all", name: "All", icon: "star" }, ...CATEGORIES]
-    .filter((c) => c.id === "all" || counts[c.id])
-    .map((c) => button(`${c.name}${c.id === "all" ? "" : `<small>${counts[c.id]}</small>`}`, "shop-category", `data-id="${c.id}" aria-pressed="${cat === c.id}"`, "chip " + (cat === c.id ? "active" : "")))
-    .join("")}</div><div class="shop-sorts"><label class="sort-select">Sort<select id="shop-sort" aria-label="Sort items">${[
-    ["featured", "Featured"],
+function filters(ui) {
+  const categories = [{ id: "all", name: "All gear" }, ...CATEGORIES];
+  const sorts = [
+    ["featured", "Shop order"],
     ["rarity", "Rarity"],
     ["price-asc", "Price: low to high"],
     ["price-desc", "Price: high to low"],
-  ]
-    .map(([id, label]) => `<option value="${id}" ${(ui.shopSort || "featured") === id ? "selected" : ""}>${label}</option>`)
-    .join("")}</select></label>${button(icon(ui.shopHideOwned ? "check" : "star") + "Hide owned", "shop-owned", `aria-pressed="${!!ui.shopHideOwned}"`, "chip " + (ui.shopHideOwned ? "active" : ""))}</div></div>`;
+  ];
+  return `<details class="store-filters" ${ui.shopFiltersOpen ? "open" : ""}>
+    <summary>${icon("sliders")} Filters</summary>
+    <div class="store-filter-fields">
+      <p>Applies to Daily, Weekly, and Novelty Rack.</p>
+      <label>Gear type <select id="shop-gear-type">${categories.map(({ id, name }) =>
+        `<option value="${id}" ${(ui.shopCategory || "all") === id ? "selected" : ""}>${name}</option>`).join("")}</select></label>
+      <label>Sort by <select id="shop-sort">${sorts.map(([id, label]) =>
+        `<option value="${id}" ${(ui.shopSort || "featured") === id ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+      <label class="store-owned-filter"><input id="shop-hide-owned" type="checkbox" ${ui.shopHideOwned ? "checked" : ""}> Hide owned</label>
+    </div>
+  </details>`;
 }
 
-function grid(ui, items, empty = "Nothing here right now. A new selection arrives soon.") {
-  const list = sortItems(ui, items);
-  return list.length ? `<div class="pg-grid shop-grid">${list.map((i) => itemCard(ui, i)).join("")}</div>` : `<section class="panel empty-state"><h2>All caught up.</h2><p>${empty}</p></section>`;
+function filteredItems(ui, items) {
+  const { owned } = ui.progress.data;
+  const category = ui.shopCategory || "all";
+  const visible = items.filter(item =>
+    (category === "all" || item.category === category) &&
+    (!ui.shopHideOwned || !owned.includes(item.id)));
+  if (ui.shopSort === "price-asc") visible.sort((a, b) => a.price - b.price);
+  if (ui.shopSort === "price-desc") visible.sort((a, b) => b.price - a.price);
+  if (ui.shopSort === "rarity") visible.sort((a, b) => RANK[b.rarity] - RANK[a.rarity] || a.price - b.price);
+  return visible;
 }
 
-function hero(ui, item, r) {
-  const owned = ui.progress.data.owned.includes(item.id);
-  return `<article class="shop-hero ${rarityClass(item)}" style="--rarity:${RARITY[item.rarity]}"><div class="hero-copy"><span class="eyebrow">Featured this week</span><h2>${esc(item.name)}</h2><p>${esc(itemDescription(item))}</p><div class="hero-tags"><span class="rarity-chip" style="--rarity:${RARITY[item.rarity]}">${item.rarity}</span><span>${CATEGORIES.find((c) => c.id === item.category).name}</span><span>${icon("clock")} Leaves in ${hours(r.nextWeek - Date.now())}</span></div><div class="hero-actions">${owned ? `<span class="pg-owned">${icon("check")}In your caddie</span>` : coins(item.price)}${button(owned ? "Equip" : "View item", owned ? "equip" : "item-detail", `data-id="${item.id}"`, "button yellow")}</div></div><button class="hero-art" data-action="item-detail" data-id="${item.id}" aria-label="View ${esc(item.name)}"><img src="${ui.world.itemThumbnail(item)}" alt=""></button></article>`;
+function gearType(item) {
+  const category = CATEGORIES.find(({ id }) => id === item.category);
+  return `${item.rarity} · ${category.name}`;
 }
 
-function rail(ui, title, caption, items, shelf) {
-  if (!items.length) return "";
-  return `<section class="shop-rail"><div class="rail-head"><div><h2>${title}</h2><span>${caption}</span></div>${button("See all " + icon("arrow"), "shop-shelf", `data-id="${shelf}"`, "text-button")}</div><div class="pg-grid rail-grid">${items.map((i) => itemCard(ui, i)).join("")}</div></section>`;
+function gearPrice(ui, item) {
+  const { equipment, owned } = ui.progress.data;
+  if (owned.includes(item.id)) {
+    return `<span class="store-owned">${icon("check")}${equipment[item.category] === item.id ? "Equipped" : "Owned"}</span>`;
+  }
+  return coins(item.price);
 }
 
-function lockerCard(ui, p) {
-  const earned = ui.progress.data.lockers?.[p.id] || 0,
-    rewards = lockerContents(p.id).flatMap((r) => r.items),
-    best = rewards.sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0];
-  return `<article data-card class="crate-card" style="--crate:${p.color};--trim:${p.pattern};--gem:${p.gem}">${earned ? `<span class="pg-new">${earned} earned</span>` : ["forge", "workshop"].includes(p.id) ? '<span class="pg-new">New</span>' : ""}<button data-card-primary class="crate-art" data-action="locker-detail" data-id="${p.id}" aria-label="View ${esc(p.name)} contents"><img src="${lockerArt(ui, p)}" alt="" loading="lazy"></button><div class="crate-body"><span class="eyebrow">${rewards.length} rewards · ${p.crate ? "Themed" : p.categories ? "Focused" : "Exclusives"}</span><h3>${esc(p.name)}</h3><p>${esc(p.tagline)}</p>${oddsBar(p)}<div class="crate-best">${best ? `Top rarity: <span class="rarity-chip" style="--rarity:${RARITY[best.rarity]}">${esc(best.rarity)}</span>` : ""}</div><div class="crate-foot">${openingPrice(ui, p)}<div class="row">${button("View rewards", "locker-detail", `data-id="${p.id}"`, "button secondary")}${openingButton(ui, p)}</div></div></div></article>`;
+function gearCard(ui, item) {
+  return `<button type="button" class="store-tile" data-action="item-detail" data-id="${item.id}" style="--store-tint:${RARITY[item.rarity]}">
+    <span class="store-tile-art"><img src="${ui.world.itemThumbnail(item)}" alt="" width="864" height="600" loading="lazy" decoding="async"></span>
+    <span class="store-tile-copy">
+      <span class="store-tile-type">${gearType(item)}</span>
+      <strong class="store-tile-name">${esc(item.name)}</strong>
+      <span class="store-tile-footer">${gearPrice(ui, item)}${icon("arrow")}</span>
+    </span>
+  </button>`;
+}
+
+function gearGrid(ui, items, featured = false) {
+  const visible = featured ? items : filteredItems(ui, items);
+  if (!visible.length) return '<p class="store-empty">No gear matches these filters.</p>';
+  return `<div class="store-grid ${featured ? "store-grid-featured" : ""}">${visible.map(item => gearCard(ui, item)).join("")}</div>`;
+}
+
+function featuredGear(ui, items) {
+  if (!items.length) return '<p class="store-empty">New featured gear arrives with the next rotation.</p>';
+  const [spotlight, ...rest] = [...items].sort((a, b) => RANK[b.rarity] - RANK[a.rarity]);
+  return `<article class="store-spotlight" style="--store-tint:${RARITY[spotlight.rarity]}">
+    <div class="store-spotlight-copy">
+      <span class="store-spotlight-type">${gearType(spotlight)}</span>
+      <h3>${esc(spotlight.name)}</h3>
+      <p>${esc(itemDescription(spotlight))}</p>
+      <div class="store-spotlight-actions">
+        ${gearPrice(ui, spotlight)}
+        ${button("View item " + icon("arrow"), "item-detail", `data-id="${spotlight.id}"`, "button yellow")}
+      </div>
+    </div>
+    <div class="store-spotlight-art">
+      <img src="${ui.world.itemThumbnail(spotlight)}" alt="" width="864" height="600" decoding="async">
+    </div>
+  </article>${rest.length ? gearGrid(ui, rest, true) : ""}`;
+}
+
+function lockerCard(ui, pack) {
+  const earned = ui.progress.data.lockers?.[pack.id] || 0;
+  const details = `data-id="${pack.id}"`;
+  return `<article class="store-tile store-locker" style="--store-tint:${pack.color}">
+    <button type="button" class="store-tile-art" data-action="locker-detail" ${details} aria-label="View ${esc(pack.name)} rewards">
+      <img src="${lockerArt(ui, pack)}" alt="" width="864" height="600" loading="lazy" decoding="async">
+      ${earned ? `<span class="store-earned">${earned} earned</span>` : ""}
+    </button>
+    <div class="store-tile-copy">
+      <h3 class="store-tile-name">${esc(pack.name)}</h3>
+      <p>${esc(pack.tagline)}</p>
+      ${oddsBar(pack)}
+      <div class="store-locker-total">${openingPrice(ui, pack)}</div>
+      <div class="store-locker-actions">
+        ${button("View rewards", "locker-detail", details, "button secondary")}
+        ${openingButton(ui, pack)}
+      </div>
+    </div>
+  </article>`;
 }
 
 export function selectedLockerCount(ui) {
@@ -124,53 +168,91 @@ export function lockerDetail(ui, id) {
     )}</div><div class="locker-no-results empty-state" hidden><h3>No rewards match.</h3><p>Try a different name or rarity.</p><button type="button" class="button secondary locker-clear">Clear filters</button></div><details class="locker-rules"><summary>How the odds work</summary><p>Rarity is drawn first, then every item in that rarity is equally likely. Duplicates stack in your Caddie, including matching numbered patterns. Keep them, trade them, or combine ten of one rarity in a trade-up. Earned lockers open free. Lockers use earned coins only.</p></details></div><footer class="locker-opening-bar">${lockerQuantity(ui, p.id)}<div class="modal-actions crate-detail-actions"><div class="locker-total"><small>Opening total</small><div>${openingPrice(ui, p)}</div></div>${openingButton(ui, p)}</div></footer></div>`;
 }
 
-export function shopView(ui) {
-  queueMicrotask(() => (ui.lastShopShelf = ui.shopShelf || "featured"));
-  const r = shopRotation(),
-    shelf = ui.shopShelf || "featured",
-    d = ui.progress.data,
-    weekly = [...r.featured, ...r.weekly],
-    tabs = `<div class="shop-toolbar"><div class="shop-tabs" role="tablist" aria-label="Shop sections">${SHELVES.map(([id, name]) => button(name + (id === "lockers" && Object.values(d.lockers || {}).some(Boolean) ? '<i class="dot" aria-label="Earned lockers ready"></i>' : ""), "shop-shelf", `data-id="${id}" role="tab" aria-selected="${shelf === id}"`, "shop-tab " + (shelf === id ? "active" : ""))).join("")}</div>${button("Auction house", "auctions", "", "text-button")}${button(icon("gift") + "Redeem code", "shop-code", "", "text-button")}</div>`;
-  let content = "";
-  if (shelf === "featured") {
-    const heroItem = [...r.featured].sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0] || weekly[0],
-      odd = LOCKERS.find((l) => l.id === (halloweenActive()?"halloween":"forge"));
-    content = `<div class="shop-featured">${hero(ui, heroItem, r)}<article class="promo-card" style="--crate:${odd.color}"><img src="${lockerArt(ui, odd)}" alt=""><div><span class="eyebrow">New locker</span><h3>${odd.name}</h3><p>${odd.tagline}</p>${button("Browse lockers " + icon("arrow"), "shop-shelf", 'data-id="lockers"', "button yellow")}</div></article></div>${rail(ui, "Novelty Rack", "Always in stock · usable clubs", r.permanent, "novelty")}${rail(ui, "Today’s picks", "Refreshes in " + hours(r.nextDay - Date.now()), r.daily.slice(0, 5), "daily")}${rail(ui, "This week", "Resets in " + hours(r.nextWeek - Date.now()), weekly.filter((i) => i !== heroItem).slice(0, 5), "weekly")}`;
-  } else if (shelf === "daily" || shelf === "weekly" || shelf === "novelty") {
-    const items = shelf === "daily" ? r.daily : shelf === "weekly" ? weekly : r.permanent,
-      caption =
-        shelf === "daily"
-          ? `Two picks per category · refreshes in <b>${hours(r.nextDay - Date.now())}</b>`
-          : shelf === "weekly"
-            ? `Weekly stock · resets in <b>${hours(r.nextWeek - Date.now())}</b>`
-            : "Usable novelty clubs, always in stock. Find more in the Oddities Locker.";
-    content = `<p class="shelf-caption">${caption}</p>${filters(ui, items)}${grid(ui, items)}`;
-  } else if (shelf === "lockers")
-    content = `<p class="shelf-caption">Finish a full round for a 10% chance of a free random locker. Every locker shows its full odds and contents. Country Club, bundle and Alpha items never appear in lockers.${halloweenActive()?' Halloween ends November 1. Keep everything you earn.':''}</p>${lockerQuantity(ui)}<div class="crate-grid">${LOCKERS.filter(p=>availableLockers().includes(p)||(d.lockers?.[p.id]||0)>0).map((p) => lockerCard(ui, p)).join("")}</div>`;
-  else if (shelf === "bundles")
-    content = `<p class="shelf-caption">Coordinated finishes, available this week. You only pay for the pieces you’re missing.</p><div class="bundle-grid">${shopBundles()
-      .map((b) => {
-        const missing = b.items.filter((i) => !d.owned.includes(i.id)).length,
-          cost = Math.ceil((b.price * missing) / b.items.length);
-        return `<article data-card class="panel bundle-card"><div class="bundle-images">${b.items
-          .slice(0, 4)
-          .map((i) => `<img src="${ui.world.itemThumbnail(i)}" alt="${esc(i.name)}">`)
-          .join("")}</div><span class="eyebrow">${b.items.length} pieces · bundle exclusive</span><h2>${esc(b.name)}</h2><p>${missing ? `${missing} of ${b.items.length} pieces still to collect` : "Complete in your caddie"}</p><div class="row between">${cost ? coins(cost) : `<span class="pg-owned">${icon("check")}Owned</span>`}${button(cost ? "View collection" : "Owned", "bundle-detail", `data-card-primary data-id="${b.id}" ${cost ? "" : "disabled"}`, "button yellow")}</div></article>`;
-      })
-      .join("")}</div>`;
-  else if (shelf === "rewards")
-    content = achievementCards(ui);
-  else if (shelf === "coins") content = coinShop(ui);
-  else if (shelf === "socials") content = socialRewards(ui);
-  return page(
-    ui,
-    "Item shop",
-    `Daily picks, weekly collections, and locker exclusives.`,
-    `<div class="shop-layout">${tabs}<div class="shop-shelf ${ui.lastShopShelf !== shelf ? "shelf-enter" : ""}" data-shelf="${shelf}"><header class="shelf-heading"><span class="eyebrow">THE PRO SHOP</span><h2>${SHELVES.find(([id])=>id===shelf)?.[1] || 'Featured'}</h2></header>${content}</div></div>`,
-    `<div class="shop-wallet">${coins(d.coins)}<small>Your coins</small></div>`,
-  ).replace('class="page"', 'class="page shop-page"');
+function bundleCard(ui, bundle) {
+  const missing = bundle.items.filter(item => !ui.progress.data.owned.includes(item.id)).length;
+  const cost = Math.ceil((bundle.price * missing) / bundle.items.length);
+  return `<button type="button" class="store-tile" data-action="bundle-detail" data-id="${bundle.id}" style="--store-tint:${RARITY[bundle.items[0].rarity]}">
+    <span class="store-tile-art store-bundle-art">${bundle.items.slice(0, 3).map(item =>
+      `<img src="${ui.world.itemThumbnail(item)}" alt="" width="864" height="600" loading="lazy" decoding="async">`).join("")}</span>
+    <span class="store-tile-copy">
+      <span class="store-tile-type">${bundle.items.length} pieces · ${missing ? missing + " to collect" : "Complete"}</span>
+      <strong class="store-tile-name">${esc(bundle.name)}</strong>
+      <span class="store-tile-footer">${cost ? coins(cost) : `<span class="store-owned">${icon("check")}Owned</span>`}${icon("arrow")}</span>
+    </span>
+  </button>`;
 }
 
-function coinShop(ui) {
-  return '<section class="money-shop"><article class="membership-offer panel"><span class="eyebrow">Country Club</span><h2>A season of golf.</h2><p>30 tiers of member-only equipment. One exclusive item at each tier, plus a separate rotating members-only collection. Earn XP through play to reach each tier.</p><div class="membership-prices">'+coins(50000)+'<span>or</span><strong>$5.99 USD</strong></div><div class="row">'+button('View 30 tiers','club-pass','','button yellow')+button('$5.99 · Coming Soon','purchase-coming-soon','data-product="Country Club membership"','button secondary')+'</div></article><div class="coin-pack-grid">'+[[1000,'0.99'],[6000,'4.99'],[14000,'9.99']].map(([n,p])=>'<article class="panel coin-pack"><div class="coin-stack" aria-hidden="true">'+icon('gift')+'</div><h2>'+n.toLocaleString()+' coins</h2><p>$'+p+' USD</p>'+button('Coming Soon','purchase-coming-soon','data-product="'+n+' coins"','button secondary')+'</article>').join('')+'</div><p class="small-note">Prices are previews. Real-money purchases are not available and these buttons cannot charge you. Coins earned by playing can be spent now.</p></section>';
+function coinShop() {
+  const packs = [[1000, "0.99"], [6000, "4.99"], [14000, "9.99"]];
+  return `<article class="store-membership">
+    <div><h3>Country Club</h3><p>Unlock 30 reward tiers and a separate weekly collection for members.</p></div>
+    <div class="store-membership-actions">
+      ${coins(50000)}
+      ${button("View membership", "club-pass", "", "button yellow")}
+      ${button("$5.99 USD · Coming soon", "purchase-coming-soon", 'data-product="Country Club membership"', "text-button")}
+    </div>
+  </article>
+  <div class="store-coin-packs">${packs.map(([amount, price]) => `<article>
+    <h3>${coins(amount)} coins</h3>
+    <p>$${price} USD</p>
+    ${button("Coming soon", "purchase-coming-soon", `data-product="${amount} coins" aria-label="${amount.toLocaleString()} coins, coming soon"`, "button secondary")}
+  </article>`).join("")}</div>
+  <p class="store-note">Real-money purchases are coming soon. You can spend coins earned by playing today.</p>`;
+}
+
+export function shopView(ui, now = new Date()) {
+  const rotation = shopRotation(now);
+  const { coins: balance, lockers } = ui.progress.data;
+  const available = new Set(availableLockers(now));
+  const reset = time => `<span class="store-reset">${icon("clock")} Resets in ${hours(time - now)}</span>`;
+  const lockerStock = LOCKERS.filter(pack => available.has(pack) || lockers?.[pack.id]);
+  const shelves = [
+    ["featured", "Featured", featuredGear(ui, rotation.featured), reset(rotation.nextWeek)],
+    ["daily", "Daily", gearGrid(ui, rotation.daily), reset(rotation.nextDay)],
+    ["weekly", "Weekly", gearGrid(ui, rotation.weekly), reset(rotation.nextWeek)],
+    ["novelty", "Novelty Rack", gearGrid(ui, rotation.permanent), "Always in stock"],
+    ["bundles", "Bundles", `<p class="store-note">You only pay for the pieces you’re missing.</p>
+      <div class="store-grid store-grid-bundles">${shopBundles(now).map(bundle => bundleCard(ui, bundle)).join("")}</div>`, reset(rotation.nextWeek)],
+    ["lockers", "Lockers", `<p class="store-note">Finish a full round for a 10% chance to earn a locker. Check any locker for its rewards and odds.${halloweenActive(now) ? " The Halloween event ends November 1." : ""}</p>
+      ${lockerQuantity(ui)}<div class="store-grid store-grid-lockers">${lockerStock.map(pack => lockerCard(ui, pack)).join("")}</div>`],
+    ["rewards", "Achievements", achievementCards(ui)],
+    ["coins", "Coins &amp; membership", coinShop()],
+    ["socials", "Community rewards", socialRewards(ui, { showIntro: false })],
+  ];
+  const earned = Object.values(lockers || {}).some(Boolean);
+
+  return `<div class="panel-backdrop"></div>${header(ui)}
+    <main class="page shop-page" aria-labelledby="shop-title">
+      <div class="store">
+        <header class="store-header">
+          <div class="store-title"><h1 id="shop-title">Item Shop</h1><span class="store-wallet" aria-label="${balance.toLocaleString()} coins">${coins(balance)}</span></div>
+          <div class="store-tools">
+            ${filters(ui)}
+            ${button("Redeem code", "shop-code", "", "text-button")}
+            ${button("Auction house " + icon("arrow"), "auctions", "", "text-button")}
+          </div>
+        </header>
+        <div class="store-layout">
+          <nav class="store-index" aria-label="Shop sections">
+            <span class="store-index-label">Browse</span>
+            <div class="store-index-links">
+              ${shelves.map(([id, label]) => button(
+                `${label}${id === "lockers" && earned ? '<span class="store-index-dot" aria-label="Earned lockers ready"></span>' : ""}`,
+                "shop-jump", `type="button" data-shop-link data-id="${id}" aria-controls="shop-section-${id}"${id === "featured" ? ' aria-current="location"' : ""}`,
+                "store-index-link")).join("")}
+            </div>
+          </nav>
+          <div class="store-catalog">
+            ${shelves.map(([id, label, content, note]) => `<section id="shop-section-${id}" data-shop-section="${id}" class="store-section" aria-labelledby="shop-heading-${id}">
+              <header class="store-section-heading">
+                <h2 id="shop-heading-${id}" tabindex="-1">${label}</h2>
+                ${note ? `<div class="store-section-meta">${note}</div>` : ""}
+              </header>
+              ${content}
+            </section>`).join("")}
+            <footer class="store-footer">${button("Back to top", "shop-jump", 'type="button" data-id="featured"', "text-button")}</footer>
+          </div>
+        </div>
+      </div>
+    </main>`;
 }

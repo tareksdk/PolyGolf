@@ -1,6 +1,7 @@
 import { installTrails } from './trails.js';
 import { button, esc } from './views.js';
 import { socialView } from './social-view.js';
+import { jumpToShopSection } from './shop-navigation.js';
 import { claimSocialReward } from './community-rewards.js';
 import { buyMemberItem } from './equipment.js';
 import { installNotifications } from './notifications.js';
@@ -19,7 +20,12 @@ export function installRelease(ui) {
       if(ui.memberPurchaseBusy)return;ui.memberPurchaseBusy=true;
       try{if(ui.cloud.session)await ui.cloud.call('buy_member_item',{id:data.id});else buyMemberItem(ui.progress,data.id);ui.revealItems([data.id]);ui.render();}catch(e){ui.toast(e.message);}finally{ui.memberPurchaseBusy=false;}return;
     }
-    if(name==='socials'){if(ui.game.state!=='menu')return;ui.shopShelf='socials';ui.navigate('shop');return;}
+    if (name === 'socials') {
+      if (ui.game.state !== 'menu') return;
+      ui.navigate('shop');
+      jumpToShopSection(ui, 'socials', { smooth: false });
+      return;
+    }
     if(name==='visit-social'){
       // The real anchor opens immediately. Queue rewards so quick clicks cannot
       // race the account revision or silently drop a different link's reward.
@@ -30,7 +36,7 @@ export function installRelease(ui) {
         try {
           const result=ui.cloud.session ? (await ui.cloud.call('claim_social',{id})).outcome : claimSocialReward(ui.progress,id);
           if(result.coins)ui.toast('Thanks for visiting Room310! +1,000 coins');
-          if(ui.screen==='socials'||(ui.screen==='shop'&&ui.shopShelf==='socials'))ui.render();
+          if(ui.screen==='socials'||ui.screen==='shop')ui.render();
         } catch(e) {ui.toast(e.message+' Open the link again to retry the reward.');}
       });
       return;

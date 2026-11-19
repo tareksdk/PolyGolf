@@ -10,7 +10,8 @@ export function installMenuPages(ui) {
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { if (ui.game.state === 'menu' && ['garage','shop','courses'].includes(ui.screen)) ui.render(); }, 120);
+    // The Shop reflows in CSS and keeps its scroll container mounted.
+    resizeTimer = setTimeout(() => { if (ui.game.state === 'menu' && ['garage','courses'].includes(ui.screen)) ui.render(); }, 120);
   });
   const closeFilters = () => {
     ui.caddieFiltersOpen = false;

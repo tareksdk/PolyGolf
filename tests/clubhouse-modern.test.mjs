@@ -1,11 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultSave, ProgressionManager } from '../dist/src/save.js';
-import { LOCKERS, lockerContents } from '../dist/src/pro-shop.js';
-import { lockerDetail } from '../dist/src/shop-view.js';
+import { LOCKERS, lockerContents, availableLockers, shopBundles } from '../dist/src/pro-shop.js';
+import { shopRotation } from '../dist/src/catalog.js';
+import { lockerDetail, shopView } from '../dist/src/shop-view.js';
 import { visibleTrades, tradingView, installTrading } from '../dist/src/trading-ui.js';
 
 const progress = () => new ProgressionManager({ load: defaultSave, save: () => true });
+
+test('the continuous shop includes every rotating item, bundle and available locker without revisiting a section', () => {
+  const now = new Date('2026-11-19T17:00:00Z');
+  const ui = { screen: 'shop', progress: progress(), world: { itemThumbnail: () => 'art.png' }, cloud: { session: null } };
+  ui.progress.data.lockers = { halloween: 1 };
+  const html = shopView(ui, now);
+  const idsFor = action => [...html.matchAll(new RegExp(`data-action="${action}"\\s+data-id="([^"]+)"`, 'g'))]
+    .map(match => match[1]).sort();
+  const { featured, daily, weekly, permanent } = shopRotation(now);
+  assert.deepEqual(idsFor('item-detail'), [...featured, ...daily, ...weekly, ...permanent].map(item => item.id).sort());
+  assert.deepEqual(idsFor('bundle-detail'), shopBundles(now).map(bundle => bundle.id).sort());
+  assert.deepEqual(
+    [...new Set(idsFor('locker-detail'))],
+    [...availableLockers(now).map(locker => locker.id), 'halloween'].sort(),
+  );
+});
 
 test('every locker catalog includes every eligible reward exactly once', () => {
   const ui = { progress: progress(), world: { itemThumbnail: () => 'art.png' } };
