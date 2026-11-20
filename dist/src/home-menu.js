@@ -4,6 +4,7 @@ import { icon, brandMark } from './icons.js';
 
 export function homeMenu(ui) {
   const d = ui.progress.data;
+  const portal = ui.platform?.active;
   const guest = !ui.cloud.session || ui.cloud.isGuest;
   const more = [
     ['trophy', 'Achievements', 'achievements'],
@@ -18,7 +19,7 @@ export function homeMenu(ui) {
     <div class="home-account">
       ${coins(d.coins)}
       ${button(`<span class="home-player-name">${esc(d.name)}</span><small>Lv ${ui.progress.level.level}</small>`, 'profile', `title="${esc(d.name)} · Level ${ui.progress.level.level}"`, 'home-profile')}
-      ${guest ? button('Sign in', 'auth-mode', 'data-id="login"', 'home-signin') : ''}
+      ${guest && !portal ? button('Sign in', 'auth-mode', 'data-id="login"', 'home-signin') : ''}
       ${button(icon('sliders'), 'settings', 'aria-label="Settings"', 'home-settings')}
     </div>
     <section class="home-center" aria-labelledby="home-title">
@@ -31,13 +32,13 @@ export function homeMenu(ui) {
           ${button(icon('gift') + '<span>Shop</span>', 'shop', '', 'home-tile')}
         </div>
         <div class="home-quick-links">
-          ${button(icon('user') + '<span>Multiplayer</span>', 'multiplayer', '', 'home-quick')}
-          ${button(icon('trophy') + '<span>Competitive</span>', 'competitive', '', 'home-quick')}
+          ${!portal ? button(icon('user') + '<span>Multiplayer</span>', 'multiplayer', '', 'home-quick') : ''}
+          ${!portal ? button(icon('trophy') + '<span>Competitive</span>', 'competitive', '', 'home-quick') : ''}
           <details class="home-more">
             ${moreSummary()}
             <nav class="home-secondary home-more-links" aria-label="More options">
               ${more.map(([i, label, action]) => button(icon(i) + `<span>${label}</span>`, action)).join('')}
-              ${button(icon('user') + '<span>Account</span>', 'account')}
+              ${button(icon('user') + '<span>' + (portal ? 'Save status' : 'Account') + '</span>', 'account')}
               ${button(icon('flag') + '<span>Room310 community</span>', 'socials', '', 'home-community')}
               <div class="home-activity" id="online-estimate" hidden title="Studio-set activity estimate, not a live player count."><i></i><span>Studio estimate · <b>-</b></span></div>
             </nav>

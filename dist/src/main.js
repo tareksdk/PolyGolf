@@ -1,5 +1,6 @@
 import { installHomeMenu } from './home-menu.js';
 import { initializeCrazyGames } from './crazygames.js';
+import { installCrazyGamesUI } from './crazygames-ui.js';
 import { setProgressStorage } from './progress-storage.js';
 import { installPlanetfall } from './planetfall-ui.js';
 import { loadSkyDarbyAssets } from './sky-islands.js';
@@ -38,10 +39,13 @@ import { installShopExtras } from "./pro-shop-ui.js";
 import { installSharing } from "./map-share.js";
 let ui;
 try {
+  window.PolyGolfStartup?.phase('Connecting to saves');
   const platform = await initializeCrazyGames();
   if (platform.active) setProgressStorage(platform.storage);
   const localPreview = !platform.active && isLocalPreview();
+  window.PolyGolfStartup?.phase('Loading course assets');
   await Promise.all([loadCourseAssets(),loadAdventureAssets(),loadSkyDarbyAssets()]);
+  window.PolyGolfStartup?.phase('Starting the golf course');
   const repository = new LocalSaveRepository(platform.active ? platform.storage : localPreview ? previewStorage() : undefined);
   const progress = new ProgressionManager(repository, (message, type) => {
     ui?.toast(message);
@@ -59,6 +63,7 @@ try {
     return saved;
   };
   const audio = new AudioManager(progress.data.settings);
+  if (platform.active) platform.bindAudio(audio);
   const world = new World(document.querySelector("#world"));
   installItemThumbnails(world);
   world.settingsChanged(progress.data.settings);
@@ -104,9 +109,11 @@ try {
   installPlanetfall(ui);
   installMinimap(ui);
   installHomeMenu(ui);
+  installCrazyGamesUI(ui);
   ui.render();
   installInvites(ui);
   registerTools(ui);
+  window.PolyGolfStartup?.stop();
   document.querySelector("#loading").remove();
   if (platform.active) platform.loadingComplete();
   if (repository.error) ui.toast(repository.error);
@@ -146,6 +153,7 @@ try {
   requestAnimationFrame(frame);
   window.addEventListener("pagehide", () => progress.save());
 } catch (error) {
+  window.PolyGolfStartup?.stop();
   document.querySelector("#loading").innerHTML =
     error.crazygamesSave
       ? '<div class="panel"><h2>Your CrazyGames save couldn’t open.</h2><p>Check your connection, then reload the game from CrazyGames. Your existing save has not been replaced.</p><button class="button" onclick="location.reload()">Try again</button></div>'

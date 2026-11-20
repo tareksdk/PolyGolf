@@ -63,6 +63,11 @@ export function createCrazyGamesPlatform(sdk, reload = () => location.reload()) 
   return {
     active: true, storage,
     get locked() { return locked; },
+    bindAudio(audio) {
+      const apply = settings => audio.setPlatformMuted(settings.muteAudio === true);
+      apply(sdk.game.settings ?? {});
+      sdk.game.addSettingsChangeListener(apply);
+    },
     loadingComplete() { sdk.game.loadingStop(); },
     updateGameplay(state) {
       const next = !locked && state === 'playing';

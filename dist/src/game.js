@@ -90,7 +90,8 @@ export class GameManager {
     this.world.zoom = this.hole.volcanic ? 17 : this.mode === "golf" ? 13 : 18;
     this.world.pitch = 0.24;
     this.shape = this.spin = 0;
-    this.autoAim();
+    this.autoAim({ forceCamera: true });
+    this.world.resetCamera?.(this.physics.ball, { cut: true });
     this.cancelShot();
     this.onUpdate();
   }
@@ -99,7 +100,7 @@ export class GameManager {
     this.direction.x /= d;
     this.direction.z /= d;
   }
-  autoAim() {
+  autoAim({ forceCamera = false } = {}) {
     if (this.mode !== "golf") return;
     const b = this.physics.ball;
     const target = this.hole.space ? (this.physics.reached===8 ? this.hole.cup : nextPlanet(this.physics.reached)) : this.hole.cup;
@@ -109,8 +110,12 @@ export class GameManager {
     this.normalizeAim();
     this.aimTarget = null;
     this.shape = this.spin = 0;
-    this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
-    this.world.pitch = 0.24;
+    const cameraOwned = this.rotating || this.heldKeys.has('KeyQ') || this.heldKeys.has('KeyE') ||
+      this.world.cameraRig?.manualActive || this.world.cameraRig?.isCinematic;
+    if (forceCamera || !cameraOwned) {
+      this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
+      this.world.pitch = 0.24;
+    }
   }
   shotOptions() {
     return {
@@ -199,6 +204,7 @@ export class GameManager {
         spin: options.spin,
       });
       this.strokes++;
+      this.world.cameraShot?.(this.physics.ball);
       this.world.hit();
       this.onEvent("hit");
       this.onUpdate();
@@ -214,7 +220,8 @@ export class GameManager {
     this.strokes++;
     this.round.penalties++;
     this.physics.reset();
-    this.autoAim();
+    this.autoAim({ forceCamera: true });
+    this.world.resetCamera?.(this.physics.ball, { cut: false });
     this.accumulator = 0;
     this.onEvent("penalty");
     this.onUpdate();
@@ -230,9 +237,26 @@ export class GameManager {
     this.onEvent('space-lost');
     if(this.round.penalties>=3){this.physics.active=false;this.finishHole();return;}
     this.physics.reset();
-    this.autoAim();
+    this.autoAim({forceCamera:true});
     this.world.resetCamera?.(this.physics.ball,{cut:false});
     this.onUpdate();
+  }
+  skipCamera() {
+    const active = !!this.world.cameraRig?.isCinematic;
+    const skipped = this.world.skipCamera?.();
+    if (!active && !skipped) return false;
+    // Skipping the finish reveals the existing result immediately. It never
+    // changes the recorded shot, score, or the next-hole transition.
+    if (this.holeReveal) this.holeReveal.remaining = 0;
+    return true;
+  }
+  resetCamera() {
+    if (!["playing", "paused", "complete"].includes(this.state)) return;
+    this.skipCamera();
+    this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
+    this.world.zoom = this.mode === "golf" ? 13 : 18;
+    this.world.pitch = 0.24;
+    this.world.resetCamera?.(this.physics.ball, { cut: false, skipCurrentShot: true });
   }
   pause() {
     if (!["playing", "paused"].includes(this.state)) return;
@@ -326,6 +350,7 @@ export class GameManager {
       this.cameraPointer = e.pointerId;
       this.cameraButtons = e.button === 0 ? 1 : 2;
       this.lastPointer = { x: e.clientX, y: e.clientY };
+      this.world.cameraManualInput?.();
       canvas.setPointerCapture?.(e.pointerId);
     };
     const stopOrbit = () => {
@@ -362,6 +387,7 @@ export class GameManager {
       if (this.rotating) {
         if (e.pointerId !== this.cameraPointer) return;
         if (e.buttons !== undefined && !(e.buttons & this.cameraButtons)) { stopOrbit(); return; }
+        this.world.cameraManualInput?.();
         this.world.orbit -=
           (e.clientX - this.lastPointer.x) * 0.006 * (this.world.settings?.cameraSensitivity || 1);
         this.world.pitch = Math.max(
@@ -390,6 +416,7 @@ export class GameManager {
       (e) => {
         if (this.state === "playing") {
           e.preventDefault();
+          this.world.cameraManualInput?.();
           this.world.zoom = Math.max(
             this.mode === "golf" ? 8 : 10,
             Math.min(
@@ -409,10 +436,14 @@ export class GameManager {
         return;
       if (e.code === "Escape") {
         e.preventDefault();
-        if (!e.repeat) this.pause();
+        if (!e.repeat && !(this.state !== 'paused' && this.skipCamera())) this.pause();
         return;
       }
-      if(e.code==='KeyF' && !e.repeat && this.state==='playing' && !e.ctrlKey && !e.metaKey && !e.altKey && this.hole?.space){this.world.zoom=13;this.world.pitch=.24;this.world.orbit=Math.atan2(-this.direction.x,-this.direction.z);this.world.cameraRig?.reset(this.physics.ball);return;}
+      if (e.code === 'KeyF' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && ['playing', 'complete'].includes(this.state)) {
+        e.preventDefault();
+        this.resetCamera();
+        return;
+      }
       if (this.state !== "playing" || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.code === "KeyR" && !e.repeat) this.reset();
       if (['KeyQ','KeyE','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','ShiftLeft','ShiftRight'].includes(e.code)) {
@@ -473,7 +504,10 @@ export class GameManager {
     }
     if (this.state === "playing") {
       const keys = this.heldKeys;
-      this.world.orbit += ((keys.has('KeyE')?1:0) - (keys.has('KeyQ')?1:0)) * 1.2 * dt;
+      const orbitInput = (keys.has('KeyE') ? 1 : 0) - (keys.has('KeyQ') ? 1 : 0);
+      // Holding a drag still owns the camera even between pointer events.
+      if (orbitInput || this.rotating) this.world.cameraManualInput?.();
+      this.world.orbit += orbitInput * 1.2 * dt;
       if (!this.pendingSwing && !this.physics.active && !this.charging) {
         const turn = ((keys.has('ArrowRight')?1:0) - (keys.has('ArrowLeft')?1:0));
         if (turn) {
@@ -529,7 +563,8 @@ export class GameManager {
             this.strokes++;
             this.round.penalties++;
             this.physics.reset();
-            this.autoAim();
+            this.autoAim({ forceCamera: true });
+            this.world.resetCamera?.(this.physics.ball, { cut: false });
             this.onUpdate();
           } else {
             if (event === 'sand-impact' || event === 'sand-shot') this.world.sandBurst?.(this.physics.sandContact);

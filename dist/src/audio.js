@@ -16,6 +16,7 @@ export class AudioManager {
     try {
       this.ctx = new AudioContext();
       this.master = this.ctx.createGain();
+      this.master.gain.value = this.platformMuted ? 0 : this.settings.master;
       this.master.connect(this.ctx.destination);
       this.music = this.ctx.createGain();
       this.music.connect(this.master);
@@ -37,9 +38,20 @@ export class AudioManager {
         this.music=this.ctx.createGain();this.music.gain.value=0;this.music.connect(this.master);
         this.note=0;this.nextNote=this.ctx.currentTime+.03;
       }
-      this.master.gain.setTargetAtTime(s.master, this.ctx.currentTime, 0.1);
+      if (this.platformMuted) {
+        this.master.gain.cancelScheduledValues(this.ctx.currentTime);
+        this.master.gain.setValueAtTime(0, this.ctx.currentTime);
+      } else this.master.gain.setTargetAtTime(s.master, this.ctx.currentTime, 0.1);
       this.music.gain.setTargetAtTime(s.music * 0.24, this.ctx.currentTime, 0.1);
       this.effects.gain.setTargetAtTime(s.sfx * 0.3, this.ctx.currentTime, 0.1);
+    }
+  }
+  setPlatformMuted(muted) {
+    this.platformMuted = muted;
+    if (this.ctx) {
+      this.master.gain.cancelScheduledValues(this.ctx.currentTime);
+      if (muted) this.master.gain.setValueAtTime(0, this.ctx.currentTime);
+      else this.master.gain.setTargetAtTime(this.settings.master, this.ctx.currentTime, 0.01);
     }
   }
   tone(freq, duration = 0.15, type = "sine", volume = 0.3, delay = 0, music = false, attack = .009) {

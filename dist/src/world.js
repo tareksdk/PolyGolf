@@ -1,4 +1,5 @@
 import { buildPlanetfallWorld } from './planetfall-render.js';
+import { CameraRig } from './camera-rig.js';
 import { renderScale, effectiveGraphics } from './render-quality.js';
 import { renderFrame } from './render-frame.js';
 import { updateVolcanic } from './volcanic-render.js';
@@ -71,6 +72,14 @@ export class World {
     this.createBall();
     this.createAim();
     this.load(getHole(0, 0));
+  }
+  cameraManualInput() { this.cameraRig?.manualInput(); }
+  cameraShot(ball) { (this.cameraRig ??= new CameraRig(this)).beginShot(ball); }
+  resetCamera(ball, options) { (this.cameraRig ??= new CameraRig(this)).reset(ball, options); }
+  skipCamera() {
+    const active = !!this.cameraRig?.isCinematic;
+    this.cameraRig?.skip();
+    return active;
   }
   mat(color, extra = {}) {
     const key = color + JSON.stringify(extra);
@@ -287,6 +296,7 @@ export class World {
     geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
     geo.computeVertexNormals();
     const mesh = new THREE.Mesh(geo, this.mat("#ffffff", { vertexColors: true, side: THREE.DoubleSide }));
+    mesh.name = 'mini-turf'; // Terrain sampling owns ramps; their enclosing box is not a solid wall.
     mesh.receiveShadow = true;
     this.group.add(mesh);
   }
@@ -702,6 +712,7 @@ export class World {
     this.club.visible = true;
   }
   settingsChanged(s) {
+    if (s.cinematicCamera && this.settings?.cinematicCamera === false) this.cameraRig?.enableCinematic();
     const automatic=s.graphics==='auto'||!s.graphics;
     s={...s,graphics:effectiveGraphics(s.graphics,navigator)};
     if(automatic&&s.graphics==='low')s.shadows=false;
@@ -844,6 +855,7 @@ export class World {
     }
     const stage = this.mode === 'garage' && this.caddieViewport?.isConnected ? this.caddieViewport.getBoundingClientRect() : null;
     const aspect = stage?.height > 0 ? stage.width / stage.height : innerWidth / innerHeight;
+    if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
     const target = this.cameraTarget, position = this.cameraPosition;
     if (this.mode === "menu" && this.hole.mode === "golf") {
       target.set(0, 0, -this.hole.length * 0.25);
@@ -851,19 +863,22 @@ export class World {
       const start = Math.atan2(95, 35 - target.z), radius = Math.hypot(95, 35 - target.z);
       position.set(Math.sin(start + drift) * radius, 85, target.z + Math.cos(start + drift) * radius);
     } else if (this.mode === "play" && ball) {
-      ball = this.cameraHold || ball;
-      const lavaImpact=this.waterMoment?.kind==='lava';
-      target.set(ball.x, ball.y, ball.z);
-      if (this.hole.mode === "golf"&&!lavaImpact) {
-        target.x -= Math.sin(this.orbit) * Math.min(10, this.zoom * 0.22);
-        target.z -= Math.cos(this.orbit) * Math.min(10, this.zoom * 0.22);
+      (this.cameraRig ??= new CameraRig(this)).update(dt, ball, physics);
+      if (this.hole.space) {
+        this.ball.scale.setScalar(.38 / .24);
+        this.ball.position.y = ball.y + .38 - .021335;
+      } else if (this.hole.mode === 'golf' && this.ball.visible) {
+        // Preserve the ball silhouette in wide/portrait shots. This changes only
+        // the display mesh; the physics radius and flight are untouched.
+        const baseRadius = this.visualBallRadius || .065;
+        const distance = this.camera.position.distanceTo(this.ball.position);
+        const unitsPerPixel = 2 * distance * Math.tan(this.camera.fov * Math.PI / 360) / Math.max(1, innerHeight);
+        const radius = physics?.active ? Math.max(baseRadius, Math.min(.24, unitsPerPixel * 2.3)) : baseRadius;
+        this.cameraBallRadius ??= baseRadius;
+        this.cameraBallRadius += (radius - this.cameraBallRadius) * (1 - Math.exp(-dt * 10));
+        this.ball.scale.setScalar(this.cameraBallRadius / .24);
+        this.ball.position.y += this.cameraBallRadius - baseRadius;
       }
-      const zoom = lavaImpact?Math.max(22,Math.min(36,this.zoom)):this.zoom * (this.hole.mode === "golf" && physics?.airborne ? 1.8 : 1);
-      position.set(
-        ball.x + Math.sin(this.orbit) * zoom,
-        ball.y + (lavaImpact?zoom*.9:this.hole.mode === "golf" ? Math.max(2.5, zoom * (this.pitch || 0.32)) : zoom * 0.83),
-        ball.z + Math.cos(this.orbit) * zoom,
-      );
     } else if (this.mode === "garage") {
       target.set(-.3, 2.5, 8);
       const fit = Math.max(.78, .70 / aspect);
@@ -873,15 +888,11 @@ export class World {
       target.set(-7, 0, 2);
       position.set(30 + Math.sin(t) * 1.7, 30, 40 + Math.cos(t) * 1.5);
     }
-    if(this.hole.space && this.mode==="play" && ball){
-      this.camera.aspect=aspect;this.camera.updateProjectionMatrix();
-      this.cameraRig?.update(dt,ball,physics);
-      this.ball.scale.setScalar(.38/.24);
-      this.ball.position.y=ball.y+.38-.021335;
-    }else{
-    this.camera.position.lerp(position, 1 - Math.exp(-dt * 3));
-    this.look.lerp(target, 1 - Math.exp(-dt * 4));
-    this.camera.lookAt(this.look);
+    if (this.mode !== "play" || !ball) {
+      this.camera.position.lerp(position, 1 - Math.exp(-dt * 3));
+      this.look.lerp(target, 1 - Math.exp(-dt * 4));
+      this.camera.lookAt(this.look);
+      if (this.cameraRig) this.cameraRig.initialized = false;
     }
     if (this.golfer?.visible) this.club.visible = false;
     if (this.clock - (this.lastShadow || 0) > (this.settings?.graphics === "low" ? 0.3 : 0.16)) {

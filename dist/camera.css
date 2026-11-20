@@ -1,0 +1,41 @@
+/* Camera controls stay available while the shot HUD steps out of the way. */
+.camera-controls{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;pointer-events:auto}
+.ball-moving .play-hud .camera-controls{visibility:visible!important;pointer-events:auto!important}
+.camera-control{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 12px;border:1px solid #b3c6ad66;border-radius:6px;background:#173e38ed;color:#eff3dc;font:600 11px "DM Sans",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 3px 12px #102f2f20}
+.camera-control svg{width:17px;height:17px;flex:none}
+.camera-control:hover{background:#315b4c}
+.camera-control:focus-visible{outline:2px solid #fff4b7;outline-offset:3px}
+.camera-mode{min-width:108px}
+.camera-mode[aria-pressed=true]{background:#e7cd7c;color:#233e35;border-color:#e7cd7c}
+.camera-recenter{width:38px;padding:8px}
+.camera-skip{border-color:#e7cd7c;color:#fff1bb}
+.camera-controls [hidden]{display:none!important}
+.camera-mode-setting>span{display:grid;gap:4px}
+.camera-mode-setting small{font-size:11px;line-height:1.45;font-weight:400;color:var(--ui-muted,#abc3a6);max-width:285px}
+.camera-settings-note{font-size:11px!important;line-height:1.5;margin:9px 0 12px!important;color:var(--ui-muted,#abc3a6)!important}
+@media(max-width:600px){
+  .play-hud .camera-controls{
+    top:56px;
+    left:10px;
+    transform:none;
+    flex-wrap:wrap;
+    max-width:157px;
+  }
+  .course-minimap:not(.is-collapsed){max-width:calc(100vw - 181px)}
+  .camera-control{min-height:44px;padding:10px;font-size:11px}
+  .camera-recenter{width:44px}
+  .hole-intro{top:160px}
+}
+@media (min-width:601px) and (max-width:1000px){
+  .play-hud .camera-controls{top:54px;left:12px;transform:none}
+}
+@media(max-height:480px) and (min-width:601px){
+  .play-hud .camera-controls{top:52px;left:12px;transform:none}
+  .camera-control{min-height:34px;padding:7px 10px}
+  .camera-recenter{width:34px}
+  .hole-intro{top:100px}
+}
+@media(max-height:540px){
+  .camera-settings-note{margin:5px 0!important;font-size:10px!important}
+  .camera-mode-setting small{font-size:10px;line-height:1.3}
+}

@@ -66,7 +66,7 @@ export function installPlanetfall(ui) {
     hud.classList.add('planetfall-hud');
     const reached=g.physics.reached||0,current=PLANETS[reached],next=nextPlanet(reached),stats=hud.querySelector('.ph-stats');
     stats.innerHTML=`<div class="ph-stat"><span>On planet</span><strong>${current.name}</strong></div><div class="ph-stat"><span>Chances</span><strong>${Math.max(0,3-g.round.penalties)}<small>/3</small></strong></div><div class="ph-stat ph-strokes"><span>Shots</span><strong>${g.strokes}</strong></div><div class="ph-stat"><span>Journey</span><strong>${reached}<small>/8</small></strong></div>`;
-    hud.querySelector('.ph-wind')?.remove();hud.querySelector('.camera-mode')?.remove();hud.querySelector('.camera-skip')?.remove();
+    hud.querySelector('.ph-wind')?.remove();hud.querySelector('.camera-controls')?.remove();
     const reset=hud.querySelector('[data-action="reset"]');if(reset){reset.title='Recall ball (costs one chance)';reset.setAttribute('aria-label',reset.title);}
     const club=hud.querySelector('#shot-club');
     for(const opt of [...club.options])if(!PLANETFALL_CLUBS.includes(opt.value)&&!(opt.value==='putter'&&reached===8))opt.remove();

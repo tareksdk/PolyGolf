@@ -117,10 +117,29 @@ export class UIManager {
       status: document.querySelector("#shot-status"),
       plate: document.querySelector("#ball-nameplate"),
       surface: document.querySelector("#surface-label"),
+      cameraMode: document.querySelector("#camera-mode"),
+      cameraLabel: document.querySelector("#camera-mode-label"),
+      cameraSkip: document.querySelector("#camera-skip"),
     };
     this.tickMeters();
   }
+  tickCameraControls() {
+    const h = this.hud;
+    if (!h?.cameraMode?.isConnected) return;
+    const enabled = this.progress.data.settings.cinematicCamera === true;
+    const pressed = String(enabled);
+    if (h.cameraMode.getAttribute("aria-pressed") !== pressed) {
+      h.cameraMode.setAttribute("aria-pressed", pressed);
+      h.cameraLabel.textContent = enabled ? "Cinematic" : "Default";
+    }
+    const canSkip = (this.game.state === "playing" || !!this.game.holeReveal) && !!this.world.cameraRig?.isCinematic;
+    if (h.cameraSkip.hidden === canSkip) {
+      if (!canSkip && document.activeElement === h.cameraSkip) this.world.canvas.focus?.({ preventScroll: true });
+      h.cameraSkip.hidden = !canSkip;
+    }
+  }
   tickMeters() {
+    this.tickCameraControls?.();
     const g = this.game, h = this.hud;
     const moving = (g.state === 'playing' && (!!g.pendingSwing || g.physics.active)) || !!g.holeReveal || !!this.world.pirateMoment;
     if (moving !== this.movingHud) {
@@ -239,9 +258,13 @@ export class UIManager {
     this.audio.apply(this.progress.data.settings);
     if(key==="courseWeather"){this.world.settings.courseWeather=value;this.world.setWeather?.(value);}
     if (
-      ["graphics", "shadows", "particles", "cameraSensitivity", "zoomSensitivity", "aimGuide", "shotGuide"].includes(key)
+      ["graphics", "shadows", "particles", "cinematicCamera", "cameraSensitivity", "zoomSensitivity", "aimGuide", "shotGuide"].includes(key)
     )
       this.world.settingsChanged(this.progress.data.settings);
+    if (key === "cinematicCamera") {
+      if (!value) this.game.skipCamera?.();
+      this.tickCameraControls();
+    }
     if (input.nextElementSibling?.tagName === "OUTPUT")
       input.nextElementSibling.textContent =
         Number(input.max) === 1 ? Math.round(value * 100) + "%" : value + "×";
@@ -287,7 +310,19 @@ export class UIManager {
         this.game.pause();
         break;
       case "camera":
+        this.world.cameraManualInput?.();
         this.world.orbit += Math.PI / 4;
+        break;
+      case "camera-mode":
+        this.changeSetting({ dataset: { setting: "cinematicCamera" }, type: "checkbox", checked: !this.progress.data.settings.cinematicCamera });
+        break;
+      case "camera-recenter":
+        this.game.resetCamera();
+        this.tickCameraControls();
+        break;
+      case "camera-skip":
+        this.game.skipCamera();
+        this.tickCameraControls();
         break;
       case "reset":
         this.game.reset();

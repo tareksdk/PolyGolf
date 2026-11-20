@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   theme: "dark",
   shadows: true,
   particles: true,
+  cinematicCamera: false,
   cameraSensitivity: 1,
   zoomSensitivity: 1,
   aimGuide: true,
@@ -100,6 +101,7 @@ export class LocalSaveRepository {
       result.name = String(result.name).slice(0, 20);
       for (const k of ["master", "music", "sfx"])
         result.settings[k] = Math.max(0, Math.min(1, Number(result.settings[k]) || 0));
+      result.settings.cinematicCamera = result.settings.cinematicCamera === true;
       result.settings.shotGuide = result.settings.shotGuide === 'directional' ? 'directional' : 'full';
       result.settings.hudStyle = result.settings.hudStyle === 'smart' ? 'smart' : 'classic';
       result.settings.shotMeter = result.settings.shotMeter === "fluid" ? "fluid" : "classic";

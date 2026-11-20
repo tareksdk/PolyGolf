@@ -1,0 +1,29 @@
+body[data-platform="crazygames"] .home-tiles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(760px, 100%);
+  margin-inline: auto;
+}
+body[data-platform="crazygames"] .home-play { grid-column: auto; grid-row: auto; }
+body[data-platform="crazygames"] .home-save-note {
+  color: var(--text, #f8f5e7);
+  font-size: .8rem;
+}
+body[data-platform="crazygames"] .home-secondary:empty { display: none; }
+body[data-platform="crazygames"] .community-links {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 560px) {
+  body[data-platform="crazygames"] .home-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body[data-platform="crazygames"] .home-play { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  body[data-platform="crazygames"] .play-hud .ph-center {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    min-width: 0;
+    transform: none;
+  }
+  body[data-platform="crazygames"] .play-hud .ph-left { bottom: 200px; }
+}

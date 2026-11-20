@@ -1,6 +1,6 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "shop-scenic-navigation-1.16",
+  "contentVersion": "camera-and-crazygames-1.17",
   "date": "2026-11-19",
   "items": 648,
   "lockers": 10,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.16",
+  "appVersion": "1.17",
   "crazyGamesDataModule": true,
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,
@@ -131,5 +131,6 @@
   "planetfallMenuSection": "Other Maps",
   "homeMenu": "play-first",
   "menuStyle": "minimal-clubhouse",
-  "supabaseUsageVersion": 1
+  "supabaseUsageVersion": 1,
+  "cinematicCamera": true
 }

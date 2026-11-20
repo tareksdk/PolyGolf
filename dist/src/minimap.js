@@ -53,7 +53,8 @@ export function installMinimap(ui) {
   let hole = null, model = null, collapsed = false, position = null, drag = null, lastLabel = '';
   const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
   const startY = () => {
-    let top = 16;
+    const planetfallHeader = window.innerWidth <= 650 && ui.root.querySelector('.planetfall-route');
+    let top = planetfallHeader ? planetfallHeader.getBoundingClientRect().bottom + GAP : 16;
     for (const el of ui.root.querySelectorAll('.course-weather,.ph-tools')) {
       const r = el.getBoundingClientRect();
       if (r.width && r.top < window.innerHeight * .3) top = Math.max(top, r.bottom + GAP);

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {defaultSave,ProgressionManager,LocalSaveRepository} from '../dist/src/save.js';
 import {rollRoundLocker} from '../dist/src/round-rewards.js';
-import {LOCKERS,openLocker} from '../dist/src/pro-shop.js';
+import {openLocker,availableLockers} from '../dist/src/pro-shop.js';
 import {ITEMS,shopAvailable} from '../dist/src/catalog.js';
 import {ownedEmotes} from '../dist/src/emotes.js';
 import {installTheme,readTheme} from '../dist/src/theme.js';
@@ -14,7 +14,10 @@ test('ten percent round roll is exact and all available lockers can drop equally
   let drops=0;
   for(let i=0;i<10000;i++){let n=0;const drop=rollRoundLocker(full,()=>n++===0?i/10000:.5);if(drop)drops++;}
   assert.equal(drops,1000);
-  for(let i=0;i<LOCKERS.length;i++){let n=0;assert.equal(rollRoundLocker(full,()=>n++===0?.099999:(i+.5)/LOCKERS.length),LOCKERS[i].id);}
+  for(const now of [Date.parse('2026-10-20T12:00:00Z'),Date.parse('2026-11-02T12:00:00Z')]) {
+    const available=availableLockers(now);
+    for(let i=0;i<available.length;i++){let n=0;assert.equal(rollRoundLocker(full,()=>n++===0?.099999:(i+.5)/available.length,now),available[i].id);}
+  }
   assert.equal(rollRoundLocker(full,()=>.1),null);
 });
 test('no locker roll for incomplete, skipped, practice, custom or sudden-death rounds',()=>{

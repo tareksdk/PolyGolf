@@ -1,4 +1,16 @@
 {
-  "name": "polygolf", "version": "1.16.0", "private": true, "type": "module",
-  "scripts": {"dev": "node server.mjs", "start": "node server.mjs", "test": "node --test tests/*.test.mjs", "check": "node scripts/check.mjs"}
+  "name": "polygolf",
+  "version": "1.17.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "package:crazygames": "node scripts/package-crazygames.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
 }

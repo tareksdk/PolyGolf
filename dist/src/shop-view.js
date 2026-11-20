@@ -215,8 +215,8 @@ export function shopView(ui, now = new Date()) {
     ["lockers", "Lockers", `<p class="store-note">Finish a full round for a 10% chance to earn a locker. Check any locker for its rewards and odds.${halloweenActive(now) ? " The Halloween event ends November 1." : ""}</p>
       ${lockerQuantity(ui)}<div class="store-grid store-grid-lockers">${lockerStock.map(pack => lockerCard(ui, pack)).join("")}</div>`],
     ["coins", "Coins", coinShop()],
-    ["socials", "Community rewards", socialRewards(ui, { showIntro: false, showChest: true })],
-  ];
+    ["socials", ui.platform?.active ? "Discord" : "Community rewards", socialRewards(ui, { showIntro: false, showChest: true })],
+  ].filter(([id]) => !ui.platform?.active || id !== "coins");
   const earned = Object.values(lockers || {}).some(Boolean);
 
   return `<div class="panel-backdrop"></div>${header(ui)}

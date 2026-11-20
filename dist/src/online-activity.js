@@ -6,7 +6,7 @@ export function activityCount(base, phase) {
   return Math.min(max,Math.max(min,value));
 }
 export function installActivity(ui) {
-  if(ui.cloud.localPreview)return;
+  if(ui.cloud.localPreview || ui.platform?.active)return;
   let message=null,base=null,enabled=true,nextFetch=0,failures=0,busy=false;
   const cacheKey='polygolf-site-settings-v1';
   function accept(row){message=row;base=row.online_base;enabled=row.enabled;paint();}
