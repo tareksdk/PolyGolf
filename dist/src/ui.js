@@ -4,13 +4,11 @@ import { cardActionTarget } from './card-actions.js';
 import { COURSES, getHole, nearestPoint, surfaceAt, relative } from "./courses.js";
 import { ITEMS, ITEM_BY_ID, DEFAULT_EQUIPMENT } from "./catalog.js";
 import { LocalLeaderboardRepository } from "./leaderboards.js";
+import { caddieView, jumpToCaddieSection, toggleCaddieNavigation, updateCaddieGrid, updateCaddiePreview } from './caddie-view.js';
 import {
   homeView,
   coursesView,
   shopView,
-  garageView,
-  updateCaddieGrid,
-  updateCaddieCategory,
   profileView,
   leaderboardView,
   hudView,
@@ -84,6 +82,7 @@ export class UIManager {
     this.previewId = null;
     this.world.equip(this.progress.data.equipment, ITEMS);
     this.world.mode = screen === "garage" ? "garage" : "menu";
+    if (screen === 'garage') this.world.previewCategory = this.garageCategory;
     this.progress.refreshDaily();
     this.render();
   }
@@ -98,7 +97,7 @@ export class UIManager {
         home: homeView,
         courses: coursesView,
         shop: shopView,
-        garage: garageView,
+        garage: caddieView,
         profile: profileView,
         leaderboards: leaderboardView,
       }[this.screen] || homeView
@@ -374,32 +373,33 @@ export class UIManager {
         this.shopCategory = id;
         this.render();
         break;
-      case "garage-category":
-        this.garageCategory = id;
-        this.world.previewCategory = id;
-        this.previewId = null;
-        this.world.equip(this.progress.data.equipment, ITEMS);
-        updateCaddieCategory(this);
+      case 'caddie-jump':
+        jumpToCaddieSection(this, id);
         break;
-      case 'caddie-filters':
-        this.caddieFiltersOpen = !this.caddieFiltersOpen;
-        this.render();
+      case 'caddie-toggle-nav':
+        toggleCaddieNavigation(this);
         break;
-      case 'caddie-sort':
-        this.caddieSort = id;
-        this.render();
+      case 'caddie-clear': {
+        this.caddieQuery = '';
+        this.caddieRarity = 'all';
+        this.caddieSort = 'equipped';
+        this.favoritesOnly = this.showAllItems = false;
+        const search = this.root.querySelector('#caddie-search');
+        if (!search) break;
+        search.value = '';
+        this.root.querySelector('#caddie-rarity').value = 'all';
+        this.root.querySelector('#caddie-sort').value = 'equipped';
+        this.root.querySelector('#caddie-include-catalog').checked = false;
+        this.root.querySelector('[data-action="favorites"]').setAttribute('aria-pressed', 'false');
+        this.root.querySelector('.caddie-sort-panel').open = false;
+        updateCaddieGrid(this);
+        search.focus({ preventScroll: true });
         break;
-      case 'caddie-rarity':
-        this.caddieRarity = id;
-        this.render();
-        break;
-      case 'caddie-clear':
-        this.caddieQuery = ''; this.caddieRarity = 'all'; this.favoritesOnly = false;
-        this.render();
-        break;
+      }
       case "favorites":
         this.favoritesOnly = !this.favoritesOnly;
-        this.render();
+        this.root.querySelector('[data-action="favorites"]')?.setAttribute('aria-pressed', String(this.favoritesOnly));
+        updateCaddieGrid(this);
         break;
       case "favorite":
         this.progress.favorite(id);
@@ -409,10 +409,11 @@ export class UIManager {
         const item = ITEM_BY_ID[id];
         if (!item || !this.progress.data.owned.includes(id)) break;
         this.previewId = id;
+        this.garageCategory = item.category;
         this.world.previewCategory = item.category;
         this.world.equip({ ...this.progress.data.equipment, [item.category]: id }, ITEMS);
-        this.render();
-        if (item.category === 'hole') this.world.burst(-1, 3.5, 8, item.color, 25);
+        updateCaddiePreview(this);
+        if (item.category === 'hole') this.world.burst(0, 1.65, 8.1, item.color, 25);
         break;
       }
       case "equip-preview":

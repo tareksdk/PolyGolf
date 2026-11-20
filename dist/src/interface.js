@@ -48,6 +48,7 @@ export function installInterface(ui) {
         if (ui.cloud.session) await ui.cloud.call('equip', {id});
         else if (!ui.progress.equip(id)) throw Error('Could not equip that item.');
         ui.previewId = null;
+        ui.garageCategory = item.category;
         ui.world.previewCategory = item.category;
         ui.world.equip(ui.progress.data.equipment, ITEMS);
         ui.closeModal(); ui.render(); ui.audio.play('purchase');

@@ -573,7 +573,6 @@ export function installExpansion(ui) {
         ui.render();
         return;
       }
-      if (action === "garage-category") ui.world.previewCategory = data.id;
       if (action === "select-course") {
         ui.selectedCourse = Number(data.course);
         ui.world.load(hole(ui.mode, ui.selectedCourse, 0));

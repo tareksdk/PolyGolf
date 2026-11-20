@@ -18,8 +18,8 @@ export function installSmartHud(ui) {
     render();hud=ui.root.querySelector('.play-hud');panels=hud?[...hud.querySelectorAll('.ph-left,.ph-center,.golfer-nameplate')]:[];
     if(hud)hud.dataset.hudStyle=hudStyle(ui.progress.data.settings);
     if(ui.game.state==='menu'&&ui.screen==='garage'){
-      const heading=ui.root.querySelector('.garage-equipped');
-      if(heading)heading.insertAdjacentHTML('afterend',hudStylePicker(ui.progress.data.settings));
+      ui.root.querySelector('.caddie-bag-panel .caddie-options-menu')
+        ?.insertAdjacentHTML('beforeend',hudStylePicker(ui.progress.data.settings));
     }
   };
   ui.action=async(name,data={})=>{

@@ -6,6 +6,7 @@ import { installPlanetfall } from './planetfall-ui.js';
 import { loadSkyDarbyAssets } from './sky-islands.js';
 import { installDarby } from './darby.js';
 import { installHoleEffects } from './hole-effects.js';
+import { installCaddieUI } from './caddie-view.js';
 import { readPreferences, savePreferences } from './device-settings.js';
 import { installOpeningUpdate } from './opening-update.js';
 import { installSmartHud } from './smart-hud.js';
@@ -94,6 +95,7 @@ try {
   installMotion(ui);
   installRelease(ui);
   installInterface(ui);
+  installCaddieUI(ui);
   installSeason(ui);
   installLiveRound(ui);
   installCourseAtmosphere(ui);

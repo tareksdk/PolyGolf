@@ -2,7 +2,6 @@ import { totalItemCount } from './item-stacks.js';
 import { honorsCabinet, profileBests } from './honors-view.js';
 import { usernameChangeCost } from './usernames.js';
 import { APP_VERSION } from "./version.js";
-import { caddieItems, CADDIE_RARITIES, CADDIE_SORTS } from './caddie-collection.js';
 import { finishItem } from './finishes.js';
 import { nameplate } from "./nameplates.js";
 import { GOLF_COURSES, courseRecordKey } from "./golf-courses.js";
@@ -124,44 +123,6 @@ export function shopView(ui) {
       content,
     `<span class="rotation-pill">${icon("clock")} Refreshes in <b id="rotation-countdown"></b></span>`,
   );
-}
-function collectionItems(ui) {
-  return caddieItems(ui.progress.data, {category:ui.garageCategory, query:ui.caddieQuery, rarity:ui.caddieRarity, sort:ui.caddieSort, showAll:ui.showAllItems, favorites:ui.favoritesOnly});
-}
-function caddieCards(ui, items) {
-  return items.map(item => itemCard(ui, item, {garage:true})).join('') || `<div class="empty-state"><h3>No items match.</h3><p>Try another name, rarity or category.</p>${button('Clear filters','caddie-clear','','button secondary')}</div>`;
-}
-export function updateCaddieGrid(ui) {
-  const grid = ui.root.querySelector('.garage-items');
-  if (!grid) return;
-  const items = collectionItems(ui);
-  grid.innerHTML = caddieCards(ui, items); grid.scrollTop = 0;
-  ui.root.querySelector('#caddie-result-count').textContent = items.length + (items.length === 1 ? ' item' : ' items');
-}
-function caddieTools(ui, count) {
-  return `<div class="caddie-toolbar"><label class="caddie-search">${icon('search')}<input id="caddie-search" type="search" maxlength="80" placeholder="Search collection" aria-label="Search collection" value="${esc(ui.caddieQuery || '')}" autocomplete="off"></label>${button(icon('sliders') + 'Filter & sort','caddie-filters',`aria-expanded="${!!ui.caddieFiltersOpen}" aria-controls="caddie-filters"`,'button secondary caddie-filter-toggle')}${button("Trade up", "trade-up", "", "button secondary")}<small id="caddie-result-count" role="status">${count} ${count === 1 ? 'item' : 'items'}</small></div>${ui.caddieFiltersOpen ? `<div class="caddie-filters" id="caddie-filters"><div role="group" aria-label="Filter by rarity"><span>Rarity</span>${['all',...CADDIE_RARITIES].map(r=>button(r==='all'?'All rarities':r,'caddie-rarity',`data-id="${r}" aria-pressed="${(ui.caddieRarity || 'all')===r}"`,'caddie-filter-chip')).join('')}</div><div role="group" aria-label="Sort collection"><span>Sort</span>${CADDIE_SORTS.map(([id,name])=>button(name,'caddie-sort',`data-id="${id}" aria-pressed="${(ui.caddieSort || 'collection')===id}"`,'caddie-filter-chip')).join('')}</div></div>` : ''}`;
-}
-function caddieSetup(ui) {
-  const d=ui.progress.data, cat=ui.garageCategory;
-  return `<div class="garage-equipped"><div class="caddie-setup-copy"><span class="caddie-setup-label">${icon("check")} ${ui.previewId ? "Preview" : "Your setup"}</span><h2>${esc(ITEM_BY_ID[ui.previewId || d.equipment[cat]]?.name || 'Your equipment')}</h2>${cat === 'nameplate' ? nameplate(d.name, ui.previewId || d.equipment.nameplate) : `<p>${esc(ITEM_BY_ID[d.equipment.nameplate].name)} · ${esc(ITEM_BY_ID[d.equipment.club].name)}</p>`}</div><div class="caddie-setup-actions">${button(icon("shuffle") + "Surprise me", "randomize", "", "button secondary")}${button("Equip preview", "equip-preview", ui.previewId ? "" : "disabled", "button")}</div></div>`;
-}
-export function updateCaddieCategory(ui) {
-  const setup = ui.root.querySelector('.garage-equipped');
-  if (!setup) {ui.render(); return;}
-  setup.outerHTML = caddieSetup(ui);
-  for (const tab of ui.root.querySelectorAll('[data-action="garage-category"]')) {
-    const active = tab.dataset.id === ui.garageCategory;
-    tab.classList.toggle('active', active); tab.setAttribute('aria-selected', String(active));
-  }
-  const reset=ui.root.querySelector('[data-action="unequip"]');
-  if (reset) reset.textContent='Reset '+CATEGORIES.find(c=>c.id===ui.garageCategory).name.toLowerCase();
-  updateCaddieGrid(ui);
-}
-export function garageView(ui) {
-  const d = ui.progress.data,
-    cat = ui.garageCategory,
-    items = collectionItems(ui);
-  return `${header(ui)}<main class="garage-page"><section class="garage-preview"><div class="caddie-preview-label"><span class="eyebrow">THE CADDIE</span><h1>Your game. Your gear.</h1><p>Preview your setup, then make it yours.</p></div><div class="caddie-stage" role="img" aria-label="Floating island with your equipped ball and club"></div></section><section class="garage-inventory panel">${caddieSetup(ui)}<div class="garage-collection-header"><h2>Your collection <span class="muted">${d.owned.length} / ${ITEMS.length}</span></h2><div class="collection-tools">${button(ui.showAllItems ? "Owned only" : "All finishes", "collection-filter", "", "text-button collection-toggle")}${button(icon("heart"), "favorites", "", "favorite-button " + (ui.favoritesOnly ? "favorited" : ""))}</div></div><div class="category-tabs" role="tablist" aria-label="Caddie category">${CATEGORIES.map((c) => button(icon(c.icon) + c.name, "garage-category", `data-id="${c.id}" role="tab" aria-selected="${cat === c.id}"`, "category-tab " + (cat === c.id ? "active" : ""))).join("")}</div>${caddieTools(ui, items.length)}<div class="garage-items pg-grid">${caddieCards(ui, items)}</div><div class="garage-bottom">${button("Reset " + CATEGORIES.find((c) => c.id === cat).name.toLowerCase(), "unequip", "", "text-button")}${button("Find something new " + icon("arrow"), "shop", "", "text-button")}</div></section></main>`;
 }
 export function profileView(ui) {
   const d = ui.progress.data,

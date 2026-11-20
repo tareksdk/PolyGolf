@@ -1,7 +1,7 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "camera-and-crazygames-1.17",
-  "date": "2026-11-19",
+  "contentVersion": "continuous-caddie-1.19",
+  "date": "2026-11-20",
   "items": 648,
   "lockers": 10,
   "patternSeeds": 1000,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.17",
+  "appVersion": "1.19",
   "crazyGamesDataModule": true,
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,

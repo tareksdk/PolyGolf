@@ -1,7 +1,7 @@
 // Interface motion: screen transitions, modal and toast choreography, press ripples,
 // and a sliding navigation indicator. Everything respects prefers-reduced-motion.
 const ROUND_STATES = ["playing", "paused", "complete", "finished"];
-const SCROLLERS = [".page", ".pass-track", ".editor-controls", ".garage-items", ".pe-inspector", ".shop-scroll"];
+const SCROLLERS = [".page", ".pass-track", ".editor-controls", ".pe-inspector", ".shop-scroll"];
 const RIPPLE = [
   ".button",
   ".soft-button",

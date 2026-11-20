@@ -23,6 +23,8 @@ export function installTrails(world) {
   world.updateRibbon = (dt, ball, physics) => {
     if(hole!==world.hole || mode!==world.mode){points.length=0;hole=world.hole;mode=world.mode;}
     const preview = world.mode === 'garage';
+    const scene = preview ? world.garageStage?.scene || world.scene : world.scene;
+    if (mesh.parent !== scene) scene.add(mesh);
     const enabled=world.trailColor && (preview || (world.mode==='play' && world.settings?.particles!==false));
     mesh.visible=!!enabled;
     if(!enabled){points.length=0;return;}

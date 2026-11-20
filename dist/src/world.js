@@ -1,5 +1,6 @@
 import { buildPlanetfallWorld } from './planetfall-render.js';
 import { CameraRig } from './camera-rig.js';
+import { createCaddieStage } from './caddie-stage.js';
 import { renderScale, effectiveGraphics } from './render-quality.js';
 import { renderFrame } from './render-frame.js';
 import { updateVolcanic } from './volcanic-render.js';
@@ -574,11 +575,6 @@ export class World {
     this.clubModels = new Map();
     this.scene.add(this.club);
     this.club.visible = false;
-    this.garageStage = new THREE.Group();
-    this.scene.add(this.garageStage);
-    this.mesh("cylinder", "#c5b593", -1, 1.15, 8, 2.3, 1.1, 2.3, this.garageStage);
-    this.mesh("cylinder", "#e2e8ca", -1, 1.72, 8, 2.35, 0.12, 2.35, this.garageStage);
-    this.garageStage.visible = false;
   }
   equip(equipment, items) {
     this.equipment = equipment;
@@ -687,6 +683,7 @@ export class World {
   }
   burst(x, y, z, color, count = 24) {
     if (this.settings?.particles === false) return;
+    const scene = this.mode === 'garage' && this.garageStage ? this.garageStage.scene : this.scene;
     for (let i = 0; i < count && this.particles.length < 120; i++) {
       const m = new THREE.Mesh(
         this.geometries.box,
@@ -694,7 +691,7 @@ export class World {
       );
       m.scale.set(0.09, 0.13, 0.09);
       m.position.set(x, y, z);
-      this.scene.add(m);
+      scene.add(m);
       this.particles.push({
         mesh: m,
         vx: (Math.random() - 0.5) * 5,
@@ -753,17 +750,18 @@ export class World {
       this.group?.traverse(o=>{if(o.userData.halloween){const show=visible&&!o.userData.destroyed;if(o.visible!==show){o.visible=show;this.renderer.shadowMap.needsUpdate=true;}}});
     }
     if(this.oceanTime)this.oceanTime.value=this.clock;
-    this.group.visible = this.mode !== "garage";
-    this.garageStage.visible = this.mode === "garage";
-    if (this.hole.mode !== "golf" || this.mode === "garage") {
-      const driver = this.mode === "garage" && this.previewCategory === "driver";
+    const garage = this.mode === 'garage';
+    this.group.visible = !garage;
+    const display = garage ? this.garageStage ??= createCaddieStage(this) : null;
+    const scene = display?.scene || this.scene;
+    if (display && this.ball.parent !== scene) display.attach();
+    if (!display && this.ball.parent === this.garageStage?.scene) this.garageStage.detach();
+    if (this.hole.mode !== "golf" || garage) {
+      const driver = garage && this.previewCategory === "driver";
       this.showClubModel(this.equipment?.[driver ? "driver" : "club"]);
     }
-    if (this.mode === "garage") {
+    if (garage) {
       this.club.visible = true;
-      this.club.position.set(-2.3, 2.15, 8.3);
-      this.club.scale.setScalar(1.6);
-      this.club.rotation.z = -0.24;
     } else {
       this.club.scale.setScalar(1);
       if (!this.swingTime || this.swingTime <= 0) this.club.visible = false;
@@ -824,15 +822,15 @@ export class World {
       this.ball.visible = true;
       if (this.groundShadow) this.groundShadow.visible = false;
       if (this.flightTrail) this.flightTrail.visible = false;
-      if (this.mode === "garage") this.ball.position.set(0, 3.05, 8);
-      else this.ball.position.set(-7, 0.75, 11);
-      this.ball.scale.setScalar(this.mode === "garage" ? 3.8 : 3);
-      this.ball.position.y += Math.sin(this.clock * 1.6) * 0.09;
-      this.ball.rotation.y = this.clock * 0.18;
+      if (!garage) {
+        this.ball.position.set(-7, 0.75 + Math.sin(this.clock * 1.6) * 0.09, 11);
+        this.ball.scale.setScalar(3);
+        this.ball.rotation.y = this.clock * 0.18;
+      }
       this.ballHalo.visible = false;
       this.aim.visible = this.arrow.visible = false;
     }
-    if (this.swingTime > 0) {
+    if (this.swingTime > 0 && !garage) {
       this.swingTime -= dt;
       this.club.position.copy(this.swingOrigin || this.ball.position);
       this.club.position.x -= 0.3;
@@ -849,11 +847,12 @@ export class World {
       p.mesh.rotation.x += dt * 3;
       p.mesh.scale.multiplyScalar(1 - dt * 0.5);
       if (p.life <= 0) {
-        this.scene.remove(p.mesh);
+        p.mesh.removeFromParent();
         this.particles.splice(i, 1);
       }
     }
-    const stage = this.mode === 'garage' && this.caddieViewport?.isConnected ? this.caddieViewport.getBoundingClientRect() : null;
+    const viewport = garage && this.caddieViewport?.isConnected ? this.caddieViewport : null;
+    const stage = viewport?.getBoundingClientRect() || null;
     const aspect = stage?.height > 0 ? stage.width / stage.height : innerWidth / innerHeight;
     if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
     const target = this.cameraTarget, position = this.cameraPosition;
@@ -879,10 +878,14 @@ export class World {
         this.ball.scale.setScalar(this.cameraBallRadius / .24);
         this.ball.position.y += this.cameraBallRadius - baseRadius;
       }
-    } else if (this.mode === "garage") {
-      target.set(-.3, 2.5, 8);
-      const fit = Math.max(.78, .70 / aspect);
-      position.set(4 * fit, 2.5 + 4 * fit, 8 + 10 * fit);
+    } else if (garage) {
+      display.update(aspect, position, target);
+      this.camera.position.copy(position);
+      this.look.copy(target);
+      if (this.camera.fov !== 39) {
+        this.camera.fov = 39;
+        this.camera.updateProjectionMatrix();
+      }
     } else {
       const t = this.clock * 0.035;
       target.set(-7, 0, 2);
@@ -902,7 +905,18 @@ export class World {
     this.updateRibbon?.(dt, ball, physics);
     this.atmosphere?.update(dt,ball,physics);
     if (this.camera.aspect !== aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
-    renderFrame(this.renderer, this.scene, this.camera, innerWidth, innerHeight, stage);
+    const exposure = this.renderer.toneMappingExposure;
+    if (garage) {
+      scene.background = this.scene.background;
+      this.renderer.toneMappingExposure = 1.08;
+    }
+    try {
+      renderFrame(this.renderer, scene, this.camera, innerWidth, innerHeight, stage);
+      if (viewport && stage.width && stage.height)
+        viewport.toggleAttribute('data-live', !this.renderer.getContext().isContextLost());
+    } finally {
+      if (garage) this.renderer.toneMappingExposure = exposure;
+    }
     this.drawCalls = this.renderer.info.render.calls;
   }
   updateFlight(dt, ball, physics) {

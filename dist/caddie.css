@@ -1,0 +1,349 @@
+#app.clubhouse-menu .caddie-page {
+  --caddie-rail: 112px;
+  --caddie-dock-height: 0px;
+  --caddie-rail-height: 0px;
+  --caddie-controls-height: 56px;
+  --caddie-browse-top: calc(var(--caddie-dock-height) + var(--caddie-rail-height));
+  padding-top: 0;
+  background: transparent;
+  overflow-x: clip;
+  overscroll-behavior-y: contain;
+  scroll-padding-top: calc(var(--caddie-browse-top) + var(--caddie-controls-height) + 14px);
+}
+
+#app.clubhouse-menu .caddie-page.caddie-nav-small { --caddie-rail: 44px; }
+.caddie-shell { max-width: 1380px; margin: 0 auto; padding-top: 30px; }
+.caddie-heading, .caddie-heading > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.caddie-heading {
+  justify-content: space-between;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--club-line);
+  margin-bottom: 22px;
+}
+.caddie-heading h1 {
+  margin: 0;
+  font: 650 clamp(33px, 4vw, 54px)/1 'Outfit', sans-serif;
+  letter-spacing: -.045em;
+}
+.caddie-results { color: var(--club-muted); font-size: 12px; }
+.caddie-heading-tools .text-button { padding-inline: 0; min-height: 42px; }
+.caddie-heading-tools svg { width: 15px; height: 15px; }
+.caddie-layout {
+  display: grid;
+  grid-template-columns: var(--caddie-rail) minmax(0, 1fr) minmax(240px, 30%);
+  grid-template-areas: "rail inventory preview";
+  align-items: start;
+  gap: clamp(14px, 1.9vw, 28px);
+}
+.caddie-index { grid-area: rail; position: sticky; top: 0; min-width: 0; }
+.caddie-index-toggle,
+.caddie-index-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 6px 8px;
+  width: 100%;
+  color: var(--club-muted);
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+  background: transparent;
+}
+.caddie-index-toggle { justify-content: space-between; font-weight: 700; }
+.caddie-index-toggle svg, .caddie-index-link svg { width: 16px; height: 16px; flex: none; }
+.caddie-index-toggle svg { transform: rotate(180deg); }
+.caddie-index-links { display: grid; border-inline-start: 1px solid var(--club-line); }
+.caddie-index-link { border-inline-start: 2px solid transparent; margin-inline-start: -1px; }
+#app .caddie-index-link:is(:hover,[aria-current="location"]), #app .caddie-index-toggle:hover {
+  color: var(--club-ink);
+  background: var(--club-panel);
+}
+.caddie-index-link[aria-current="location"] { border-color: var(--club-gold); font-weight: 700; }
+.caddie-nav-small .caddie-index :is(.caddie-index-toggle, .caddie-index-link) { justify-content: center; }
+.caddie-nav-small .caddie-index :is(.caddie-index-toggle, .caddie-index-link) span { display: none; }
+.caddie-nav-small .caddie-index-toggle svg { transform: none; }
+.caddie-index-link[hidden], .caddie-section[hidden], .caddie-empty[hidden] { display: none; }
+
+.caddie-display {
+  grid-area: preview;
+  position: sticky;
+  top: calc(var(--caddie-rail-height) + 8px);
+  z-index: 3;
+  border: 1px solid var(--club-line);
+  min-width: 0;
+}
+.caddie-stage {
+  height: clamp(140px, 33vw, min(430px, 46vh));
+  min-height: 0;
+  background: center / cover no-repeat url('/assets/course-cards/golf-0.webp');
+}
+.caddie-stage[data-live] { background: transparent; }
+.caddie-preview-copy {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: clamp(11px, 1.5vw, 20px);
+  background: var(--club-panel);
+  border-top: 1px solid var(--club-line);
+}
+.caddie-preview-type {
+  position: relative;
+  padding-inline-start: 8px;
+  border-inline-start: 2px solid var(--caddie-rarity);
+  color: var(--club-muted);
+  font-size: 12px;
+}
+#app .caddie-preview-copy h2 {
+  margin: 5px 0 0;
+  font-size: clamp(19px, 2.5vw, 30px);
+  font-weight: 650;
+  line-height: 1.06;
+  overflow-wrap: anywhere;
+}
+.caddie-preview-actions,
+.caddie-equipped { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 12px; }
+.caddie-equipped { color: var(--club-ink); font-size: 12px; }
+.caddie-equipped svg { width: 14px; height: 14px; color: var(--club-gold); }
+.caddie-preview-actions .button { min-height: 42px; padding: 7px 12px; font-size: 12px; }
+.caddie-preview-mark { max-width: 100%; max-height: 76px; object-fit: contain; object-position: left center; }
+
+.caddie-catalog { grid-area: inventory; min-width: 0; }
+.caddie-controls {
+  position: sticky;
+  top: var(--caddie-browse-top);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: var(--caddie-controls-height);
+  padding-block: 3px 9px;
+  background: var(--club-bg);
+  border-bottom: 1px solid var(--club-line);
+}
+.caddie-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 8px 0 11px;
+  background: var(--club-panel);
+  border: 1px solid var(--club-line);
+  border-radius: 5px;
+}
+.caddie-search-field svg { flex: none; width: 17px; height: 17px; color: var(--club-muted); }
+#app .caddie-search-field input {
+  min-width: 0;
+  width: 100%;
+  min-height: 40px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  color: var(--club-ink);
+  font-size: 14px;
+}
+#app .caddie-search-field input:focus { outline: 0; }
+.caddie-search-field:focus-within { outline: 2px solid var(--club-gold); outline-offset: 1px; }
+.caddie-options { position: relative; }
+.caddie-favorites, .caddie-options > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0 8px;
+  border: 1px solid var(--club-line);
+  border-radius: 5px;
+  background: var(--club-panel);
+  color: var(--club-ink);
+  font-size: 12px;
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+}
+.caddie-options > summary::-webkit-details-marker { display: none; }
+.caddie-favorites svg, .caddie-options > summary svg { width: 17px; height: 17px; }
+.caddie-favorites[aria-pressed="true"], .caddie-options[open] > summary { border-color: var(--club-gold); color: var(--club-gold); }
+.caddie-favorites[aria-pressed="true"] svg { fill: currentColor; }
+.caddie-options-menu {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  gap: 10px;
+  width: min(254px, calc(100vw - 40px));
+  max-height: min(340px, calc(100dvh - 125px));
+  overflow: auto;
+  padding: 13px;
+  border: 1px solid var(--club-line);
+  border-radius: 7px;
+  background: var(--club-panel);
+  box-shadow: 0 10px 26px #05191040;
+}
+.caddie-options-menu label { display: grid; gap: 4px; font-size: 12px; }
+.caddie-options-menu select { width: 100%; min-height: 40px; }
+.caddie-options-menu .caddie-checkbox { display: flex; align-items: center; gap: 7px; min-height: 36px; }
+.caddie-options-menu .text-button { text-align: left; min-height: 34px; }
+.caddie-sort-panel .caddie-options-menu {
+  max-height: min(320px, calc(100dvh - var(--header-height, 105px) - var(--caddie-browse-top) - 70px));
+}
+.caddie-bag-panel { z-index: 8; }
+.caddie-bag-panel > summary { background: none; }
+.caddie-results { margin: 12px 0 0; }
+.caddie-empty { padding-block: 22px 30px; }
+.caddie-empty p { color: var(--club-muted); font-size: 13px; }
+.caddie-section { padding-top: 18px; }
+.caddie-section + .caddie-section { margin-top: 32px; border-top: 1px solid var(--club-line); }
+#app .caddie-section h2 { margin: 0 0 12px; font-size: clamp(21px, 2.2vw, 29px); }
+.caddie-section h2:focus-visible { outline: 2px solid var(--club-gold); outline-offset: 4px; }
+.caddie-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 145px), 1fr)); gap: 10px; }
+.caddie-tile { position: relative; min-width: 0; }
+.caddie-item {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: var(--club-panel);
+  border: 1px solid var(--club-line);
+  border-radius: 6px;
+  color: var(--club-ink);
+  text-align: left;
+}
+#app .caddie-item:is(:hover,[aria-pressed="true"]) {
+  border-color: var(--caddie-rarity);
+  background: var(--club-raised);
+  transform: none;
+}
+.caddie-item-art { position: relative; display: block; overflow: hidden; aspect-ratio: 1.49; background: var(--club-raised); }
+.caddie-item-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.caddie-item-copy { display: grid; align-content: start; gap: 3px; min-width: 0; padding: 8px 9px; border-top: 2px solid var(--caddie-rarity); }
+.caddie-item-copy strong { font: 600 14px/1.2 'Outfit', sans-serif; overflow-wrap: anywhere; }
+.caddie-item-copy small { color: var(--club-muted); font-size: 11px; line-height: 1.2; }
+.caddie-item-check, .caddie-stack, .caddie-tile-favorite {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  color: #fff7d9;
+  background: #16392de8;
+  border-radius: 4px;
+}
+.caddie-item-check { inset: 6px auto auto 6px; width: 24px; height: 24px; }
+.caddie-item-check svg { width: 15px; height: 15px; }
+.caddie-stack { inset: auto auto 6px 6px; min-height: 20px; padding: 2px 5px; font-size: 11px; }
+.caddie-tile-favorite {
+  inset: 6px 6px auto auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #fff7d34f;
+}
+.caddie-tile-favorite svg { width: 17px; height: 17px; }
+#app .caddie-tile-favorite:is(:hover,[aria-pressed="true"]) { color: #f7d778; background: #173c2e; }
+.caddie-tile-favorite[aria-pressed="true"] svg { fill: currentColor; }
+.caddie-items:has(> .caddie-tile:only-child) { grid-template-columns: minmax(0, 1fr); }
+.caddie-tile:only-child .caddie-item {
+  grid-template-columns: clamp(102px, 29%, 162px) minmax(0, 1fr);
+  grid-template-rows: 1fr;
+}
+.caddie-tile:only-child .caddie-item-copy {
+  align-content: center;
+  padding: 9px 48px 9px 13px;
+  border-top: 0;
+  border-inline-start: 2px solid var(--caddie-rarity);
+}
+.caddie-tile:only-child .caddie-tile-favorite { right: 8px; inset-block: 0; margin-block: auto; }
+
+@media (max-width: 970px) {
+  #app.clubhouse-menu .caddie-page { --caddie-rail-height: 49px; }
+  #app.clubhouse-menu .caddie-page.caddie-nav-small { --caddie-rail-height: 44px; }
+  .caddie-layout { grid-template-columns: minmax(0, 1fr) minmax(225px, 36%); grid-template-areas: "rail rail" "inventory preview"; row-gap: 0; }
+  .caddie-index {
+    display: flex;
+    align-items: center;
+    top: var(--caddie-dock-height);
+    z-index: 6;
+    gap: 5px;
+    height: var(--caddie-rail-height);
+    background: var(--club-bg);
+    border-bottom: 1px solid var(--club-line);
+  }
+  .caddie-index-toggle { width: auto; flex: none; }
+  .caddie-index-toggle svg { transform: rotate(-90deg); }
+  .caddie-nav-small .caddie-index-toggle svg { transform: rotate(90deg); }
+  .caddie-nav-small .caddie-index .caddie-index-toggle span { display: inline; }
+  .caddie-index-links { display: flex; overflow: auto hidden; scrollbar-width: thin; border: 0; }
+  .caddie-nav-small .caddie-index-links { display: none; }
+  .caddie-index-link { flex: none; width: auto; margin: 0; border-inline-start: 0; border-bottom: 2px solid transparent; }
+  .caddie-index-link:focus-visible { outline-offset: -3px; }
+  .caddie-display { margin-top: 8px; }
+}
+
+@media (max-width: 700px) {
+  #app.clubhouse-menu .caddie-page { --caddie-dock-height: 152px; }
+  .caddie-shell { padding-top: 15px; }
+  .caddie-heading { margin-bottom: 12px; padding-bottom: 8px; }
+  .caddie-heading-tools .text-button { min-height: 36px; }
+  .caddie-bag-panel > summary { min-height: 36px; }
+  .caddie-bag-panel .caddie-options-menu { width: min(200px, calc(100vw - 40px)); }
+  .caddie-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "preview" "rail" "inventory"; }
+  .caddie-display {
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(100px, .85fr) minmax(0, 1fr);
+    margin: 0;
+    height: var(--caddie-dock-height);
+    z-index: 4;
+  }
+  .caddie-stage { height: 100%; }
+  .caddie-preview-copy { align-content: center; gap: 7px; padding: 8px; border-top: 0; }
+  .caddie-preview-type { font-size: 10px; }
+  #app .caddie-preview-copy h2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 18px;
+  }
+  .caddie-preview-actions { gap: 4px 7px; }
+  .caddie-preview-actions .button { min-height: 36px; padding-inline: 8px; font-size: 11px; }
+  .caddie-preview-mark { display: none; }
+  .caddie-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .caddie-tile-favorite { width: 42px; height: 42px; }
+  .caddie-index-link { padding-inline: 6px; }
+  .caddie-index-link svg { width: 14px; height: 14px; }
+}
+
+@media (max-width: 700px) and (max-height: 640px) {
+  #app.clubhouse-menu .caddie-page { --caddie-dock-height: 128px; }
+  .caddie-preview-actions .button { min-height: 34px; }
+}
+
+@media (max-height: 470px) and (min-width: 701px) {
+  .caddie-stage { height: clamp(88px, 25dvh, 118px); }
+  .caddie-preview-copy { gap: 5px; padding: 8px; }
+  .caddie-preview-mark { display: none; }
+  #app .caddie-preview-copy h2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 19px;
+  }
+  .caddie-preview-actions .button { min-height: 36px; }
+}
+
+@media (max-width: 370px) {
+  .caddie-sort-panel > summary span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
