@@ -1,4 +1,5 @@
 import { tradeUp } from './shared/trade-ups.js';
+import { redeemProgressionGift } from './shared/progression-gift.js';
 import {auctionAction} from './auctions.ts';
 import { NEW_HOLE_EFFECT_IDS } from './shared/hole-effects-catalog.js';
 import {courseAvailable,courseRotationKey} from './shared/rotating-courses.js';
@@ -159,6 +160,11 @@ Deno.serve(async req=>{
   else if(action==='redeem_code'){
    await limited('gift:'+p.id,8,600);
    const digest=typeof b.code==='string'?await hash(b.code.trim()):'';
+   if(digest==='b6a9739e806e216df5ac45a70018843a44fa1b570cb2b755e3bff59444e01f02'){
+    const pm=progress(p);
+    const reward=redeemProgressionGift(pm.data);
+    return new Response(JSON.stringify({state:await save(p,pm),...reward}),{headers});
+   }
    const rewards:any={'f8f474a55befde8bbea518f35f96edfaa2a72a282104b96df2bf521ebde6a675':{id:'supreme-israel-ball-2026',tokens:0,items:['ball-israel'],message:'Israel Flag ball unlocked. Equip it in your caddie for a flag and fireworks on every sunk putt.'},
     '1e6288fee2b560c035a4d08666ef0038f035ad6b0bccc7f78f96ddc5195d6377':{id:'mystery-driver-2026',tokens:0,items:['driver-mystery'],message:'??? unlocked. Equip your secret driver in the Caddie.'},
     'e0c36904590e80e8a87c3feaf5ba196b706ca6fb6321e433c4a6a6fe0b33912e':{id:'new-hole-effects-2026',tokens:0,items:NEW_HOLE_EFFECT_IDS,message:'All ten new hole effects unlocked. Equip them in your Caddie.'},

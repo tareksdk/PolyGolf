@@ -2,7 +2,8 @@ import test, {mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
-import {defaultSave} from '../dist/src/save.js';
+import {defaultSave, levelInfo, MAX_LEVEL_XP} from '../dist/src/save.js';
+import {PROGRESSION_GIFT_CODE, PROGRESSION_GIFT_BALANCE} from '../dist/src/progression-gift.js';
 import {ITEMS,ALPHA_ITEMS,shopRotation,shopAvailable} from '../dist/src/catalog.js';
 import {createHmac,createHash} from 'node:crypto';
 import {PhysicsManager,FIXED_STEP} from '../dist/src/physics.js';
@@ -60,6 +61,39 @@ const allAccessTestCode='local-test-all-access';
 source=source.replace('575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1721f74b',createHash('sha256').update(allAccessTestCode).digest('hex'));
 await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
 async function call(action,data={},id='a'){const response=await handler(new Request('http://game.local',{method:'POST',headers:{'Content-Type':'application/json',...(id?{Authorization:'Bearer '+id}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})}));const result=await response.json();if(!response.ok)throw Error(result.error);return result;}
+
+test('allunlock tops up level and wallet once, preserving cosmetics and higher balances', async () => {
+  const originals = new Map(['a', 'b'].map(id => [id, structuredClone(players.get(id))]));
+  const code = PROGRESSION_GIFT_CODE;
+  const inventory = data => ({
+    owned: data.owned, equipment: data.equipment, patterns: data.patterns, lockers: data.lockers,
+  });
+  try {
+    await assert.rejects(call('redeem_code', { code }, null), /Sign in/);
+    await assert.rejects(call('redeem_code', { code: code.toUpperCase() }), /not active/);
+    const a = players.get('a');
+    a.state.owned.push('ball-israel');
+    const before = structuredClone(inventory(a.state));
+    const attempts = await Promise.allSettled([call('redeem_code', { code }), call('redeem_code', { code })]);
+    const successes = attempts.filter(attempt => attempt.status === 'fulfilled');
+    assert.equal(successes.length, 1);
+    assert.deepEqual(successes[0].value.unlocked, []);
+    assert.equal(a.state.coins, PROGRESSION_GIFT_BALANCE);
+    assert.equal(levelInfo(a.state.xp).level, 100);
+    assert.deepEqual(inventory(a.state), before);
+    await assert.rejects(call('redeem_code', { code }), /already redeemed/);
+
+    const b = players.get('b');
+    b.state.coins = PROGRESSION_GIFT_BALANCE + 42;
+    b.state.xp = MAX_LEVEL_XP + 8;
+    const { state, tokens } = await call('redeem_code', { code }, 'b');
+    assert.equal(tokens, 0);
+    assert.equal(state.coins, PROGRESSION_GIFT_BALANCE + 42);
+    assert.equal(state.xp, MAX_LEVEL_XP + 8);
+  } finally {
+    for (const [id, player] of originals) players.set(id, player);
+  }
+});
 
 test('restored guest play starts Halloween rounds but keeps account-only ranked features protected',async()=>{
  const original=structuredClone(players.get('a'));const p=players.get('a');p.is_guest=true;p.state=defaultSave();

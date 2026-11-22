@@ -1,25 +1,13 @@
 import { APP_VERSION } from './version.js';
-import { button, coins, esc, moreSummary } from './views.js';
+import { button, coins, esc, moreMenu } from './views.js';
 import { icon, brandMark } from './icons.js';
 
 export function homeMenu(ui) {
   const d = ui.progress.data;
-  const portal = ui.platform?.active;
-  const guest = !ui.cloud.session || ui.cloud.isGuest;
-  const more = [
-    ['trophy', 'Achievements', 'achievements'],
-    ['flag', 'Community maps', 'community'],
-    ['flag', 'Editor', 'editor'],
-    ['user', 'Friends', 'friends'],
-    ['trophy', 'Rankings', 'leaderboards'],
-    ['gift', 'Country Club', 'club-pass'],
-    ['gift', 'Auction house', 'auctions'],
-  ];
   return `<main class="arcade-home home-refresh">
     <div class="home-account">
       ${coins(d.coins)}
-      ${button(`<span class="home-player-name">${esc(d.name)}</span><small>Lv ${ui.progress.level.level}</small>`, 'profile', `title="${esc(d.name)} · Level ${ui.progress.level.level}"`, 'home-profile')}
-      ${guest && !portal ? button('Sign in', 'auth-mode', 'data-id="login"', 'home-signin') : ''}
+      ${button(`<span class="home-player-name">${esc(d.name)}</span><small>Lv ${ui.progress.level.level}</small>`, 'profile', `aria-label="Account · ${esc(d.name)}" title="${esc(d.name)} · Level ${ui.progress.level.level}"`, 'home-profile')}
       ${button(icon('sliders'), 'settings', 'aria-label="Settings"', 'home-settings')}
     </div>
     <section class="home-center" aria-labelledby="home-title">
@@ -31,19 +19,7 @@ export function homeMenu(ui) {
           ${button(icon('club') + '<span>Caddie</span>', 'garage', '', 'home-tile')}
           ${button(icon('gift') + '<span>Shop</span>', 'shop', '', 'home-tile')}
         </div>
-        <div class="home-quick-links">
-          ${!portal ? button(icon('user') + '<span>Multiplayer</span>', 'multiplayer', '', 'home-quick') : ''}
-          ${!portal ? button(icon('trophy') + '<span>Competitive</span>', 'competitive', '', 'home-quick') : ''}
-          <details class="home-more">
-            ${moreSummary()}
-            <nav class="home-secondary home-more-links" aria-label="More options">
-              ${more.map(([i, label, action]) => button(icon(i) + `<span>${label}</span>`, action)).join('')}
-              ${button(icon('user') + '<span>' + (portal ? 'Save status' : 'Account') + '</span>', 'account')}
-              ${button(icon('flag') + '<span>Room310 community</span>', 'socials', '', 'home-community')}
-              <div class="home-activity" id="online-estimate" hidden title="Studio-set activity estimate, not a live player count."><i></i><span>Studio estimate · <b>-</b></span></div>
-            </nav>
-          </details>
-        </div>
+        ${moreMenu(ui, 'home')}
       </nav>
     </section>
     <footer class="home-footer">
@@ -52,9 +28,11 @@ export function homeMenu(ui) {
         <div class="home-utilities">
           ${button('Controls', 'help')}
           ${button(icon('fullscreen'), 'fullscreen', 'aria-label="Fullscreen"')}
+          ${button('Room310', 'socials', 'aria-label="Room310 community"')}
         </div>
       </div>
       <nav aria-label="Legal pages"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/cookies.html">Cookies</a><a href="/copyright.html">Copyright</a><a href="/contact.html">Contact</a></nav>
+      <div class="home-activity" id="online-estimate" hidden title="Studio-set activity estimate, not a live player count."><i></i><span>Studio estimate · <b>-</b></span></div>
     </footer>
   </main>`;
 }
@@ -90,16 +68,32 @@ export function installHomeMenu(ui) {
     const menu = ui.root.querySelector('.home-more[open], .menu-more[open]');
     if (menu && !menu.contains(event.target)) menu.open = false;
   });
-  ui.root.addEventListener('focusin', event => {
-    const link = event.target.closest('.home-more-links button, .menu-more-links button');
-    if (!link) return;
-    const rail = link.parentElement;
-    const viewport = rail.getBoundingClientRect(), item = link.getBoundingClientRect();
-    if (item.left < viewport.left) rail.scrollLeft -= viewport.left - item.left + 4;
-    if (item.right > viewport.right) rail.scrollLeft += item.right - viewport.right + 4;
+  const selectMoreTab = tab => {
+    const menu = tab.closest('.more-navigation');
+    for (const item of menu.querySelectorAll('[role="tab"]')) {
+      const selected = item === tab;
+      item.setAttribute('aria-selected', String(selected));
+      item.tabIndex = selected ? 0 : -1;
+      document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+    }
+  };
+  ui.root.addEventListener('click', event => {
+    const tab = event.target.closest('.more-tabs [role="tab"]');
+    if (tab) selectMoreTab(tab);
+  });
+  ui.root.addEventListener('keydown', event => {
+    const tab = event.target.closest('.more-tabs [role="tab"]');
+    if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]')];
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1) :
+      tabs[(tabs.indexOf(tab) + step + tabs.length) % tabs.length];
+    event.preventDefault();
+    selectMoreTab(next);
+    next.focus();
   });
   document.addEventListener('click', event => {
-    if (!event.target.closest('.home-more-links [data-action], .menu-more-links [data-action]')) return;
+    if (!event.target.closest('.more-destination')) return;
     const menu = ui.root.querySelector('.home-more[open], .menu-more[open]');
     if (!menu) return;
     menu.open = false;

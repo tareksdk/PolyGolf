@@ -6,6 +6,8 @@ import { shopRotation } from '../dist/src/catalog.js';
 import { memberRotation, memberPrice, nextMemberRotation } from '../dist/src/equipment.js';
 import { lockerDetail, shopView } from '../dist/src/shop-view.js';
 import { visibleTrades, tradingView, installTrading } from '../dist/src/trading-ui.js';
+import { header, profileView } from '../dist/src/views.js';
+import { homeMenu } from '../dist/src/home-menu.js';
 
 const progress = () => new ProgressionManager({ load: defaultSave, save: () => true });
 
@@ -14,7 +16,6 @@ test('the continuous shop includes every rotating item, bundle and available loc
   const ui = { screen: 'shop', progress: progress(), world: { itemThumbnail: () => 'art.png' }, cloud: { session: null } };
   ui.progress.data.lockers = { halloween: 1 };
   const html = shopView(ui, now);
-  assert.match(html, /<nav class="menu-more-links"[^>]*>\s*<button[^>]+data-action="achievements"/);
   assert.doesNotMatch(html, /data-shop-section="rewards"/);
   const idsFor = action => [...html.matchAll(new RegExp(`data-action="${action}"\\s+data-id="([^"]+)"`, 'g'))]
     .map(match => match[1]).sort();
@@ -29,6 +30,23 @@ test('the continuous shop includes every rotating item, bundle and available loc
     [...new Set(idsFor('locker-detail'))],
     [...availableLockers(now).map(locker => locker.id), 'halloween'].sort(),
   );
+});
+
+test('the home and clubhouse share three More groups while personal links live on Account', () => {
+  const ui = { progress: progress(), screen: 'auctions', cloud: { session: null } };
+  const actions = html => [...html.matchAll(/data-action="([^"]+)"/g)].map(match => match[1]);
+  for (const html of [homeMenu(ui), header(ui)]) {
+    const more = html.match(/<details class="[^"]*more-navigation"[\s\S]*?<\/details>/)[0];
+    assert.deepEqual(actions(more), ['multiplayer', 'competitive', 'leaderboards', 'editor', 'community', 'trades', 'auctions', 'club-pass']);
+    assert.match(more, /aria-selected="true" tabindex="0">Trading<\/button>/);
+    assert.doesNotMatch(html, /data-action="(?:achievements|friends|auth-mode|account)"/);
+  }
+  const account = actions(profileView({ ...ui, screen: 'profile' }));
+  for (const action of ['account', 'achievements', 'friends', 'daily']) assert.ok(account.includes(action));
+  const portal = header({ ...ui, platform: { active: true } });
+  assert.doesNotMatch(portal, /data-action="(?:multiplayer|competitive|leaderboards|community|trades|auctions)"/);
+  assert.match(portal, /data-action="editor"/);
+  assert.match(portal, /data-action="club-pass"/);
 });
 
 test('every locker catalog includes every eligible reward exactly once', () => {

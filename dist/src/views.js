@@ -10,6 +10,7 @@ import { COURSES, getHole, relative } from "./courses.js";
 import { ITEMS, ITEM_BY_ID, CATEGORIES, RARITY, shopRotation, shopAvailable, itemSource } from "./catalog.js";
 import { ACHIEVEMENTS, challengesFor } from "./save.js";
 import { halloweenActive } from './season.js';
+import { portalActionAllowed } from './crazygames-ui.js';
 export const esc = (value) =>
   String(value).replace(
     /[&<>"']/g,
@@ -19,24 +20,56 @@ export const coins = (n) => `<span class="money"><i class="coin-icon" aria-hidde
 export const button = (text, action, extra = "", cls = "button") =>
   `<button class="${cls}" data-action="${action}" ${action === "favorites" ? 'aria-label="Show favorite cosmetics"' : ""} ${extra}>${text}</button>`;
 export const minutes = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
-export const moreSummary = (active = false) => `<summary${active ? ' class="active" aria-current="page"' : ""}>
-  <span class="more-closed">More</span><span class="more-open">Less</span>
-  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg>
-</summary>`;
+const MORE_GROUPS = [
+  { id: 'play-online', label: 'Multiplayer', links: [
+    ['multiplayer', 'Multiplayer', 'user'],
+    ['competitive', 'Competitive', 'trophy'],
+    ['leaderboards', 'Rankings', 'trophy'],
+  ] },
+  { id: 'create', label: 'Editor', links: [
+    ['editor', 'Editor', 'flag'],
+    ['community', 'Community maps', 'flag'],
+  ] },
+  { id: 'market', label: 'Trading', links: [
+    ['trades', 'Trading', 'user'],
+    ['auctions', 'Auction house', 'gift'],
+    ['club-pass', 'Country Club', 'flag'],
+  ] },
+];
+
+export function moreMenu(ui, scope) {
+  const groups = ui.platform?.active
+    ? MORE_GROUPS.map(group => ({ ...group, links: group.links.filter(([action]) => portalActionAllowed(action)) }))
+      .filter(group => group.links.length)
+    : MORE_GROUPS;
+  const currentGroup = groups.find(group => group.links.some(([action]) => action === ui.screen));
+  const selected = currentGroup || groups[0];
+  const tabId = group => scope + '-more-tab-' + group.id;
+  const panelId = group => scope + '-more-panel-' + group.id;
+  const tabs = groups.map(group => `<button type="button" role="tab" id="${tabId(group)}" aria-controls="${panelId(group)}" aria-selected="${group === selected}" tabindex="${group === selected ? 0 : -1}">${group.label}</button>`).join('');
+  const panels = groups.map(group => {
+    const links = group.links.map(([action, label, mark]) => {
+      const current = action === ui.screen;
+      return button(icon(mark) + label, action, current ? 'aria-current="page"' : '', current ? 'more-destination active' : 'more-destination');
+    }).join('');
+    return `<div class="more-destinations" role="tabpanel" id="${panelId(group)}" aria-labelledby="${tabId(group)}"${group === selected ? '' : ' hidden'}>${links}</div>`;
+  }).join('');
+  return `<details class="${scope}-more more-navigation"><summary${currentGroup ? ' class="active"' : ''}>
+    <span class="more-closed">More</span><span class="more-open">Less</span>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg>
+  </summary><div class="more-panel"><div class="more-tabs" role="tablist" aria-label="More categories">${tabs}</div>${panels}</div></details>`;
+}
 export function header(ui) {
   const d = ui.progress.data, l = ui.progress.level;
   const primary = [['courses', 'Play'], ['garage', 'Caddie'], ['shop', 'Shop']];
-  const other = [['achievements', 'Achievements'], ['multiplayer', 'Multiplayer'], ['competitive', 'Competitive'], ['community', 'Community maps'], ['editor', 'Editor'], ['club-pass', 'Country Club'], ['friends', 'Friends'], ['leaderboards', 'Rankings'], ['trades', 'Trading'], ['auctions', 'Auction house'], ['account', 'Account']];
   const selected = id => ui.screen === id;
   const link = ([id, label]) => `<button class="${selected(id) ? 'active' : ''}" data-action="${id}" ${selected(id) ? 'aria-current="page"' : ''}>${label}</button>`;
   return `<header class="topbar">
     <button class="logo" data-action="home" aria-label="PolyGolf clubhouse">${brandMark()}<span class="wordmark">Poly<span>Golf</span> <small>v${APP_VERSION}</small></span></button>
     <nav class="nav" aria-label="Main menu">${primary.map(link).join('')}
-      <details class="menu-more">${moreSummary(other.some(([id]) => selected(id)))}
-        <nav class="menu-more-links" aria-label="More pages">${other.map(link).join('')}</nav>
-      </details>
+      ${moreMenu(ui, 'menu')}
     </nav>
-    <div class="player-bar"><span class="wallet" aria-label="${d.coins} coins">${coins(d.coins)}</span><button class="player-button" data-action="profile" aria-label="${esc(d.name)} profile" ${selected('profile') ? 'aria-current="page"' : ''}><span class="avatar">${ui.cloud?.profile?.avatar ? `<img src="${esc(ui.cloud.profile.avatar)}" alt="Your profile picture">` : esc(d.name.charAt(0).toUpperCase())}</span><div><strong>${esc(d.name)}</strong><small>Level ${l.level} · ${l.xp} / ${l.required} XP</small><span class="tiny-xp"><i style="width:${l.progress * 100}%"></i></span></div></button><button class="header-settings" data-action="settings" aria-label="Settings">${icon('sliders')}</button></div>
+    <div class="player-bar"><span class="wallet" aria-label="${d.coins} coins">${coins(d.coins)}</span><button class="player-button" data-action="profile" aria-label="Account · ${esc(d.name)}" ${selected('profile') ? 'aria-current="page"' : ''}><span class="avatar">${ui.cloud?.profile?.avatar ? `<img src="${esc(ui.cloud.profile.avatar)}" alt="Your profile picture">` : esc(d.name.charAt(0).toUpperCase())}</span><div><strong>${esc(d.name)}</strong><small>Level ${l.level} · ${l.xp} / ${l.required} XP</small><span class="tiny-xp"><i style="width:${l.progress * 100}%"></i></span></div></button><button class="header-settings" data-action="settings" aria-label="Settings">${icon('sliders')}</button></div>
   </header>`;
 }
 export function homeView(ui) {
@@ -139,7 +172,7 @@ export function profileView(ui) {
   ];
   return page(
     ui,
-    "Your golfer",
+    "Account",
     "Statistics, rewards and your account.",
     `<div class="profile-layout"><section class="panel profile-card"><span class="profile-avatar">${ui.cloud?.profile?.avatar ? `<img src="${esc(ui.cloud.profile.avatar)}" alt="Your profile picture">` : esc(d.name.charAt(0).toUpperCase())}</span>${nameplate(d.name,d.equipment.nameplate)}<p class="golfer-bio">${esc(ui.cloud?.profile?.bio || "")}</p>${ui.cloud?.session ? button("Edit photo & bio", "edit-profile", "", "text-button") : ""}<span class="badge">LEVEL ${l.level}</span><div class="xp-track"><i style="width:${l.progress * 100}%"></i></div><div class="row between muted small"><span>${l.xp} XP</span><span>${l.required} XP</span></div><div class="divider"></div>${button(ui.cloud?.session ? "Manage account" : "Sign in / Create account", "account", "", "button secondary wide")}${usernameFields(ui)}<div class="divider"></div><div class="row between"><span>Coin balance</span>${coins(d.coins)}</div><div class="profile-stats">${stats.map(([a, b]) => `<div><strong>${b}</strong><span>${a}</span></div>`).join("")}</div></section><div>${honorsCabinet(ui.cloud?.profile,{own:true})}${ui.cloud?.session?profileBests(ui.cloud.profile):''}<section class="panel challenge-panel"><div class="section-heading"><h2>A little goal for today</h2><span>RESETS AT 00:00 UTC</span></div>${challengesFor()
       .map((c) => {
@@ -156,7 +189,11 @@ export function profileView(ui) {
         return `<article class="achievement panel ${done ? "achieved" : ""}"><span class="achievement-icon">${icon(a.icon)}</span><h3>${a.name}</h3><p>${a.desc}</p><div class="challenge-track"><i style="width:${(n / a.target) * 100}%"></i></div><div class="row between small"><span>${done ? "✓ Unlocked" : `${n} / ${a.target}`}</span><span>+${a.coins} coins</span></div></article>`;
       },
     ).join("")}</section>`,
-    button(icon("gift") + "Daily reward", "daily", "", "button yellow"),
+    `<nav class="profile-actions" aria-label="Account links">
+      ${button(icon('trophy') + 'Achievements', 'achievements', '', 'button secondary')}
+      ${ui.platform?.active ? '' : button(icon('user') + 'Friends', 'friends', '', 'button secondary')}
+      ${button(icon('gift') + 'Daily reward', 'daily', '', 'button secondary')}
+    </nav>`,
   );
 }
 export function leaderboardView(ui) {

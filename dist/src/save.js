@@ -7,6 +7,10 @@ import { normalizeLockerHistory, LOCKER_LEGEND_ID, LOCKER_LEGEND_ITEM, LOCKER_LE
 import { unlockLevels, memberEntitled, migratePass } from "./equipment.js";
 import { DEFAULT_EQUIPMENT, ITEMS, ITEM_BY_ID, dayKey, dayNumber, shopAvailable } from "./catalog.js";
 export const SAVE_KEY = "little-links.save.v1";
+export const MAX_LEVEL = 100;
+const xpForNextLevel = level => 500 + (level - 1) * 125;
+export const MAX_LEVEL_XP = Array.from({ length: MAX_LEVEL - 1 }, (_, index) => xpForNextLevel(index + 1))
+  .reduce((total, required) => total + required, 0);
 export const DEFAULT_SETTINGS = {
   master: 0.65,
   music: 0.25,
@@ -50,11 +54,11 @@ export function defaultSave() {
 export function levelInfo(total) {
   let level = 1,
     remaining = Math.max(0, Number(total) || 0),
-    required = 500;
-  while (remaining >= required && level < 100) {
+    required = xpForNextLevel(level);
+  while (remaining >= required && level < MAX_LEVEL) {
     remaining -= required;
     level++;
-    required = 500 + (level - 1) * 125;
+    required = xpForNextLevel(level);
   }
   return { level, xp: remaining, required, progress: remaining / required };
 }
