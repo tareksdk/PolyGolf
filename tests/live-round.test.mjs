@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanLiveState, LiveBuffer, liveScope, liveHole } from '../dist/src/live-state.js';
+import { cleanLiveState, compactLiveState, LiveBuffer, liveScope, liveHole } from '../dist/src/live-state.js';
 import { LiveTransport } from '../dist/src/live-transport.js';
 import { DEFAULT_SETTINGS } from '../dist/src/save.js';
 const packet=(at=1000,x=0)=>({v:1,seq:at,at,hole:'0',ball:{x,y:2,z:0,vx:10,vy:0,vz:0},anchor:{x:0,y:0,z:0},dx:1,dz:0,club:'driver',active:true,sunk:false,equipment:{ball:'ball-case-hardened',patterns:{'ball-case-hardened':999}},swing:{id:1,at:900},emote:null});
@@ -17,6 +17,12 @@ test('opponents interpolate through packet gaps and never extrapolate without a 
  assert.equal(b.sample(10000,200).ball.x,3.5);
  assert.equal(b.push(cleanLiveState(packet(1100,1)),300),false);
  b.push(cleanLiveState({...packet(1400,30),hole:'1'}),400);assert.equal(b.samples.length,1);assert.equal(b.sample(500).hole,'1');
+});
+test('live stroke counts are optional for older peers and reject invalid or excessive numbers',()=>{
+ assert.equal(compactLiveState({...packet(),strokes:0}).strokes,0);
+ assert.equal(cleanLiveState({...packet(),strokes:12}).strokes,12);
+ assert.equal(cleanLiveState(packet()).strokes,undefined);
+ for(const bad of [-1,1.5,1000,'3',Infinity])assert.equal(cleanLiveState({...packet(),strokes:bad}).strokes,undefined);
 });
 test('private rooms and ranked use separate scopes, and leave/finished stops presence',()=>{
  const ui={cloud:{session:{user:{id:'a'}},room:{id:'r',state:{phase:'playing',members:[{id:'a',roundId:'round'},{id:'b'}]}}},game:{state:'playing',index:2,round:{cloudId:'round'}}};

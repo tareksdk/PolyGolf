@@ -40,5 +40,6 @@ export function botPresentation(member, ui, time) {
   const f=Math.max(0,Math.min(1,(phase-.7)/4)),dist=Math.hypot(to.x-from.x,to.z-from.z),golf=hole.mode==='golf',flight=golf&&dist>22;
   const x=from.x+(to.x-from.x)*f,z=from.z+(to.z-from.z)*f,y=ui.world.renderGround(x,z)+(golf?.03:.25)+(flight?Math.sin(f*Math.PI)*Math.min(20,dist*.16):0);
   const at=Math.round(time),sunk=!sudden&&elapsed>=count*7;
-  return {v:1,seq:at,at,hole:key,ball:{x,y,z,vx:moving?(to.x-from.x)/4:0,vy:0,vz:moving?(to.z-from.z)/4:0},anchor:{...from,y:ui.world.renderGround(from.x,from.z)},dx:(to.x-from.x)/(dist||1),dz:(to.z-from.z)/(dist||1),club:flight?'driver':'putter',active:moving&&!sunk,sunk,equipment:member.equipment||match?.bot?.equipment||DEFAULT_EQUIPMENT,swing:phase>=0?{id:Math.round(started+shot*7000),at:Math.round(started+2000+shot*7000)}:null};
+  const strokes = shot + Number(phase >= .7);
+  return {v:1,seq:at,at,hole:key,ball:{x,y,z,vx:moving?(to.x-from.x)/4:0,vy:0,vz:moving?(to.z-from.z)/4:0},anchor:{...from,y:ui.world.renderGround(from.x,from.z)},dx:(to.x-from.x)/(dist||1),dz:(to.z-from.z)/(dist||1),club:flight?'driver':'putter',active:moving&&!sunk,sunk,strokes,equipment:member.equipment||match?.bot?.equipment||DEFAULT_EQUIPMENT,swing:phase>=0?{id:Math.round(started+shot*7000),at:Math.round(started+2000+shot*7000)}:null};
 }

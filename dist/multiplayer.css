@@ -1,0 +1,244 @@
+/* Ruled score paper and a compact clubhouse camera strip. */
+.room-round-overlay {
+  --room-paper: #f9f1db;
+  --room-ink: #263f33;
+  --room-line: #a6a68c80;
+  --room-muted: #526453;
+  --room-pin: #b16753;
+  --room-gutter: max(14px, env(safe-area-inset-left));
+  font-family: 'DM Sans', sans-serif;
+}
+.room-round-overlay[hidden] { display: none; }
+.is-room-round .round-version { display: none; }
+.ball-moving .play-hud.is-room-round .room-round-overlay { visibility: visible !important; }
+.room-scorecard, .room-spectator {
+  position: fixed;
+  pointer-events: auto;
+  z-index: 14;
+}
+.room-scorecard {
+  top: max(14px, env(safe-area-inset-top));
+  left: var(--room-gutter);
+  width: max-content;
+  max-width: calc(100vw - var(--room-gutter) - 14px);
+  color: var(--room-ink);
+  background: var(--room-paper);
+  border: 1px solid #b5a78a;
+  border-inline-start: 3px solid var(--room-pin);
+  border-radius: 4px 7px 7px 4px;
+  box-shadow: 0 2px 0 #81715170, 0 8px 24px #101a1233;
+}
+.room-scorecard[open] { width: min(520px, calc(50vw - 112px)); }
+.room-scorecard > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 11px;
+  cursor: pointer;
+  list-style: none;
+}
+.room-scorecard > summary::-webkit-details-marker { display: none; }
+.room-scorecard > summary:hover { background: #ebdfc3; }
+.room-scorecard summary strong { font: 650 16px/1.1 'Outfit', sans-serif; }
+.room-scorecard summary svg { width: 15px; height: 15px; flex: none; color: var(--room-pin); }
+.room-scorecard summary svg:last-child { color: var(--room-muted); transform: rotate(90deg); }
+.room-scorecard[open] summary svg:last-child { transform: rotate(-90deg); }
+.scorecard-hole {
+  margin-left: auto;
+  color: var(--room-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.room-score-scroll {
+  max-height: clamp(75px, 41dvh, 269px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #a7a88c transparent;
+  border-block: 1px solid var(--room-line);
+}
+.room-score-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.room-score-grid :is(th,td) {
+  height: 25px;
+  min-width: 28px;
+  padding: 2px 4px;
+  border-right: 1px solid var(--room-line);
+  border-bottom: 1px solid var(--room-line);
+  white-space: nowrap;
+}
+.room-score-grid tr > :last-child { border-right: 0; }
+.room-score-grid tbody tr:last-child > * { border-bottom: 0; }
+.room-score-grid thead { position: sticky; top: 0; z-index: 3; background: #ece5c8; }
+.room-score-grid thead th { height: 24px; font-size: 10px; font-weight: 750; }
+.room-score-grid .scorecard-golfer {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 106px;
+  min-width: 106px;
+  padding-left: 8px;
+  background: var(--room-paper);
+  text-align: left;
+  font-weight: 650;
+}
+.room-score-grid .scorecard-golfer span {
+  display: inline-block;
+  max-width: 98px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.room-score-grid .is-you .scorecard-golfer span { max-width: 72px; }
+.scorecard-golfer small { margin-left: 4px; font-size: 8px; font-weight: 800; color: #536348; }
+.room-score-grid thead .scorecard-golfer { background: #ece5c8; }
+.scorecard-par { color: var(--room-muted); background: #f0e9d4; font-size: 10px; }
+.scorecard-par .scorecard-golfer { background: #f0e9d4; }
+.scorecard-player:nth-child(odd), .scorecard-player:nth-child(odd) .scorecard-golfer { background: #f4ecd7; }
+.room-score-grid .is-you, .room-score-grid .is-you .scorecard-golfer { background: #e9ecd7; }
+.room-score-grid .is-followed, .room-score-grid .is-followed .scorecard-golfer { background: #dbe8d7; }
+.room-score-grid .is-current { background: #ddbb632f; font-weight: 750; }
+.room-score-grid thead .is-current { color: #713b20; background: #e3ca88; }
+.room-score-grid .scorecard-total {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  min-width: 37px;
+  font-weight: 750;
+  background: #f0e7cf;
+  box-shadow: -1px 0 var(--room-line);
+}
+.room-score-grid thead .scorecard-total { background: #e6dec0; }
+.room-score-grid .is-you .scorecard-total { background: #e3e6cb; }
+.room-score-grid .is-followed .scorecard-total { background: #d1e0c9; }
+.scorecard-ink {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 1px;
+  place-items: center;
+  border: 1px solid transparent;
+  font-weight: 650;
+}
+.scorecard-ink.is-live { color: #646d62; font-style: italic; font-weight: 500; }
+.scorecard-ink.is-under { border-color: #577456; border-radius: 50%; }
+.scorecard-ink.is-over { border-color: #ad7767; border-radius: 2px; }
+.room-scorecard footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  color: var(--room-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.room-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.room-spectator {
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(468px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid #92ae917a;
+  border-radius: 8px;
+  color: #f6efd6;
+  background: #13382deb;
+  box-shadow: 0 5px 22px #0b241f50;
+}
+.room-watch-heading, .room-watch-controls, .room-watch-zoom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.room-watch-heading { justify-content: space-between; padding-bottom: 7px; }
+.room-watch-heading > div { display: grid; gap: 2px; min-width: 0; }
+.room-watch-heading strong { font: 600 17px/1.15 'Outfit', sans-serif; }
+.room-watch-result { color: #d6dec7; font-size: 11px; }
+#app .room-spectator :is(button,select) {
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 1px solid #93aa8780;
+  border-radius: 5px;
+  color: #fff5d7;
+  background: #234d3e;
+  font: 600 11px 'DM Sans', sans-serif;
+  box-shadow: none;
+  transform: none;
+}
+#app .room-spectator button:hover { background: #355c46; }
+#app .room-watch-free { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+#app .room-watch-free[aria-pressed=true] { background: #ead18c; color: #263d32; border-color: #f1daa3; }
+#app .room-watch-free svg { width: 16px; height: 16px; }
+#app .room-watch-controls select { flex: 1; min-width: 0; width: auto; }
+#app .room-watch-zoom button { width: 34px; font-size: 17px; padding-inline: 4px; }
+#app .room-watch-leave { min-height: 32px; background: transparent; }
+.room-watch-status, .room-watch-help { margin: 6px 0 0; font-size: 10px; line-height: 1.35; color: #d6dec7; }
+.room-watch-status { font-weight: 650; color: #fbebba; }
+.room-watch-touch { display: none; }
+.is-room-round.is-spectating :is(.ph-left,.ph-center,.ph-right,.camera-controls,.ball-nameplate) { display: none; }
+.room-scorecard :is(summary,[tabindex]):focus-visible { outline: 2px solid #83583b; outline-offset: -3px; }
+#app .room-spectator :is(button,select):focus-visible { outline: 2px solid #f3df9c; outline-offset: 2px; }
+
+.room-opponent-label { gap: 2px; max-width: 112px; }
+.room-opponent-label small:empty { display: none; }
+.room-opponent-name, .room-opponent-label small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 5px;
+  border: 0;
+  border-radius: 3px;
+  color: #fff7e3;
+  background: #0d2c2560;
+  font: 650 11px/1.2 'DM Sans', sans-serif;
+  text-shadow: 0 1px 3px #09251e, 0 0 3px #09251e;
+  box-shadow: none;
+}
+.room-opponent-label small { font-size: 9px; color: #e0efdb; }
+.is-room-round .ball-nameplate {
+  background: transparent;
+  border: 0;
+  padding: 0 !important;
+  box-shadow: none;
+  max-width: 112px;
+}
+.is-room-round .ball-nameplate .room-opponent-name { display: block; }
+
+@media (max-width: 1000px), (max-height: 480px) {
+  .room-scorecard[open] { width: min(470px, calc(100vw - var(--room-gutter) - 12px)); }
+  .is-room-round:has(.room-scorecard[open]) .camera-controls { visibility: hidden !important; pointer-events: none !important; }
+}
+@media (max-width: 600px) {
+  .room-round-overlay { --room-gutter: max(10px, env(safe-area-inset-left)); }
+  .room-scorecard { top: max(10px, env(safe-area-inset-top)); }
+  .room-scorecard > summary { gap: 5px; padding-inline: 6px; }
+  .room-scorecard > summary strong { font-size: 14px; }
+  .room-scorecard summary svg { width: 12px; height: 12px; }
+  .scorecard-hole { font-size: 9px; }
+  .room-score-grid .scorecard-golfer { min-width: 98px; }
+  .room-score-grid .scorecard-golfer span { max-width: 85px; }
+  .room-score-grid .is-you .scorecard-golfer span { max-width: 66px; }
+}
+@media (pointer: coarse) {
+  #app .room-spectator :is(button,select) { min-height: 42px; }
+  #app .room-watch-zoom button { min-width: 37px; }
+  .room-watch-touch { display: inline; }
+  .room-watch-mouse { display: none; }
+}

@@ -18,7 +18,7 @@
 .play-hud .ph-meta{color:var(--hud-muted);font-size:10px;margin-top:8px;gap:10px}.play-hud #surface-label{background:#46795555;color:#c8e7ab;border-radius:3px}
 .play-hud .ph-hint{font-size:10px;line-height:1.4;color:white;text-shadow:0 1px 4px #102c1c;margin:7px 0 0}
 .play-hud .ph-right{right:16px;bottom:24px;max-width:210px}.play-hud .ph-tools{gap:6px}.play-hud .ph-tools .icon-button{width:38px;height:38px;min-width:38px;border-radius:8px;background:var(--hud-bg);color:var(--hud-ink);border:1px solid var(--hud-line)}
-.play-hud .ph-tools svg{width:20px;height:20px}.play-hud .ph-live{font-size:11px;padding:8px;max-height:180px;overflow:auto}
+.play-hud .ph-tools svg{width:20px;height:20px}
 .club-selector{position:relative}.club-selector>div:first-of-type{display:flex;align-items:center;gap:4px;margin-top:5px}
 .club-arrow,.club-current{border:1px solid var(--hud-line);background:#254d3e;color:var(--hud-ink);border-radius:5px;padding:7px;min-height:43px}
 .club-arrow{font-size:24px;line-height:1;width:27px}.club-current{flex:1;min-width:0;text-align:left}.club-current strong{display:block;font-size:15px}.club-current small{display:flex;justify-content:space-between;font-size:11px;color:var(--hud-gold)}

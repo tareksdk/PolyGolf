@@ -862,7 +862,8 @@ export class World {
       const start = Math.atan2(95, 35 - target.z), radius = Math.hypot(95, 35 - target.z);
       position.set(Math.sin(start + drift) * radius, 85, target.z + Math.cos(start + drift) * radius);
     } else if (this.mode === "play" && ball) {
-      (this.cameraRig ??= new CameraRig(this)).update(dt, ball, physics);
+      if (this.spectatorCamera?.active) this.spectatorCamera.update(dt);
+      else (this.cameraRig ??= new CameraRig(this)).update(dt, ball, physics);
       if (this.hole.space) {
         this.ball.scale.setScalar(.38 / .24);
         this.ball.position.y = ball.y + .38 - .021335;

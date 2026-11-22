@@ -205,7 +205,7 @@ button[data-action]:not(:disabled):not([aria-disabled=true]):active{scale:.98;fi
  .play-hud .ph-right{top:10px;right:10px;bottom:auto}.play-hud .ph-tools .icon-button{width:34px;height:34px;min-width:34px}.play-hud .ph-tools{gap:6px}
  .play-hud .course-weather{left:10px;right:auto;top:10px}.play-hud .course-weather button{min-height:28px;padding:4px 8px}
  .play-hud .ph-shot{padding:8px}.play-hud .ph-collapse{margin-bottom:6px;min-height:28px;padding:5px 8px}.play-hud #shot-options{gap:6px 10px}
- .play-hud #shot-options select{min-height:28px;padding:5px 6px}.play-hud .ph-live{display:none}
+ .play-hud #shot-options select{min-height:28px;padding:5px 6px}
 }
 
 /* Dialog pages fit the window; no gameplay overlay needs a scrollbar. */

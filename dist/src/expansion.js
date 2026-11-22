@@ -1,5 +1,6 @@
 import { APP_VERSION } from './version.js';
 import { redeemPreviewSupreme } from './supreme-ball.js';
+import { currentRoomRound } from './live-state.js';
 import { PROGRESSION_GIFT_CODE, redeemProgressionGift } from './progression-gift.js';
 import { flowDirectionGauge } from './shot-meter-ui.js';
 import { LOCKERS } from "./pro-shop.js";
@@ -153,6 +154,7 @@ function hud(ui) {
   const g = ui.game,
     d = ui.progress.data,
     golf = g.mode === "golf",
+    room = currentRoomRound(ui),
     total = g.round.strokes.reduce(
       (a, b, i) => a + b - (g.customHole || hole(g.mode, g.round.courseIndex, i)).par,
       0,
@@ -171,7 +173,7 @@ function hud(ui) {
     : `<div class="ph-equip"><span>Equipment</span><strong>${esc(ITEM_BY_ID[d.equipment.club]?.name || "Putter")}</strong><small>${esc(itemDescription(ITEM_BY_ID[d.equipment.ball]).split(" Full golf")[0])}</small></div><label class="ph-field">Curve<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}" ${!miniStats(d.equipment).curve ? "disabled" : ""}></label>${meterChoice}`;
   const cinematic = d.settings.cinematicCamera === true;
   const cameraTools = `<div class="camera-controls" role="group" aria-label="Camera controls">${button(icon("camera") + `<span id="camera-mode-label">${cinematic ? "Cinematic" : "Default"}</span>`, "camera-mode", `id="camera-mode" aria-label="Cinematic camera mode" aria-pressed="${cinematic}" title="Toggle default / cinematic camera"`, "camera-control camera-mode")}${button(icon("ball"), "camera-recenter", 'aria-label="Recenter camera (F)" title="Recenter camera (F)"', "camera-control camera-recenter")}${button("Skip camera", "camera-skip", 'id="camera-skip" aria-label="Skip cinematic camera (Escape)" title="Skip cinematic camera (Escape)" hidden', "camera-control camera-skip")}</div>`;
-  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}" aria-label="Round controls"><span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span>${cameraTools}<div class="ball-nameplate" id="ball-nameplate" >${nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right">${ui.cloud.room ? `<div class="ph-card ph-live" id="live-players">Live room · ${ui.cloud.room.code}</div>` : ""}<div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
+  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}${room ? " is-room-round" : ""}" aria-label="Round controls"><span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span>${cameraTools}<div class="ball-nameplate" id="ball-nameplate" >${room ? `<span class="room-opponent-name">${esc(d.name)}</span>` : nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right"><div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
 }
 function scorecard(ui, round, reward) {
   const pars = round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
@@ -327,7 +329,7 @@ export function installExpansion(ui) {
       );
       return;
     }
-    let reward = { coins: 0, xp: 0 };
+    let reward = { coins: 0, xp: 0 }, savedStrokes;
     try {
       if (ui.cloud.session && result.round.cloudId) {
         ui.modal(
@@ -341,6 +343,7 @@ export function installExpansion(ui) {
           endTick: result.endTick,
         });
         reward = r.reward || reward;
+        savedStrokes = r.result?.strokes;
         ui.roundBonus = r.bonus || ui.roundBonus;
         if(r.bonus?.locker && !r.duplicate)ui.earnedLockerPending = {id:r.bonus.locker,round:result.round};
       } else if (!result.transcript.some((c) => c.kind === "skip")) reward = ui.progress.completeHole(result);
@@ -349,11 +352,8 @@ export function installExpansion(ui) {
         return;
       ui.pendingResult = null;
       ui.render();
-      if (ui.cloud.room) {
-        ui.modal(
-          `<div class="result"><h2>${result.label}</h2><p>${result.strokes} strokes · ${reward.coins} coins + ${reward.xp} XP</p><p>Waiting for the other golfers. The next hole starts automatically.</p><div id="waiting-scores"></div></div>`,
-          { close: false },
-        );
+      if (currentRoomRound(ui)) {
+        ui.roomRound.begin(savedStrokes ?? result.strokes, reward);
       } else
         ui.modal(
           holeDialog(result, reward).replace(
@@ -404,31 +404,16 @@ export function installExpansion(ui) {
         ui.pendingResult = null;
         ui.game.loadHole(s.hole);
       }
-      if (m.nextHole > s.hole && ui.game.state === "playing" && !ui.pendingResult) {
+      if (m.nextHole > s.hole && ["playing", "paused"].includes(ui.game.state) && !ui.pendingResult) {
         ui.game.round.strokes = m.scores.slice();
         ui.game.state = "complete";
+        ui.game.clearInput();
         ui.game.physics.active = false;
         ui.game.physics.sunk = true;
         ui.render();
-        ui.modal(
-          `<div class="result"><h2>Score saved.</h2><p>Waiting for the other golfers.</p><div id="waiting-scores"></div></div>`,
-          { close: false },
-        );
+        ui.roomRound.begin(m.scores[ui.game.index]);
       }
-      const el = document.querySelector("#live-players");
-      if (el)
-        el.innerHTML =
-          s.members
-            .map(
-              (m) =>
-                `<div>${nameplate(m.name,m.nameplate,{compact:true})} <strong>${m.scores?.reduce((a, b) => a + b, 0) || 0}</strong></div>`,
-            )
-            .join("") + `<small>${Math.max(0, Math.ceil((s.deadline - Date.now()) / 1000))}s left</small>`;
-      const waiting = document.querySelector("#waiting-scores");
-      if (waiting)
-        waiting.innerHTML = s.members
-          .map((m) => `<p>${esc(m.name)} · ${m.nextHole > s.hole ? "Finished" : "Playing"}</p>`)
-          .join("");
+      ui.roomRound.sync();
     } else if (
       s.phase === "finished" &&
       ui.game.state !== "finished" &&
@@ -438,6 +423,7 @@ export function installExpansion(ui) {
       ui.game.round.strokes = m.scores.slice();
       ui.game.round.time = ui.game.elapsed;
       ui.game.state = "finished";
+      ui.roomRound.sync();
       ui.courseComplete(ui.game.round);
     }
   };

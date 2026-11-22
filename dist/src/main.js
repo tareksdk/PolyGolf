@@ -22,6 +22,7 @@ import { installInterface } from './interface.js';
 import { installCourseAtmosphere } from './course-weather.js';
 import { installItemThumbnails } from './item-thumbnails.js';
 import { installLiveRound } from './live-round.js';
+import { installRoomRound } from './room-round.js';
 import { installSeason } from './season.js';
 import { installRelease } from "./release.js";
 import { loadCourseAssets } from "./course-assets.js";
@@ -98,6 +99,7 @@ try {
   installCaddieUI(ui);
   installSeason(ui);
   installLiveRound(ui);
+  installRoomRound(ui);
   installCourseAtmosphere(ui);
   installPirateEffects(world);
   installHoleEffects(world);

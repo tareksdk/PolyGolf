@@ -2,6 +2,13 @@ import { ITEM_BY_ID, DEFAULT_EQUIPMENT } from './catalog.js';
 import { validSeed } from './finishes.js';
 
 export const liveHole = game => game.round?.sudden ? `sudden:${game.round.suddenRound}` : String(game.index);
+export function currentRoomRound(ui) {
+  const room = ui.cloud.room, id = ui.cloud.session?.user.id, game = ui.game;
+  if (!room || !id || !game.round?.cloudId || game.state === 'menu' ||
+      !['playing', 'finished'].includes(room.state.phase)) return null;
+  return room.state.members.some(p => p.id === id && p.roundId === game.round.cloudId) ? room : null;
+}
+
 export function liveScope(ui) {
   const id = ui.cloud.session?.user.id, game = ui.game;
   if (!id || game.state === 'menu' || !game.round) return null;
@@ -9,8 +16,8 @@ export function liveScope(ui) {
   if (m && game.round.competitiveId === m.id && ['playing','sudden'].includes(m.phase)) {
     return { key:`ranked:${m.id}`, members:[{id:m.a_id,name:m.a_name,nameplate:m.a_plate},{id:m.b_id,name:m.b_name,nameplate:m.b_plate,...(m.bot?{...m.bot,bot:true}: {})}] };
   }
-  const room = ui.cloud.room;
-  if (room?.state.phase === 'playing' && room.state.members.some(p=>p.id===id && p.roundId===game.round.cloudId)) {
+  const room = currentRoomRound(ui);
+  if (room?.state.phase === 'playing') {
     return {key:`room:${room.id}`,members:room.state.members.slice(0,8)};
   }
   return null;
@@ -34,8 +41,9 @@ export function cleanLiveState(s) {
   const event = e => e && Number.isSafeInteger(e.id) && e.id>=0 && Number.isSafeInteger(e.at) ? {id:e.id,at:e.at} : null;
   const emote=event(s.emote), swing=event(s.swing);
   if(emote) emote.item=ITEM_BY_ID[s.emote.item]?.category==='emote'?s.emote.item:null;
+  const strokes = Number.isInteger(s.strokes) && s.strokes >= 0 && s.strokes <= 999 ? s.strokes : undefined;
   return {v:1,seq:s.seq,at:s.at,hole:s.hole,ball,anchor:{x:s.anchor.x,y:s.anchor.y,z:s.anchor.z},dx:s.dx,dz:s.dz,
-    club:s.club,active:!!s.active,sunk:!!s.sunk,equipment,emote,swing};
+    club:s.club,active:!!s.active,sunk:!!s.sunk,equipment,emote,swing,...(strokes === undefined ? {} : { strokes })};
 }
 
 // Keep the v1 wire format for older clients. Centimetre precision avoids sending

@@ -252,6 +252,10 @@ export class GameManager {
   }
   resetCamera() {
     if (!["playing", "paused", "complete"].includes(this.state)) return;
+    if (this.world.spectatorCamera?.active) {
+      this.world.spectatorCamera.recenter();
+      return;
+    }
     this.skipCamera();
     this.world.orbit = Math.atan2(-this.direction.x, -this.direction.z);
     this.world.zoom = this.mode === "golf" ? 13 : 18;

@@ -514,16 +514,6 @@ body.in-round .toast.leaving {
   height: auto;
   border-radius: 13px;
 }
-.ph-live {
-  padding: 10px 12px;
-  font-size: 12px;
-  min-width: 150px;
-  display: grid;
-  gap: 4px;
-}
-.ph-live small {
-  color: #6b8373;
-}
 .ph-tools {
   display: flex;
   gap: 8px;

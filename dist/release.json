@@ -1,6 +1,6 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "grouped-more-menu-1.20",
+  "contentVersion": "multiplayer-scorecard-1.21",
   "date": "2026-11-22",
   "items": 648,
   "lockers": 10,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.20",
+  "appVersion": "1.21",
   "crazyGamesDataModule": true,
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,
