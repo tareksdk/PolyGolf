@@ -40,10 +40,11 @@ export function cleanLiveState(s) {
   for(const key of ['vx','vy','vz']) ball[key]=finite(s.ball[key],250)?s.ball[key]:0;
   const event = e => e && Number.isSafeInteger(e.id) && e.id>=0 && Number.isSafeInteger(e.at) ? {id:e.id,at:e.at} : null;
   const emote=event(s.emote), swing=event(s.swing);
+  const impact=ITEM_BY_ID[equipment.driver]?.landingBurst && point(s.impact) ? event(s.impact) : null;
   if(emote) emote.item=ITEM_BY_ID[s.emote.item]?.category==='emote'?s.emote.item:null;
   const strokes = Number.isInteger(s.strokes) && s.strokes >= 0 && s.strokes <= 999 ? s.strokes : undefined;
   return {v:1,seq:s.seq,at:s.at,hole:s.hole,ball,anchor:{x:s.anchor.x,y:s.anchor.y,z:s.anchor.z},dx:s.dx,dz:s.dz,
-    club:s.club,active:!!s.active,sunk:!!s.sunk,equipment,emote,swing,...(strokes === undefined ? {} : { strokes })};
+    club:s.club,active:!!s.active,sunk:!!s.sunk,equipment,emote,swing,...(impact ? {impact:{...impact,x:s.impact.x,y:s.impact.y,z:s.impact.z}} : {}),...(strokes === undefined ? {} : { strokes })};
 }
 
 // Keep the v1 wire format for older clients. Centimetre precision avoids sending
@@ -53,6 +54,7 @@ export function compactLiveState(state) {
   if (!s) return null;
   const round = n => Math.round(n * 100) / 100;
   for (const p of [s.ball, s.anchor]) for (const k of Object.keys(p)) p[k] = round(p[k]);
+  if(s.impact)for(const key of ['x','y','z'])s.impact[key]=round(s.impact[key]);
   s.dx = Math.round(s.dx * 10000) / 10000;
   s.dz = Math.round(s.dz * 10000) / 10000;
   return s;

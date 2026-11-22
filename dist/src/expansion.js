@@ -4,7 +4,7 @@ import { replayRoomLie } from './replay.js';
 import { currentRoomRound } from './live-state.js';
 import { installRoomRules, speedResults } from './room-rules.js';
 import { multiplayerLobby, multiplayerLobbyAction, multiplayerCreatePayload, multiplayerBotSkill } from './multiplayer-lobby.js';
-import { PROGRESSION_GIFT_CODE, redeemProgressionGift } from './progression-gift.js';
+import { redeemPreviewDriver } from './driver-rewards.js';
 import { flowDirectionGauge } from './shot-meter-ui.js';
 import { LOCKERS } from "./pro-shop.js";
 import { homeMenu } from "./home-menu.js";
@@ -530,11 +530,8 @@ export function installExpansion(ui) {
           let result;
           if (!ui.cloud.localPreview) {
             result = await ui.cloud.call("redeem_code", { code });
-          } else if (code.trim() === PROGRESSION_GIFT_CODE) {
-            result = redeemProgressionGift(ui.progress.data);
-            ui.progress.save();
           } else {
-            result = redeemPreviewSupreme(ui.progress, code);
+            result = await redeemPreviewDriver(ui.progress, code) ?? redeemPreviewSupreme(ui.progress, code);
           }
           ui.closeModal();
           ui.toast(result.message || "Reward redeemed.");
@@ -719,7 +716,7 @@ export function installExpansion(ui) {
       if (action === "help") {
         ui.pauseForDialog();
         ui.modal(
-          `<h2>A good round starts here.</h2><div class="help-grid"><div><h3>Full golf</h3><p>Your caddie selects a club for the lie and distance; you can change it. Aim with the mouse or hole map, then hold and release on the course to swing. Holding Space and releasing works too. Both meters bounce back and forth. Full power is green; release near the centre of the direction bar for a straight shot.</p><p>Left and right arrows fine-tune aim. C cycles clubs. After each shot the golfer faces the flag; your caddie suggests the next club. Shape adds draw or fade; spin adjusts trajectory and backspin. Drivers range from 265 yards at Common to about 350 at Legendary. Black Market matches Legendary. Other full-golf items change appearance.</p></div><div><h3>Mini-golf</h3><p>Use bank shots, ramps and boosts. Equipped balls and putters can add curve, power or stopping control. Earn equipment through levels, the shop and Country Club.</p><h3>Camera & rules</h3><p>Right-drag to orbit; scroll to zoom. R resets with one penalty stroke. Esc pauses. Water and out of bounds return you to the last shot with a penalty. Picked-up holes earn no rewards, and picked-up rounds are unranked.</p></div></div>`,
+          `<h2>A good round starts here.</h2><div class="help-grid"><div><h3>Full golf</h3><p>Your caddie selects a club for the lie and distance; you can change it. Aim with the mouse or hole map, then hold and release on the course to swing. Holding Space and releasing works too. Both meters bounce back and forth. Full power is green; release near the centre of the direction bar for a straight shot.</p><p>Left and right arrows fine-tune aim. C cycles clubs. After each shot the golfer faces the flag; your caddie suggests the next club. Shape adds draw or fade; spin adjusts trajectory and backspin. Standard drivers range from 265 to 350 yards. Special drivers list their abilities in the Caddie. Other full-golf items change appearance.</p></div><div><h3>Mini-golf</h3><p>Use bank shots, ramps and boosts. Equipped balls and putters can add curve, power or stopping control. Earn equipment through levels, the shop and Country Club.</p><h3>Camera & rules</h3><p>Right-drag to orbit; scroll to zoom. R resets with one penalty stroke. Esc pauses. Water and out of bounds return you to the last shot with a penalty. Picked-up holes earn no rewards, and picked-up rounds are unranked.</p></div></div>`,
           { wide: true },
         );
         return;

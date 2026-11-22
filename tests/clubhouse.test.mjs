@@ -10,12 +10,12 @@ import {fairwayWidth} from '../dist/src/golf-courses.js';
 import {GameManager} from '../dist/src/game.js';
 import {createGolfer} from '../dist/src/golfer.js';
 
-test('648 distinct items cover every category, with seven Alpha, eight Black Market items and 13 novelty clubs',()=>{
- assert.equal(ITEMS.length,648);assert.equal(new Set(ITEMS.map(i=>i.id)).size,648);assert.equal(new Set(ITEMS.map(i=>i.name)).size,648);
+test('649 distinct items cover every category, with seven Alpha, nine Black Market items and 13 novelty clubs',()=>{
+ assert.equal(ITEMS.length,649);assert.equal(new Set(ITEMS.map(i=>i.id)).size,649);assert.equal(new Set(ITEMS.map(i=>i.name)).size,649);
  const novelty=ITEMS.filter(i=>i.added==='polygolf-1');assert.equal(novelty.length,13);
  for(const c of CATEGORIES)assert.equal(ITEMS.filter(i=>i.category===c.id&&!['achievement','competitive','founder','code'].includes(i.source)&&i.crate!=='halloween'&&!novelty.includes(i)).length,c.id==='hole'?90:['ball','club','driver'].includes(c.id)?86:80);
  assert.ok(novelty.every(i=>['club','driver'].includes(i.category)&&(i.source==='permanent'?i.price>0&&!i.exclusive:i.source==='pack'&&i.crate==='oddities'&&i.exclusive&&!i.price)));
- assert.equal(ALPHA_ITEMS.length,7);assert.equal(ITEMS.filter(i=>i.rarity==='Black Market').length,8);
+ assert.equal(ALPHA_ITEMS.length,7);assert.equal(ITEMS.filter(i=>i.rarity==='Black Market').length,9);
  const rewards=PASS_TIERS.flatMap(t=>t.items);assert.equal(rewards.length,30);
  assert.deepEqual(new Set([...rewards,...MEMBER_COLLECTION.map(i=>i.id)]),new Set(ITEMS.filter(i=>i.source==='membership').map(i=>i.id)));
  for(let day=0;day<40;day++){const r=shopRotation(new Date(Date.UTC(2026,8,1+day)));assert.ok([...r.daily,...r.weekly,...r.featured].every(i=>i.source==='daily'||i.source==='weekly'));assert.ok(r.permanent.length===3&&r.permanent.every(i=>i.source==='permanent'));}

@@ -133,6 +133,10 @@ export class LiveOpponent {
       if(kind==='swing'&&age<1.6){c.beginSwing(s.anchor,{x:s.dx,z:s.dz},s.club);c.swingPose.time=age;}
       if(kind==='emote'&&age<2.8&&event.item){c.emotePose={kind:emoteKind(ITEM_BY_ID[event.item]),time:age};this.emoteName=ITEM_BY_ID[event.item].name;}
     }
+    if(s.impact && this.eventIds.impact!==s.impact.id){
+      this.eventIds.impact=s.impact.id;
+      if(s.at>=s.impact.at && s.at-s.impact.at<1500)w.driverBurst?.(s.impact,{remote:true});
+    }
     c.updateGolfer(dt,s.anchor,{active:false,sunk:false});
     // Golfers stay beside their last shot while the ball flies, including on mini courses.
     const wake = this.room && this.wakeTime > 0 && !w.settings?.reducedMotion && !reducedMotion?.matches;

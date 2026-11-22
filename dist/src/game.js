@@ -578,6 +578,11 @@ export class GameManager {
             this.world.resetCamera?.(this.physics.ball, { cut: false });
             this.onUpdate();
           } else {
+            if (event === 'driver-impact') {
+              const impact = this.physics.driverImpact;
+              this.world.driverBurst?.(impact);
+              this.onDriverImpact?.(impact);
+            }
             if (event === 'sand-impact' || event === 'sand-shot') this.world.sandBurst?.(this.physics.sandContact);
             if (event === 'pirate-ship') this.world.pirateHit?.(this.physics.ball);
             this.onEvent(event);

@@ -4,13 +4,14 @@ import { holeEffectDuration } from './hole-effects-catalog.js';
 
 const TAU=Math.PI*2, clamp=x=>Math.max(0,Math.min(1,x)), ease=x=>1-(1-clamp(x))**3;
 const UP=new THREE.Vector3(0,1,0);
+const DRIVER_BURST = { effect: 'driver-impact', color: '#ffb665', pattern: '#ff6abe' };
 
 // A celebration owns a bounded set of instanced draws. No geometry, textures,
 // lights or post-processing buffers are allocated while its animation runs.
 export class HoleCelebration {
   constructor(item,{low=false,reduced=false,ground=null}={}) {
     this.item=item;this.kind=item.effect||'classic';this.reduced=reduced;this.ground=ground;
-    this.duration=holeEffectDuration(item,{reducedMotion:reduced});
+    this.duration=this.kind==='driver-impact'?1.2:holeEffectDuration(item,{reducedMotion:reduced});
     this.root=new THREE.Group();this.root.name='hole-celebration-'+this.kind;
     this.dummy=new THREE.Object3D();this.vector=new THREE.Vector3();this.color=new THREE.Color();
     this.count=reduced?0:low?32:72;
@@ -62,7 +63,9 @@ export class HoleCelebration {
     for(let i=0;i<this.rings.length;i++){
       const ring=this.rings[i],age=Math.max(0,t-i*.18);
       ring.visible=age>0;ring.rotation.set(-Math.PI/2,0,0);ring.position.set(0,.06+i*.035,0);
-      ring.scale.setScalar(.25+age*(this.reduced?1.2:1.9));ring.material.opacity=(this.reduced?.55:.65)*Math.max(0,1-age/(this.duration-i*.18));
+      const impact = k==='driver-impact';
+      ring.scale.setScalar(.25+age*(this.reduced?1.2:impact?8-i*1.1:1.9));
+      ring.material.opacity=(this.reduced?.55:.65)*Math.max(0,1-age/(this.duration-i*.18));
     }
     if(this.reduced)return;
     for(const {mesh,positions,segments,band} of this.ribbons){
@@ -74,7 +77,12 @@ export class HoleCelebration {
     }
     for(let i=0;i<n;i++){
       const f=i/n,a=i*2.399963,band=i%3,r=1+3*((i%11)/10);let x=0,y=0,z=0,s=.08;
-      if(k==='fireworks'){
+      if(k==='driver-impact'){
+        const speed=2.6+r*1.55, radial=t*speed*(1-.26*u), lift=2.5+(i%7)*.7;
+        x=Math.cos(a)*radial;y=Math.max(.07,.09+t*lift-5.2*t*t);z=Math.sin(a)*radial;
+        s=.1*(1-u)*fade;
+        if(y>.13)this.segment(this.streaks.count++,x,y,z,-Math.cos(a)*speed*.075,.18-.38*u,-Math.sin(a)*speed*.075,.045*fade);
+      }else if(k==='fireworks'){
         const shell=i%4,age=t-shell*.18,cx=Math.cos(shell*1.8)*1.4,cz=Math.sin(shell*1.8)*1.4;
         if(age<0||age>2.7)continue;
         const burst=Math.max(0,age-.55),lat=1-2*((i*7%23)/22),rad=Math.sqrt(1-lat*lat),exp=ease(burst*.75)*2.8;
@@ -131,6 +139,10 @@ export class HoleCelebration {
     }else if(['portal','solar','crown'].includes(k)){
       this.rings.forEach((r,i)=>{r.position.y=k==='crown'?1.15+i*.16:k==='solar'?1.9:.12+i*.32;r.scale.setScalar((k==='portal'?2-i*.35:k==='solar'?1.8+i*.3:1.5)*opening);r.rotation.set(k==='solar'?Math.PI*.3+i*.7:-Math.PI/2,k==='solar'?t*.4:0,t*.25);r.material.opacity=.7*fade;});
     }else if(k==='aurora')this.rings.forEach(r=>r.material.opacity*=.3);
+    if(k==='driver-impact' && t<.22){
+      this.core.visible=true;this.core.position.y=.18;this.core.scale.set(.36+t*7,.18+t*2,.36+t*7);
+      this.core.material.opacity=.84*(1-t/.22);
+    }
     if(k==='solar') {this.core.visible=true;this.core.position.y=1.9;this.core.scale.setScalar(.9*opening);this.core.material.opacity=.85*fade;}
     if(k==='crown') {this.core.visible=true;this.core.position.y=1+opening*.5;this.core.rotation.x=-Math.PI/2;this.core.material.opacity=.95*fade;}
     this.dots.instanceMatrix.needsUpdate=this.streaks.instanceMatrix.needsUpdate=true;
@@ -178,6 +190,13 @@ export function installHoleEffects(world){
     const effect=new HoleCelebration(item,{low:world.settings?.graphics==='low',reduced,
       ground:(x,z)=>world.renderGround(cup.x+x,cup.z+z)-y});
     effect.root.position.set(cup.x,y+.04,cup.z);world.scene.add(effect.root);effect.remote=remote;add(effect);return effect.duration;
+  };
+  world.driverBurst=(point,{remote=false}={})=>{
+    if(!point||world.mode!=='play')return;
+    const effect=new HoleCelebration(DRIVER_BURST,{low:world.settings?.graphics==='low',
+      reduced:world.settings?.reducedMotion||world.settings?.particles===false});
+    effect.root.position.set(point.x,world.renderGround(point.x,point.z)+.06,point.z);
+    effect.remote=remote;world.scene.add(effect.root);add(effect);
   };
   world.explodePumpkin=()=>{
     const target=world.pumpkinTarget;if(!target?.visible)return false;

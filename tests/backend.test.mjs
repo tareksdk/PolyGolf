@@ -2,8 +2,7 @@ import test, {mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
-import {defaultSave, levelInfo, MAX_LEVEL_XP} from '../dist/src/save.js';
-import {PROGRESSION_GIFT_CODE, PROGRESSION_GIFT_BALANCE} from '../dist/src/progression-gift.js';
+import {defaultSave} from '../dist/src/save.js';
 import {ITEMS,ALPHA_ITEMS,shopRotation,shopAvailable} from '../dist/src/catalog.js';
 import {createHmac,createHash} from 'node:crypto';
 import {PhysicsManager,FIXED_STEP} from '../dist/src/physics.js';
@@ -87,37 +86,27 @@ source=source.replace('575da2ed41dccaedd5ae78a934f0398f5c15549a8b1417952d42e0ff1
 await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
 async function call(action,data={},id='a'){const response=await handler(new Request('http://game.local',{method:'POST',headers:{'Content-Type':'application/json',...(id?{Authorization:'Bearer '+id}:{})},body:JSON.stringify({action,rulesVersion:RULES_VERSION,...data})}));const result=await response.json();if(!response.ok)throw Error(result.error);return result;}
 
-test('allunlock tops up level and wallet once, preserving cosmetics and higher balances', async () => {
-  const originals = new Map(['a', 'b'].map(id => [id, structuredClone(players.get(id))]));
-  const code = PROGRESSION_GIFT_CODE;
-  const inventory = data => ({
-    owned: data.owned, equipment: data.equipment, patterns: data.patterns, lockers: data.lockers,
-  });
-  try {
-    await assert.rejects(call('redeem_code', { code }, null), /Sign in/);
-    await assert.rejects(call('redeem_code', { code: code.toUpperCase() }), /not active/);
-    const a = players.get('a');
-    a.state.owned.push('ball-israel');
-    const before = structuredClone(inventory(a.state));
-    const attempts = await Promise.allSettled([call('redeem_code', { code }), call('redeem_code', { code })]);
-    const successes = attempts.filter(attempt => attempt.status === 'fulfilled');
-    assert.equal(successes.length, 1);
-    assert.deepEqual(successes[0].value.unlocked, []);
-    assert.equal(a.state.coins, PROGRESSION_GIFT_BALANCE);
-    assert.equal(levelInfo(a.state.xp).level, 100);
-    assert.deepEqual(inventory(a.state), before);
-    await assert.rejects(call('redeem_code', { code }), /already redeemed/);
+test('the retired allunlock code leaves wallet, level and inventory unchanged', async () => {
+  const before = structuredClone(players.get('a'));
+  await assert.rejects(call('redeem_code', { code: 'allunlock' }), /not active/);
+  assert.deepEqual(players.get('a'), before);
+});
 
-    const b = players.get('b');
-    b.state.coins = PROGRESSION_GIFT_BALANCE + 42;
-    b.state.xp = MAX_LEVEL_XP + 8;
-    const { state, tokens } = await call('redeem_code', { code }, 'b');
-    assert.equal(tokens, 0);
-    assert.equal(state.coins, PROGRESSION_GIFT_BALANCE + 42);
-    assert.equal(state.xp, MAX_LEVEL_XP + 8);
-  } finally {
-    for (const [id, player] of originals) players.set(id, player);
-  }
+test('driver codes grant only their own driver and persist through equipping', async () => {
+  const before = structuredClone(players.get('a'));
+  try {
+    for (const [code, id] of [['oneshotpolygolf','driver-mystery'], ['devteam','driver-devteam']]) {
+      await assert.rejects(call('redeem_code', { code }, null), /Sign in/);
+      const { state, unlocked, tokens } = await call('redeem_code', { code });
+      assert.deepEqual(unlocked, [id]);
+      assert.equal(tokens, 0);
+      assert.equal(state.coins, before.state.coins);
+      assert.equal(state.xp, before.state.xp);
+      await assert.rejects(call('redeem_code', { code }), /already redeemed/);
+      const equipped = await call('equip', { id });
+      assert.equal(equipped.state.equipment.driver, id);
+    }
+  } finally { players.set('a', before); }
 });
 
 test('restored guest play starts Halloween rounds but keeps account-only ranked features protected',async()=>{
@@ -296,11 +285,12 @@ test('supreme alone unlocks the Israel ball, requires authentication, and redeem
  await call('equip',{id:'ball-israel'});assert.equal(p.state.equipment.ball,'ball-israel');
  await assert.rejects(call('redeem_code',{code:'supreme'}),/already redeemed/);
 });
-test('even the all-access reward excludes the supreme-only ball',async()=>{
+test('the all-access reward preserves gift-only items',async()=>{
  const p=players.get('a');p.state=defaultSave();
  await call('redeem_code',{code:allAccessTestCode});
  assert.ok(!p.state.owned.includes('ball-israel'));
- assert.ok(ITEMS.filter(i=>!i.supremeOnly).every(i=>p.state.owned.includes(i.id)));
+ assert.ok(ITEMS.filter(i=>!i.supremeOnly&&!i.giftOnly).every(i=>p.state.owned.includes(i.id)));
+ assert.ok(!p.state.owned.includes('driver-devteam'));
  await call('redeem_code',{code:'supreme'});
  assert.ok(p.state.owned.includes('ball-israel'));
 });

@@ -1,5 +1,6 @@
 import { installOnboarding } from './onboarding.js';
 import { CLUBS } from './golf-physics.js';
+import { ITEM_BY_ID } from './catalog.js';
 import { clubYards } from './club-distances.js';
 import { LOCKERS } from './pro-shop.js';
 import { lockerArt } from './shop-view.js';
@@ -10,7 +11,10 @@ export function installOpeningUpdate(ui) {
   const busy=()=>ui.game.state!=='playing'||ui.game.charging||!!ui.game.pendingSwing||ui.game.physics.active;
   ui.render=()=>{
     render();const select=ui.root.querySelector('#shot-club');
-    if(select){select.closest('label').hidden=true;select.closest('label').insertAdjacentHTML('afterend',`<div class="club-selector"><span class="ph-label">YOUR CLUB</span><div>${button('‹','shot-club-prev','aria-label="Previous club"','club-arrow')}<button class="club-current" data-action="shot-club-list" aria-expanded="false"><strong>${ui.game.club==='driver'&&ui.progress.data.equipment.driver==='driver-mystery'?'???':CLUBS.find(c=>c.id===ui.game.club)?.name}</strong><small>${clubYards(ui.game.club,ui.progress.data.equipment)} yd <span>▾</span></small></button>${button('›','shot-club-next','aria-label="Next club"','club-arrow')}</div><div class="club-options" hidden>${CLUBS.map(c=>button(c.name,'shot-club-pick',`data-id="${c.id}" aria-pressed="${c.id===ui.game.club}"`,'club-option')).join('')}</div></div>`);}
+    const equipment=ui.world.equipment || ui.progress.data.equipment;
+    const driver=ITEM_BY_ID[equipment.driver];
+    const clubName=club=>club?.id==='driver' && (driver?.driverYards || driver?.id==='driver-mystery') ? driver.name : club?.name || '';
+    if(select){select.closest('label').hidden=true;select.closest('label').insertAdjacentHTML('afterend',`<div class="club-selector"><span class="ph-label">YOUR CLUB</span><div>${button('‹','shot-club-prev','aria-label="Previous club"','club-arrow')}<button class="club-current" data-action="shot-club-list" aria-expanded="false"><strong>${clubName(CLUBS.find(c=>c.id===ui.game.club))}</strong><small>${ui.game.club==='driver' && driver?.id==='driver-mystery' ? 'Auto ace' : clubYards(ui.game.club,equipment)+' yd'} <span>▾</span></small></button>${button('›','shot-club-next','aria-label="Next club"','club-arrow')}</div><div class="club-options" hidden>${CLUBS.map(c=>button(clubName(c),'shot-club-pick',`data-id="${c.id}" aria-pressed="${c.id===ui.game.club}"`,'club-option')).join('')}</div></div>`);}
     const meter=ui.root.querySelector('#shot-meter');if(meter){meter.closest('label').hidden=true;meter.closest('label').insertAdjacentHTML('afterend',button(ui.game.meterStyle()==='fluid'?'Flow meter · Change':'Classic meter · Change','shot-meter-toggle','','ph-chip meter-switch'));}
   };
   ui.showEarnedLocker=(id,round)=>{

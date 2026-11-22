@@ -368,7 +368,9 @@ for (const finish of FINISHES) for (const [category, label] of [['driver','Drive
 }
 ITEMS.push(...HALLOWEEN_ITEMS, ...DISCOVERY_ITEMS, ...SPECIAL_PLATES);
 ITEMS.push(...CODE_NAMEPLATES, ...NEW_HOLE_EFFECTS);
-ITEMS.push({id:'driver-mystery',name:'???',category:'driver',rarity:'Black Market',color:'#182a40',pattern:'#81ffe3',source:'code',exclusive:true,price:0,design:3,flavor:'A secret with only one destination. Every driver shot flies straight into the cup.'});
+ITEMS.push({id:'driver-mystery',name:'One Shot',category:'driver',rarity:'Black Market',color:'#182a40',pattern:'#81ffe3',source:'code',exclusive:true,price:0,design:3,description:'Every driver shot flies directly into the cup.'});
+ITEMS.push({id:'driver-devteam',name:'???',category:'driver',rarity:'Black Market',color:'#33213c',pattern:'#ffad70',source:'code',exclusive:true,giftOnly:true,price:0,design:7,driverYards:400,landingBurst:true,
+  flavor:'The first ground impact sends out a shockwave and a burst of sparks.'});
 ITEMS.push(SUPREME_BALL);
 ITEMS.push({id:'nameplate-locker-legend',category:'nameplate',name:'Locker Legend',rarity:'Legendary',color:'#201d36',pattern:'#f0cb78',badge:'vault',shine:'prismatic',design:0,source:'achievement',exclusive:true,price:0,secret:true,flavor:'A secret discovered after opening more than 1,000 lockers.'});
 export const ALPHA_ITEMS = ITEMS.filter((i) => i.source === "alpha").map((i) => i.id);

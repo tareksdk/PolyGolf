@@ -55,6 +55,8 @@ export class GolfPhysics {
   }
   reset() {
     this.mysteryFlight = null;
+    this.impactArmed = false;
+    this.driverImpact = null;
     const p = this.lastSafe;
     this.ball = {
       x: p.x,
@@ -86,6 +88,7 @@ export class GolfPhysics {
     if(club === "driver" && gear.mysteryAce === true) {
       startMysteryFlight(this,(x,z)=>terrainAt(this.hole,x,z).height);return true;
     }
+    this.impactArmed = club === "driver" && gear.landingBurst === true;
     dx /= n;
     dz /= n;
     power = clamp(power, 0.01, 1);
@@ -236,6 +239,11 @@ export class GolfPhysics {
         [e, mu] = params[t.surface],
         v = { x: b.vx, y: b.vy, z: b.vz },
         vn = dot(v, n);
+      if (this.impactArmed && vn < 0) {
+        this.impactArmed = false;
+        this.driverImpact = { x: b.x, y: t.height, z: b.z };
+        this.events.push('driver-impact');
+      }
       if (t.surface === 'sand' && vn < -.5) {
         this.sandContact = {kind:'impact',x:b.x,y:t.height,z:b.z,vx:v.x,vz:v.z,speed:Math.hypot(v.x,v.y,v.z)};
         this.events.push('sand-impact');
@@ -316,9 +324,9 @@ export class GolfPhysics {
 
 // Calibrated against a level, windless fairway including the first bounce and roll.
 export function driverLaunchSpeed(yards) {
-  const y = clamp(Number(yards) || 265, 265, 350);
-  const keys = [265, 285, 305, 330, 350],
-    speeds = [69.16285, 73.88033, 78.90524, 85.65336, 91.48123];
+  const y = clamp(Number(yards) || 265, 265, 400);
+  const keys = [265, 285, 305, 330, 350, 400],
+    speeds = [69.16285, 73.88033, 78.90524, 85.65336, 91.48123, 108.54723];
   const i = keys.findIndex((v) => v >= y);
   if (i <= 0) return speeds[0];
   const t = (y - keys[i - 1]) / (keys[i] - keys[i - 1]);

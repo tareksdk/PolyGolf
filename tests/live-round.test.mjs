@@ -24,6 +24,14 @@ test('live stroke counts are optional for older peers and reject invalid or exce
  assert.equal(cleanLiveState(packet()).strokes,undefined);
  for(const bad of [-1,1.5,1000,'3',Infinity])assert.equal(cleanLiveState({...packet(),strokes:bad}).strokes,undefined);
 });
+test('the landing effect sends a bounded optional contact for the team driver',()=>{
+ const p=packet(), impact={id:3,at:990,x:15.123,y:2,z:-12};
+ assert.equal(compactLiveState({...p,impact}).impact,undefined);
+ p.equipment.driver='driver-devteam';
+ assert.deepEqual(compactLiveState({...p,impact}).impact,{...impact,x:15.12});
+ assert.equal(cleanLiveState({...p,impact:{...impact,y:Infinity}}).impact,undefined);
+});
+
 test('private rooms and ranked use separate scopes, and leave/finished stops presence',()=>{
  const ui={cloud:{session:{user:{id:'a'}},room:{id:'r',state:{phase:'playing',members:[{id:'a',roundId:'round'},{id:'b'}]}}},game:{state:'playing',index:2,round:{cloudId:'round'}}};
  assert.equal(liveScope(ui).key,'room:r');assert.equal(liveHole(ui.game),'2');

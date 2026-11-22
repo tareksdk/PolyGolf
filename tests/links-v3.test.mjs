@@ -10,6 +10,7 @@ import {validateMap,buildMap} from '../dist/src/maps.js';
 import {buildGolfLayout,terrainAt} from '../dist/src/golf-courses.js';
 import {GolfPhysics} from '../dist/src/golf-physics.js';
 import {GameManager,chargePower} from '../dist/src/game.js';
+import {verifyHole} from '../dist/src/replay.js';
 const progress=()=>new ProgressionManager({load:defaultSave,save:()=>true});
 test('auras migrate away without losing money, membership or other equipment',()=>{const d=defaultSave();d.coins=777;d.owned.push('effect-orbit','ball-gold');d.equipment.effect='effect-orbit';d.equipment.ball='ball-gold';d.clubPass={member:true,claimed:[12],premiumClaimed:[12]};const p=new ProgressionManager({load:()=>d,save:()=>true});assert.equal(p.data.coins,777);assert.equal(p.data.clubPass.member,true);assert.equal(p.data.equipment.ball,'ball-gold');assert.ok(!p.data.owned.some(id=>id.startsWith('effect-')));assert.equal(p.data.equipment.effect,undefined);assert.ok(!ITEMS.some(i=>i.category==='effect'));assert.equal(Object.keys(DEFAULT_EQUIPMENT).length,7);});
 test('every member exclusive is reachable and both editor and membership require level ten',()=>{const p=progress();p.data.coins=50000;assert.throws(()=>requireEditor(p),/level 10/);assert.throws(()=>joinClub(p),/level 10/);p.data.xp=10000;requireEditor(p);joinClub(p);assert.equal(p.data.coins,0);assert.equal(PASS_TIERS.length,30);assert.equal(PASS_TIERS.at(-1).xp,180000);for(const t of PASS_TIERS)if(t.item)assert.equal(ITEM_BY_ID[t.item].source,'membership');assert.deepEqual(new Set([...PASS_TIERS.flatMap(t=>t.items),...MEMBER_COLLECTION.map(i=>i.id)]),new Set(ITEMS.filter(i=>i.source==='membership').map(i=>i.id)));});
@@ -19,4 +20,35 @@ test('weekly bundles stay stable and never charge twice for already-owned items'
 test('golf editor builds real slopes and rejects overlaps and unsafe layouts',()=>{const map=newGolfMap();assert.deepEqual(validateMap(map),validateGolfMap(map));const h=buildMap(map);assert.equal(h.mode,'golf');assert.ok(h.custom);assert.equal(terrainAt(h,h.cup.x,h.cup.z).surface,'green');assert.notEqual(terrainAt(h,30,-90).height,terrainAt(h,30,-150).height);
  for(const patch of[{points:[[0,0],[0,-30],[0,-20]]},{contour:Infinity},{width:100},{water:[{x:h.cup.x,z:h.cup.z,rx:8,rz:8}]},{bunkers:[...map.water]},{points:[[2,0],[0,-60],[0,-120]]}])assert.throws(()=>validateGolfMap({...map,...patch}));assert.equal(buildGolfMap({...map,density:0}).trees.length,0);});
 test('all five driver ranges are calibrated and Black Market matches Legendary',()=>{const h=buildGolfLayout(0,0,{name:'Calibration',par:5,points:[[0,0],[0,-200],[0,-400],[0,-600]],width:100,green:[0,-598,12,14],water:[],bunkers:[],contour:0,density:0});h.wind={x:0,z:0};for(const rarity of['Common','Uncommon','Rare','Epic','Legendary','Black Market']){const driver=ITEMS.find(i=>i.category==='driver'&&i.rarity===rarity),gear=golfGear({driver:driver.id}),p=new GolfPhysics();p.load(h);p.shoot(0,-1,1,{club:'driver',gear});for(let i=0;i<5401&&p.active;i++)p.update(1/120);assert.ok(Math.abs(-p.ball.z/.9144-gear.driverYards)<.3,rarity+' range');}assert.equal(driverYards({driver:'driver-obsidian'}),driverYards({driver:'driver-alpha'}));});
+test('One Shot saves a verified ace even if the swing points away from the cup',()=>{
+ const round={mode:'golf',course:0,equipment:{driver:'driver-mystery'}};
+ const shot={kind:'shot',tick:0,dx:0,dz:1,power:.15,club:'driver',shape:0,spin:0};
+ const result=verifyHole(round,0,[shot],610);
+ assert.equal(result.strokes,1);
+ assert.equal(result.penalties,0);
+ assert.throws(()=>verifyHole({...round,equipment:{driver:'driver-classic'}},0,[shot],610),/did not finish/);
+});
+
+test('the team driver reaches 400 yards and triggers only its first ground impact',()=>{
+ const h=buildGolfLayout(0,0,{name:'Calibration',par:5,points:[[0,0],[0,-200],[0,-400],[0,-600]],width:100,green:[0,-598,12,14],water:[],bunkers:[],contour:0,density:0});
+ h.wind={x:0,z:0};
+ const p=new GolfPhysics(), gear=golfGear({driver:'driver-devteam'});
+ const events=[];
+ p.load(h);
+ assert.equal(p.shoot(0,-1,1,{club:'driver',gear}),true);
+ for(let i=0;i<5401&&p.active;i++){
+   p.update(1/120);
+   events.push(...p.events.splice(0));
+ }
+ assert.ok(Math.abs(-p.ball.z/.9144-400)<.1);
+ assert.equal(events.filter(e=>e==='driver-impact').length,1);
+ assert.equal(p.driverImpact.y,0);
+ assert.ok(p.driverImpact.z>p.ball.z);
+ p.reset();
+ assert.equal(p.driverImpact,null);
+ assert.equal(p.shoot(0,-1,1,{club:'7i',gear}),true);
+ for(let i=0;i<5401&&p.active;i++)p.update(1/120);
+ assert.ok(!p.events.includes('driver-impact'));
+});
+
 test('power locks before direction; Enter does not fire and clubs automatically suit the next lie',()=>{const handlers={};globalThis.window={addEventListener:(name,fn)=>handlers[name]=fn};globalThis.document={activeElement:{tagName:'CANVAS'},addEventListener(){}};const w={canvas:{addEventListener(){}},equipment:{},settings:{},load(){},setAim(){},update(){},beginSwing(){},hit(){}};const g=new GameManager(w);g.start(0,true);g.club='7i';handlers.keydown({code:'Enter',preventDefault(){}});assert.equal(g.pendingSwing,null);g.autoAim();assert.equal(g.club,'driver');g.club='7i';assert.equal(chargePower(1.65),1);assert.ok(chargePower(1.81)>.9);assert.ok(chargePower(3.3)<=.01);handlers.keydown({code:'Space',preventDefault(){}});g.update(.8);assert.equal(g.strokes,0);handlers.keyup({code:'Space',preventDefault(){}});assert.equal(g.pendingSwing,null);assert.equal(g.shotPhase,'direction');handlers.keydown({code:'Space',preventDefault(){}});assert.ok(g.pendingSwing);g.update(.57);assert.equal(g.strokes,1);assert.equal(g.club,'7i');});

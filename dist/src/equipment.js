@@ -44,17 +44,22 @@ export const DRIVER_YARDS = {
   "Black Market": 350,
 };
 export function driverYards(equipment = {}) {
-  return DRIVER_YARDS[ITEM_BY_ID[equipment.driver]?.rarity] || 265;
+  const item = ITEM_BY_ID[equipment.driver];
+  return item?.driverYards ?? DRIVER_YARDS[item?.rarity] ?? 265;
 }
 export function golfGear(equipment = {}) {
-  return { driverYards: driverYards(equipment), ...(equipment.driver === 'driver-mystery' ? {mysteryAce:true} : {}) };
+  const item = ITEM_BY_ID[equipment.driver];
+  return {
+    driverYards: driverYards(equipment),
+    ...(item?.id === 'driver-mystery' ? { mysteryAce: true } : {}),
+    ...(item?.landingBurst ? { landingBurst: true } : {}),
+  };
 }
 export function itemDescription(item) {
   if (item.description) return item.description;
-  if(item.id === 'driver-mystery') return item.flavor;
   const flavor = item.flavor ? item.flavor + " " : "";
   if (item.category === "driver")
-    return `${flavor}${DRIVER_YARDS[item.rarity]} yard driver · full-power total on a level fairway. Wind, slope and lie affect distance.`;
+    return `${flavor}${driverYards({ driver: item.id })}-yard driver · full-power total on a level fairway. Wind, slope and lie affect distance.`;
   return (
     flavor +
     (MINI_EFFECTS[item.id]?.description ||
