@@ -90,10 +90,10 @@ export function installRoomRules(ui) {
       copy = member.loadedHole === game.index ? 'Waiting for golfers to load' : notice || 'Preparing the course';
       if (!request && performance.now() >= retryAt && member.loadedHole !== game.index &&
           world.renderedFrames >= 3 && !document.hidden) send('loaded_room', current);
-    } else if (start > now) {
-      copy = state.rule === 'speed' ? 'Race begins in' : 'Tee off in';
+    } else if (state.rule === 'speed' && start > now) {
+      copy = 'Race begins in';
       count = String(Math.max(1, Math.ceil((start - now) / 1000)));
-    } else if (now - start < 680) {
+    } else if (state.rule === 'speed' && now - start < 680) {
       count = 'GO';
     } else if (game.state === 'playing' && (member.nextHole || 0) <= game.index) {
       if (orderedRoom(state)) {

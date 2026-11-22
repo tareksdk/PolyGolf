@@ -1,6 +1,7 @@
+import { greenStand } from './green-stands.js';
 import {botPresentation} from './bots.js';
 import { SUPABASE_URL, PUBLISHABLE_KEY } from './cloud.js';
-import { liveScope, liveHole, cleanLiveState, compactLiveState } from './live-state.js';
+import { currentRoomRound, liveScope, liveHole, cleanLiveState, compactLiveState } from './live-state.js';
 import { LiveTransport } from './live-transport.js';
 import { LiveOpponent, roomTagWidth } from './live-opponents.js';
 
@@ -22,6 +23,7 @@ export function installLiveRound(ui){
   };
   const update=world.update.bind(world);
   world.update=(dt,...args)=>{
+    world.golferStand = null;
     if(document.hidden){if(key)clear();update(dt,...args);return;}
     const next=liveScope(ui),id=ui.cloud.session?.user.id;
     const nextKey=next?`${id}:${next.key}:${next.members.map(p=>p.id).sort().join(',')}`:null;
@@ -32,6 +34,11 @@ export function installLiveRound(ui){
         for(const m of next.members)if(m.id!==id)peers.set(m.id,new LiveOpponent(world,m,layer,{room}));
         if(next.members.some(m=>m.id!==id&&!m.bot)&&ui.cloud.session?.access_token)transport=new LiveTransport({url:SUPABASE_URL,key:PUBLISHABLE_KEY,token:ui.cloud.session.access_token,user:id,scope:{...next,members:next.members.filter(m=>!m.bot)},receive});
       }
+    }
+    const roomMembers = currentRoomRound(ui)?.state.members;
+    const seat = roomMembers?.findIndex(m => m.id === id) ?? -1;
+    if (seat >= 0 && (game.physics.sunk || game.state === 'complete' || roomMembers[seat].nextHole > game.index)) {
+      world.golferStand = greenStand(world.hole, seat);
     }
     const now=performance.now();
     if(scope){
@@ -48,7 +55,9 @@ export function installLiveRound(ui){
       }
       for(const p of peers.values()){
         const visible=ui.progress.data.settings.showOpponents!==false||world.spectatorCamera?.targetId===p.member.id;
-        p.update(dt,now,liveHole(game),visible,peers.size>3?370:200);
+        const peerSeat = roomMembers?.findIndex(m => m.id === p.member.id) ?? -1;
+        const finished = peerSeat >= 0 && roomMembers[peerSeat].nextHole > game.index;
+        p.update(dt,now,liveHole(game),visible,peers.size>3?370:200,peerSeat,finished);
       }
     }
     update(dt,...args);

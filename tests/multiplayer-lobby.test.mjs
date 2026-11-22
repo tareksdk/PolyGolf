@@ -56,7 +56,7 @@ test("course locks and lobby draft affect the rendered controls", () => {
   assert.match(html, /Unlocks at level 3/);
 });
 
-test("bot rank selection persists and the lobby renders mixed ranks and real readiness", () => {
+test("bot difficulty selection persists and the lobby renders choices in order and real readiness", () => {
   const ui = clubhouse();
   assert.equal(multiplayerBotSkill(ui), "weekend");
   multiplayerLobbyAction(ui, "room-setup-skill", { id: "master" });
@@ -67,7 +67,9 @@ test("bot rank selection persists and the lobby renders mixed ranks and real rea
     members: [{ id: "host", name: "Golfer", ready: false }, { id: "bot", name: "Cedar", bot: true, botSkill: "stick" }],
   } };
   let html = multiplayerLobby(ui);
-  assert.match(html, /Bot · Stick/);
+  assert.match(html, /Bot · Hard/);
+  const choices = [...html.matchAll(/data-action="room-setup-skill"[^>]*>([^<]+)/g)].map(match => match[1]);
+  assert.deepEqual(choices, ["Easy", "Medium", "Hard", "Master"]);
   assert.match(html, /Copy invite link/);
   assert.match(html, /data-action="start-room"\s+disabled/);
   ui.cloud.room.state.members[0].ready = true;

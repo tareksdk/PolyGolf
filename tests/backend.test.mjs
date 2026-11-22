@@ -359,27 +359,24 @@ async function loadPrivateHole(fixture, index) {
   const {room:pending}=await call('loaded_room',{...fixture.params,roundId:fixture.a,hole:index});
   assert.equal(pending.state.holeStartAt,null);
   const {room}=await call('loaded_room',{...fixture.params,roundId:fixture.b,hole:index},'b');
-  assert.equal(room.state.holeStartAt-Date.now(),index === 0 ? 10000 : 3000);
+  assert.equal(room.state.holeStartAt-Date.now(),room.state.rule === 'speed' ? (index === 0 ? 10000 : 3000) : 0);
   return room;
 }
 
-test('private room settings choose a length and wait on the last renderer before the 10- and 3-second starts',async()=>{
+test('private room settings choose a length and start par play as soon as the last renderer is ready',async()=>{
  await assert.rejects(call('create_room',{mode:'mini',course:0,holeCount:10,rule:'free'}),/between 1 and 9/);
  await assert.rejects(call('create_room',{mode:'mini',course:0,holeCount:1,rule:'unknown'}),/format/);
  const f=await readyPrivateRoom('free');
  assert.equal(rounds.get(f.a).hole_count,2);
  assert.equal(f.room.state.holeStartAt,null);
  const skip={index:0,transcript:[{kind:'skip',tick:0}],endTick:0};
- await assert.rejects(call('submit_hole',{roundId:f.a,...skip}),/countdown/);
- const first=await loadPrivateHole(f,0);
- await assert.rejects(call('submit_hole',{roundId:f.a,...skip}),/countdown/);
- mock.timers.setTime(first.state.holeStartAt);
+ await assert.rejects(call('submit_hole',{roundId:f.a,...skip}),/all golfers to load/);
+ await loadPrivateHole(f,0);
  await Promise.all([call('submit_hole',{roundId:f.a,...skip}),call('submit_hole',{roundId:f.b,...skip},'b')]);
  const {room:between}=await call('room',f.params);
  assert.equal(between.state.hole,1);
  assert.equal(between.state.holeStartAt,null);
- const second=await loadPrivateHole(f,1);
- mock.timers.setTime(second.state.holeStartAt);
+ await loadPrivateHole(f,1);
  await Promise.all([call('submit_hole',{roundId:f.a,...skip,index:1}),call('submit_hole',{roundId:f.b,...skip,index:1},'b')]);
  const {room:finished}=await call('room',f.params);
  assert.equal(finished.state.phase,'finished');
@@ -437,6 +434,20 @@ test('a stalled renderer is removed after the load limit and the remaining playe
  assert.equal(room.state.departed[0].withdrawn,true);
  assert.equal(room.state.holeStartAt-Date.now(),10000);
  await assert.rejects(call('loaded_room',{...f.params,roundId:f.b,hole:0},'b'),/not a member/);
+});
+
+test('speed rooms count down on the first and subsequent holes',async()=>{
+ const f=await readyPrivateRoom('speed');
+ const first=await loadPrivateHole(f,0);
+ const skip={index:0,transcript:[{kind:'skip',tick:0}],endTick:0};
+ await assert.rejects(call('submit_hole',{roundId:f.a,...skip}),/countdown/);
+ mock.timers.setTime(first.state.holeStartAt);
+ await Promise.all([call('submit_hole',{roundId:f.a,...skip}),call('submit_hole',{roundId:f.b,...skip},'b')]);
+ const {room}=await call('room',f.params);
+ assert.equal(room.state.hole,1);
+ const second=await loadPrivateHole(f,1);
+ await assert.rejects(call('submit_hole',{roundId:f.a,...skip,index:1}),/countdown/);
+ assert.equal(second.state.holeStartAt-Date.now(),3000);
 });
 
 test('speed rooms save server elapsed times for real sinks and never write public course records',async()=>{

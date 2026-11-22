@@ -1,3 +1,4 @@
+import { greenStand } from './green-stands.js';
 import * as THREE from '../vendor/three.module.js';
 import { ITEMS, ITEM_BY_ID } from './catalog.js';
 import { createGolfer } from './golfer.js';
@@ -75,23 +76,37 @@ export class LiveOpponent {
     this.detail?.traverse(o=>{if(o.geometry&&!Object.values(this.world.geometries).includes(o.geometry))o.geometry.dispose();if(o.userData.ownedMaterial){o.material.map?.dispose();o.material.dispose();}});
     this.ball.clear();
   }
-  update(dt,now,hole,visible,delay){
+  update(dt,now,hole,visible,delay,seat=-1,finished=false){
     const s=this.buffer.sample(now,delay), last=this.buffer.samples.at(-1);
     this.stale = !!last && now-last.time>STALE_AFTER;
     this.sample = s?.hole===hole && !this.stale ? s : null;
     this.viewTarget = null;
-    this.label.hidden = !visible || (this.room && !this.sample);
-    this.group.visible=!!s&&visible&&s.hole===hole&&(!this.room||!this.stale);
-    if(!visible || (this.room && !this.sample))return;
+    const w=this.world,c=this.context;
+    const stand = finished || this.sample?.sunk ? greenStand(w.hole, seat) : null;
+    c.hole=w.hole;
+    c.golferStand=stand;
+    this.label.hidden = !visible || (this.room && !this.sample && !stand);
+    this.group.visible=visible && (!!stand || (!!s && s.hole===hole && (!this.room || !this.stale)));
+    if(!visible)return;
+    if(stand && !this.sample){
+      this.ball.visible=this.glow.visible=this.pulse.visible=false;
+      this.moving=false;
+      c.updateGolfer(dt,null,{sunk:true});
+      c.updateRibbon(dt,this.ball.position,{active:false,sunk:true});
+      this.label.classList.remove('is-away');
+      if(this.status.textContent!=='Finished')this.status.textContent='Finished';
+      return;
+    }
+    if(this.room && !this.sample)return;
     if(!s){this.status.textContent='Connecting…';this.label.classList.add('is-away');return;}
     if(s.hole!==hole){this.label.classList.add('is-away');this.label.style.transform='';this.status.textContent=s.hole.startsWith('sudden')?'Sudden death':`On hole ${Number(s.hole)+1}`;return;}
     this.label.classList.remove('is-away');
     this.equip(s.equipment);
-    const w=this.world,c=this.context,b=s.ball,golf=w.hole.mode==='golf',radius=golf?(w.visualBallRadius||.065):.24;
-    c.hole=w.hole;c.settings=w.settings;c.clock=w.clock;c.activeClub=s.club;c.aimDirection={x:s.dx,z:s.dz};
+    const b=s.ball,golf=w.hole.mode==='golf',radius=golf?(w.visualBallRadius||.065):.24;
+    c.settings=w.settings;c.clock=w.clock;c.activeClub=s.club;c.aimDirection={x:s.dx,z:s.dz};
     const ground = w.renderGround(b.x,b.z);
-    const flight = this.room && s.active && !s.sunk && b.y-ground > (golf ? .22 : .46);
-    this.ball.visible=!s.sunk;
+    const flight = this.room && !stand && s.active && !s.sunk && b.y-ground > (golf ? .22 : .46);
+    this.ball.visible=!s.sunk&&!stand;
     this.ball.position.set(b.x,golf?Math.max(b.y-.021335,ground)+radius+.008:Math.max(b.y,ground+.245),b.z);
     let viewRadius = radius;
     if (this.room) {
@@ -107,7 +122,7 @@ export class LiveOpponent {
         this.glow.scale.setScalar(viewRadius*6.6);
       }
       this.wakeTime = flight ? .75 : Math.max(0,(this.wakeTime||0)-dt);
-      if (!s.sunk) this.viewTarget = this.ball.position;
+      if (this.ball.visible) this.viewTarget = this.ball.position;
     }
     this.ball.scale.setScalar(viewRadius/.24);
     this.ball.rotation.x+=b.vz*dt*2;this.ball.rotation.z-=b.vx*dt*2;
@@ -123,7 +138,7 @@ export class LiveOpponent {
     const wake = this.room && this.wakeTime > 0 && !w.settings?.reducedMotion && !reducedMotion?.matches;
     c.trailColor = this.trailColor || (wake ? FLIGHT_COLOR : null);
     c.visualBallRadius = viewRadius;
-    c.updateRibbon(dt,b,{active:s.active && (!!this.trailColor || flight),sunk:s.sunk});
+    c.updateRibbon(dt,b,{active:!stand && s.active && (!!this.trailColor || flight),sunk:s.sunk||!!stand});
     if(s.sunk&&!this.wasSunk){
       this.celebration=0;const color=ITEM_BY_ID[s.equipment.hole]?.color||'#e9c567';
       this.pulse.material.color.set(color);this.pulse.position.set(b.x,w.renderGround(b.x,b.z)+.04,b.z);
@@ -132,10 +147,10 @@ export class LiveOpponent {
     this.wasSunk=s.sunk;
     this.pulse.visible=!w.playHoleEffect&&this.celebration!==undefined&&this.celebration<1.6&&w.settings.particles!==false;
     if(this.pulse.visible){this.celebration+=dt;this.pulse.scale.setScalar((golf?.3:.7)+this.celebration*2.2);this.pulse.material.opacity=Math.max(0,.9-this.celebration/1.6);}
-    const status=this.stale?'Connection interrupted':c.emotePose?this.emoteName:s.sunk?'In the cup!':
+    const status=stand?'Finished':this.stale?'Connection interrupted':c.emotePose?this.emoteName:s.sunk?'In the cup!':
       this.room?'':s.active?'Ball in motion':hole.startsWith('sudden')?'Sudden death':`Hole ${Number(hole)+1}`;
     if(this.status.textContent!==status)this.status.textContent=status;
-    this.moving = s.active;
+    this.moving = !stand && s.active;
   }
   projectLabel(occupied){
     if (!this.group.visible) return;

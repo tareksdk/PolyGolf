@@ -134,7 +134,7 @@ export function verifyRoomSubmission(room:any, p:any, round:any, body:any, at:nu
   const member = s?.members.find((m:any) => m.id === p.id && (!s.rule || m.roundId === round.id));
   if (!member || s.phase !== 'playing' || s.hole !== body.index) throw Error('This room is not playing that hole.');
   if (!s.rule) return { rule: undefined, raceTime: undefined };
-  if (!forceSkip && (!Number.isFinite(s.holeStartAt) || at < s.holeStartAt)) throw Error('Wait for the room countdown.');
+  if (!forceSkip && (!Number.isFinite(s.holeStartAt) || at < s.holeStartAt)) throw Error(s.rule === 'speed' ? 'Wait for the room countdown.' : 'Wait for all golfers to load.');
   const commands = normalizeTranscript(body.transcript);
   const skip = commands.at(-1).kind === 'skip';
   if (!forceSkip && !skip && at >= s.deadline) throw Error('Time expired on this hole.');
@@ -182,7 +182,8 @@ async function progressRoom(s:any, now:number, api:any) {
       if (s.phase !== 'playing') return;
     }
     if (humans(s).every((m:any) => m.loadedHole === s.hole)) {
-      s.holeStartAt = now + (s.hole === 0 ? 10_000 : 3000);
+      const countdown = s.rule === 'speed' ? (s.hole === 0 ? 10_000 : 3000) : 0;
+      s.holeStartAt = now + countdown;
       s.botHoleStartedAt = s.holeStartAt;
       s.deadline = s.holeStartAt + HOLE_LIMIT * (isOrdered(s) ? s.members.length : 1);
       nextTurn(s, null, s.holeStartAt);

@@ -224,7 +224,26 @@ html[data-theme=light] .mp-avatar[data-bot] { color: var(--mp-ink); }
 #app .mp-layout :is(button.mp-leave, button.mp-remove):hover { color: var(--mp-ink); text-decoration: underline; }
 .mp-bots { margin-top: 18px; }
 .mp-bot-controls { display: grid; gap: 10px; margin-top: 10px; }
-.mp-bot-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp-bot-skills { display: grid; gap: 6px; width: min(100%, 240px); }
+.mp-bot-skills [data-id="duffer"] { --bot-tone: #94dba6; }
+.mp-bot-skills [data-id="weekend"] { --bot-tone: #8ec7f6; }
+.mp-bot-skills [data-id="stick"] { --bot-tone: #f6be78; }
+.mp-bot-skills [data-id="master"] { --bot-tone: #d9b9ff; }
+#app .mp-layout .mp-bot-skills .mp-choice {
+  text-align: left; justify-content: flex-start; color: var(--bot-tone);
+  border-color: color-mix(in srgb, var(--bot-tone) 48%, transparent);
+  background: color-mix(in srgb, var(--bot-tone) 8%, #122b23);
+}
+#app .mp-layout .mp-bot-skills .mp-choice:is(:hover, [aria-pressed=true]) {
+  border-color: var(--bot-tone);
+  background: color-mix(in srgb, var(--bot-tone) 18%, #122b23);
+}
+#app .mp-layout .mp-bot-skills .mp-choice[aria-pressed=true] { box-shadow: inset 3px 0 var(--bot-tone); }
+#app .mp-layout .mp-bot-actions button:is(.mp-bot-add, .mp-bot-fill) { color: #acf0bb; border-color: #77c08b; background: #224d35; }
+#app .mp-layout .mp-bot-actions button.mp-bot-fill { background: #1a392c; }
+#app .mp-layout .mp-bot-actions button:is(.mp-bot-add, .mp-bot-fill):hover { background: #305f44; }
+#app .mp-layout button.mp-remove { color: #ffc0ba; border: 1px solid #b46a66; background: #4b292c; }
+#app .mp-layout button.mp-remove:hover { color: #ffe3df; background: #633537; text-decoration: none; }
 
 .mp-rules-dialog header { display: flex; align-items: center; gap: 12px; padding-inline-end: 35px; }
 .mp-rules-dialog header svg { width: 25px; height: 25px; flex: none; color: var(--club-gold); }

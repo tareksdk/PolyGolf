@@ -37,9 +37,9 @@ const RULES = {
 };
 
 const BOT_SKILLS = {
-  duffer: "Duffer",
-  weekend: "Weekend Warrior",
-  stick: "Stick",
+  duffer: "Easy",
+  weekend: "Medium",
+  stick: "Hard",
   master: "Master",
 };
 const DEFAULT_BOT_SKILL = "weekend";
@@ -199,12 +199,12 @@ function roomView(ui, room) {
         </li>`;
       }).join("")}</ul>
       ${isHost && waiting ? `<section class="mp-bots" aria-labelledby="mp-bots">
-        <div class="mp-bots-copy"><h3 id="mp-bots">Bots</h3><p class="mp-muted">Choose a rank before adding a bot. Higher ranks place shots more accurately.</p></div>
+        <div class="mp-bots-copy"><h3 id="mp-bots">Bots</h3><p class="mp-muted">Choose a difficulty before adding a bot.</p></div>
         <div class="mp-bot-controls">
-          <div class="mp-bot-skills" role="group" aria-label="Bot rank">
+          <div class="mp-bot-skills" role="group" aria-label="Bot difficulty">
             ${Object.entries(BOT_SKILLS).map(([id, label]) => button(label, "room-setup-skill", `data-id="${id}" aria-pressed="${multiplayerBotSkill(ui) === id}"`, "mp-choice")).join("")}
           </div>
-          <div class="mp-bot-actions">${button("Add bot", "add-room-bot", full ? "disabled" : "", "button secondary")}${button("Fill seats with bots", "fill-room-bots", full ? "disabled" : "", "button secondary")}</div>
+          <div class="mp-bot-actions">${button("Add bot", "add-room-bot", full ? "disabled" : "", "button secondary mp-bot-add")}${button("Fill seats with bots", "fill-room-bots", full ? "disabled" : "", "button secondary mp-bot-fill")}</div>
         </div>
       </section>` : ""}
     </section>

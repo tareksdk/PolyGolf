@@ -80,7 +80,8 @@ export function createGolfer(w, [shirt = "#e5ba60", cap = "#365749"] = []) {
   w.updateGolfer = (dt, ball, physics) => {
     const emote = w.emotePose;
     if (emote && !w.presentationPaused) { emote.time += dt; if (emote.time > 2.8 || physics?.active) w.emotePose = null; }
-    const pose = w.swingPose;
+    const stand = w.golferStand;
+    const pose = stand ? null : w.swingPose;
     if (pose && !w.presentationPaused) {
       pose.time += dt;
       if (pose.time > 1.6) w.swingPose = null;
@@ -89,15 +90,14 @@ export function createGolfer(w, [shirt = "#e5ba60", cap = "#365749"] = []) {
       impact = putt ? 0.36 : 0.56;
     w.cameraHold = pose && pose.time < impact + 0.16 ? pose.ball : null;
     root.visible =
-      !!ball &&
       w.mode === "play" &&
-      (w.hole.mode === "golf" || w.remote) &&
-      (!physics?.active || !!w.swingPose) &&
-      !physics?.sunk;
+      (!!stand || (!!ball &&
+        (w.hole.mode === "golf" || w.remote) &&
+        (!physics?.active || !!w.swingPose) && !physics?.sunk));
     if (!root.visible) return;
-    const p = pose?.ball || ball,
-      d = pose?.dir || w.aimDirection || { x: 0, z: -1 },
-      side = { x: -d.z, z: d.x };
+    const p = stand || pose?.ball || ball,
+      d = stand ? { x: w.hole.cup.x - p.x, z: w.hole.cup.z - p.z } : pose?.dir || w.aimDirection || { x: 0, z: -1 },
+      side = stand ? { x: 0, z: 0 } : { x: -d.z, z: d.x };
     root.position.set(
       p.x - side.x * 0.78,
       w.renderGround(p.x - side.x * 0.78, p.z - side.z * 0.78) + 0.012,
