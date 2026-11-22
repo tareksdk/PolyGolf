@@ -8,6 +8,7 @@ import { applyFinish } from './finish-material.js';
 import { nameplate } from './nameplates.js';
 import { emoteKind } from './emotes.js';
 import { LiveBuffer } from './live-state.js';
+import { ROOM_BOT_SKILLS } from './room-bots.js';
 
 const STALE_AFTER = 5200;
 const FLIGHT_COLOR = '#b4f4da';
@@ -43,7 +44,7 @@ export class LiveOpponent {
     this.group.name='opponent-'+member.id;
     this.context={scene:this.group,camera:world.camera,geometries:world.geometries,mesh:world.mesh.bind(world),mat:world.mat.bind(world),
       renderGround:world.renderGround.bind(world),mode:'play',remote:true,hole:world.hole,items:ITEMS};
-    this.avatar=createGolfer(this.context);
+    this.avatar=createGolfer(this.context, ROOM_BOT_SKILLS[member.botSkill]?.outfit);
     this.ball=new THREE.Group();this.ball.name='remote-ball';this.group.add(this.ball);this.context.ball=this.ball;
     if (room) { this.glow = flightGlow(); this.group.add(this.glow); }
     installTrails(this.context);

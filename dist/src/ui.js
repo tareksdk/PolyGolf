@@ -240,7 +240,7 @@ export class UIManager {
       return;
     }
     this.modal(
-      `<div class="eyebrow">TAKE YOUR TIME</div><h2>A little breather.</h2><p>Your next shot can wait.</p><div class="pause-menu">${button(icon("play") + "Keep playing", "resume", "", "button yellow wide")}${button(icon("sliders") + "Settings", "settings", "", "button secondary wide")}${button(icon("help") + "How to play", "help", "", "button secondary wide")}${button("Pick up ball · Par + 6", "skip-hole", "", "button secondary wide")}${button(icon("home") + "Back to clubhouse", "exit-confirm", "", "text-button")}</div>`,
+      `<div class="eyebrow">TAKE YOUR TIME</div><h2>A little breather.</h2><p>${this.game.round?.roomRule === "speed" ? "The race clock keeps running." : "Your next shot can wait."}</p><div class="pause-menu">${button(icon("play") + "Keep playing", "resume", "", "button yellow wide")}${button(icon("sliders") + "Settings", "settings", "", "button secondary wide")}${button(icon("help") + "How to play", "help", "", "button secondary wide")}${button("Pick up ball · Par + 6", "skip-hole", "", "button secondary wide")}${button(icon("home") + "Back to clubhouse", "exit-confirm", "", "text-button")}</div>`,
       { close: false },
     );
   }

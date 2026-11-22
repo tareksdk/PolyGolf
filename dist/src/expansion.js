@@ -1,6 +1,9 @@
 import { APP_VERSION } from './version.js';
 import { redeemPreviewSupreme } from './supreme-ball.js';
+import { replayRoomLie } from './replay.js';
 import { currentRoomRound } from './live-state.js';
+import { installRoomRules, speedResults } from './room-rules.js';
+import { multiplayerLobby, multiplayerLobbyAction, multiplayerCreatePayload, multiplayerBotSkill } from './multiplayer-lobby.js';
 import { PROGRESSION_GIFT_CODE, redeemProgressionGift } from './progression-gift.js';
 import { flowDirectionGauge } from './shot-meter-ui.js';
 import { LOCKERS } from "./pro-shop.js";
@@ -88,29 +91,6 @@ function rankings(ui) {
         )}</select></div><div class="table-scroll"><table class="ranking-table"><thead><tr><th>PLACE</th><th>GOLFER</th>${ranked ? "<th>RANK</th><th>ELO</th><th>W / L</th>" : "<th>LEVEL</th><th>TO PAR</th><th>TIME</th>"}</tr></thead><tbody id="rankings-body"><tr><td colspan="5" class="board-message">Loading shared scorecards…</td></tr></tbody></table></div><div class="rankings-sentinel" id="rankings-sentinel" role="status"></div>${button("Refresh board", "refresh-rankings", "", "text-button")}</div>`,
   );
 }
-function multiplayer(ui) {
-  const r = ui.cloud.room,
-    s = r?.state;
-  return page(
-    ui,
-    "A round together.",
-    r
-      ? "Send an invite link or share the room code with up to seven friends."
-      : "Create a private room or join a friend. Play as a guest. No signup needed. Each golfer plays their own ball.",
-    r
-        ? `<section class="panel lobby-panel"><div class="row between"><div><span class="eyebrow">ROOM CODE</span><h2 class="room-code">${r.code}</h2>${button("Copy invite link","copy-room-link","","button secondary")}</div><span class="badge">${s.members.length} / 8 GOLFERS</span></div><p>${s.mode === "golf" ? "Full golf" : "Mini-golf"} · ${list({ mode: s.mode })[s.course].name}</p><div class="lobby-members">${s.members.map((m) => `<div><span class="avatar">${esc(m.name[0].toUpperCase())}</span>${m.bot ? nameplate(m.name,m.nameplate,{compact:true}) : button(nameplate(m.name,m.nameplate,{compact:true}), "view-profile", `data-user="${m.id}"`, "profile-link")}<span>${m.id === s.host ? "HOST · " : ""}${m.bot ? "BOT" : m.ready ? "Ready" : "Getting ready"}</span>${m.bot && s.host===ui.cloud.session.user.id ? button("Remove","remove-room-bot",`data-id="${m.id}"`,"text-button") : ""}</div>`).join("")}</div><div class="modal-actions">${s.host===ui.cloud.session.user.id ? button("Add bot","add-room-bot",s.members.length>=8?"disabled":"","button secondary")+button("Fill with bots","fill-room-bots",s.members.length>=8?"disabled":"","button secondary") : ""}${button("Leave room", "leave-room", "", "button secondary")}${button(s.members.find(m=>m.id===ui.cloud.session.user.id)?.ready ? "✓ Ready · Click to unready" : "Not ready · Click to ready", "ready-room", `aria-pressed="${!!s.members.find(m=>m.id===ui.cloud.session.user.id)?.ready}"`, "button ready-toggle " + (s.members.find(m=>m.id===ui.cloud.session.user.id)?.ready ? "is-ready" : "secondary"))}${s.host === ui.cloud.session.user.id ? button("Start round", "start-room", s.members.length < 2 || s.members.some((m) => !m.ready) ? "disabled" : "", "button yellow") : ""}</div><p class="small-note">Six minutes per hole. Scores and hole changes are shared automatically.</p></section>`
-        : `<div class="multiplayer-grid"><section class="panel"><h2>Host a round</h2>${modeTabs(ui)}<label>Course<select id="room-course">${list(
-            ui,
-          )
-            .map(
-              (c, i) =>
-                ui.mode==='golf'&&(!courseAvailable(i)||GOLF_COURSES[i].id==='planetfall')?'':`<option value="${i}" ${i === ui.selectedCourse ? "selected" : ""}>${c.name}${ui.progress.level.level < c.level ? " · Level " + c.level : ""}</option>`,
-            )
-            .join(
-              "",
-            )}</select></label>${button("Create room", "create-room", "", "button yellow wide")}</section><section class="panel"><h2>Join your friends</h2><label>Six-character room code<input id="room-code" maxlength="6" placeholder="ABC234" value="${esc(ui.inviteCode||'')}" autocomplete="off" spellcheck="false"></label>${button("Join room", "join-room", "", "button yellow wide")}</section></div>${!ui.cloud.session || ui.cloud.isGuest ? '<p class="small-note">Guests get a starter golfer saved in this browser. Guest progress is separate from local solo play and registered accounts. Sign in for ranked play, trading and account rewards.</p>' : ''}`,
-  );
-}
 function miniMap(g) {
   const h = g.hole,
     b = g.physics.ball;
@@ -155,6 +135,7 @@ function hud(ui) {
     d = ui.progress.data,
     golf = g.mode === "golf",
     room = currentRoomRound(ui),
+    speed = room?.state.rule === 'speed',
     total = g.round.strokes.reduce(
       (a, b, i) => a + b - (g.customHole || hole(g.mode, g.round.courseIndex, i)).par,
       0,
@@ -173,7 +154,7 @@ function hud(ui) {
     : `<div class="ph-equip"><span>Equipment</span><strong>${esc(ITEM_BY_ID[d.equipment.club]?.name || "Putter")}</strong><small>${esc(itemDescription(ITEM_BY_ID[d.equipment.ball]).split(" Full golf")[0])}</small></div><label class="ph-field">Curve<input id="shot-shape" type="range" min="-1" max="1" step=".05" value="${g.shape}" ${!miniStats(d.equipment).curve ? "disabled" : ""}></label>${meterChoice}`;
   const cinematic = d.settings.cinematicCamera === true;
   const cameraTools = `<div class="camera-controls" role="group" aria-label="Camera controls">${button(icon("camera") + `<span id="camera-mode-label">${cinematic ? "Cinematic" : "Default"}</span>`, "camera-mode", `id="camera-mode" aria-label="Cinematic camera mode" aria-pressed="${cinematic}" title="Toggle default / cinematic camera"`, "camera-control camera-mode")}${button(icon("ball"), "camera-recenter", 'aria-label="Recenter camera (F)" title="Recenter camera (F)"', "camera-control camera-recenter")}${button("Skip camera", "camera-skip", 'id="camera-skip" aria-label="Skip cinematic camera (Escape)" title="Skip cinematic camera (Escape)" hidden', "camera-control camera-skip")}</div>`;
-  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}${room ? " is-room-round" : ""}" aria-label="Round controls"><span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span>${cameraTools}<div class="ball-nameplate" id="ball-nameplate" >${room ? `<span class="room-opponent-name">${esc(d.name)}</span>` : nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${stat("Par", g.hole.par)}${stat("Strokes", g.strokes, "ph-strokes")}${stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right"><div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
+  return `<section class="play-hud ${golf ? "is-golf" : "is-mini"}${room ? " is-room-round" : ""}" aria-label="Round controls"><span class="round-version">v${APP_VERSION}${ui.localPreview ? ' · Local preview' : ''}</span>${cameraTools}<div class="ball-nameplate" id="ball-nameplate" >${room ? `<span class="room-opponent-name">${esc(d.name)}</span>` : nameplate(d.name,d.equipment.nameplate,{compact:true})}</div><div class="ph-left"><div class="ph-card ph-shot ${ui.shotPanelCollapsed ? "is-collapsed" : ""}">${button(ui.shotPanelCollapsed ? "Club & shot +" : "Minimize −", "toggle-shot-panel", `aria-expanded="${!ui.shotPanelCollapsed}" aria-controls="shot-options"`, "ph-chip ph-collapse")}<div id="shot-options" ${ui.shotPanelCollapsed ? "hidden" : ""}>${shotCard}</div></div></div><div class="ph-center"><div class="ph-card ph-power ${fluid ? "is-flow-meter" : ""}"><div class="ph-stats">${stat("Hole", `${g.index + 1}<small>/${g.round.holeCount}</small>`)}${speed ? stat("Time", '<span id="room-race-time">0:00.000</span>') : stat("Par", g.hole.par) + stat("Strokes", g.strokes, "ph-strokes") + stat(g.round.sudden ? "Mode" : "Round", g.round.sudden ? "SD" : relative(total))}</div><div class="ph-meter-body">${fluid ? directionMeter + powerMeter : powerMeter + directionMeter}</div><div class="ph-meta"><span id="surface-label"></span><span id="distance-label"></span><span id="flight-label"></span>${golf ? `<span class="ph-wind"><i style="transform:rotate(${windAngle.toFixed(0)}deg)">↑</i>${wind.toFixed(1)} m/s</span>` : ""}</div></div><p class="ph-hint">${fluid ? "Press: lock direction · Hold: power · Release: swing" : golf ? "Hold & release: power · Click again: direction · C changes club" : "Hold & release: power · Click again: direction · Right-drag to orbit"}</p></div><div class="ph-right"><div class="ph-tools">${button(icon("heart"), "emote-wheel", 'aria-label="Emote wheel (B)" title="Emote wheel (B)"', "icon-button")}${button(icon("help"), "help", 'aria-label="Controls" title="Controls"', "icon-button")}${g.round.sudden ? "" : button(icon("reset"), "reset", 'aria-label="Reset ball with one penalty stroke" title="Reset ball (+1 stroke)"', "icon-button")}${button(icon("pause"), "pause", 'aria-label="Pause" title="Pause"', "icon-button")}${g.customHole && !g.round.sudden ? button(g.round.customOrigin === "community" ? "Maps" : g.round.customOrigin === "shared" ? "Exit" : "Editor", g.round.customOrigin === "community" ? "return-community" : g.round.customOrigin === "shared" ? "round-exit" : "return-editor", "", "button secondary editor-return") : ""}</div></div></section>`;
 }
 function scorecard(ui, round, reward) {
   const pars = round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
@@ -189,6 +170,7 @@ export function installExpansion(ui) {
   ui.golfEditor = new GolfMapEditor(ui);
   ui.editor = ui.golfEditor;
   ui.cloud = new GolfCloud(ui);
+  ui.roomRules = installRoomRules(ui);
   ui.world.setGhosts = () => {}; // Older round cleanup callers remain compatible.
   installGolfPresentation(ui.world);
   keepMiniSceneryClear(ui.world);
@@ -231,7 +213,7 @@ export function installExpansion(ui) {
       courses,
       "club-pass": clubPass,
       leaderboards: rankings,
-      multiplayer,
+      multiplayer: multiplayerLobby,
       community: communityView,
       editor: () => ui.editor.view(),
     };
@@ -329,21 +311,17 @@ export function installExpansion(ui) {
       );
       return;
     }
-    let reward = { coins: 0, xp: 0 }, savedStrokes;
+    let reward = { coins: 0, xp: 0 }, savedStrokes, raceTime;
     try {
       if (ui.cloud.session && result.round.cloudId) {
         ui.modal(
           '<div class="result"><h2>Saving your scorecard…</h2><p>Checking the shots and syncing your rewards.</p></div>',
           { close: false },
         );
-        const r = await ui.cloud.call("submit_hole", {
-          roundId: result.round.cloudId,
-          index: result.index,
-          transcript: result.transcript,
-          endTick: result.endTick,
-        });
+        const r = await ui.roomRules.submit(result);
         reward = r.reward || reward;
         savedStrokes = r.result?.strokes;
+        raceTime = r.result?.raceTime;
         ui.roundBonus = r.bonus || ui.roundBonus;
         if(r.bonus?.locker && !r.duplicate)ui.earnedLockerPending = {id:r.bonus.locker,round:result.round};
       } else if (!result.transcript.some((c) => c.kind === "skip")) reward = ui.progress.completeHole(result);
@@ -353,7 +331,7 @@ export function installExpansion(ui) {
       ui.pendingResult = null;
       ui.render();
       if (currentRoomRound(ui)) {
-        ui.roomRound.begin(savedStrokes ?? result.strokes, reward);
+        ui.roomRound.begin(savedStrokes ?? result.strokes, reward, raceTime);
       } else
         ui.modal(
           holeDialog(result, reward).replace(
@@ -379,23 +357,39 @@ export function installExpansion(ui) {
             { ...round, practice: round.practice || round.skipped },
             round.strokes.map((_, i) => hole(round.mode, round.courseIndex, i).par),
           );
-    ui.modal(scorecard(ui, round, reward), { wide: true, close: false });
+    const state = ui.cloud.room?.state;
+    const speed = state?.rule === 'speed' && round.cloudId;
+    const race = speed ? `<div class="result"><h2>Speed golf results</h2>${speedResults({ ...state, members: [...state.members, ...(state.departed || [])] })}<div class="modal-actions">${button('Back to clubhouse', 'round-exit', '', 'button yellow')}${button('Play again', 'replay-room', '', 'button secondary')}</div></div>` : '';
+    ui.modal(race || scorecard(ui, round, reward), { wide: true, close: false });
     if(reward.locker)ui.showEarnedLocker?.(reward.locker,round);
   };
   ui.syncRoom = (r) => {
+    if (!r || !ui.cloud.session) return;
     const s = r.state,
       m = s.members.find((m) => m.id === ui.cloud.session.user.id);
     if (!m) return;
     if (s.phase === 'waiting' && ui.game.state === 'finished') {ui.closeModal();ui.game.leave();ui.screen='multiplayer';}
-    if (ui.screen === "multiplayer" && ui.game.state === "menu" && s.phase === "waiting") ui.render();
+    if (ui.screen === "multiplayer" && ui.game.state === "menu" && s.phase === "waiting") {
+      const lobby = JSON.stringify([r.id, s.host, s.members.map(({ id, ready, name, nameplate, botSkill }) => [id, ready, name, nameplate, botSkill])]);
+      if (ui.waitingLobby !== lobby) {
+        ui.waitingLobby = lobby;
+        ui.render();
+      }
+    } else ui.waitingLobby = null;
     if (s.phase === "playing") {
+      let loaded = false;
       if (ui.game.round?.cloudId !== m.roundId || ui.game.state === "menu") {
         ui.closeModal();
         ui.audio.start();
         ui.roundBonus = null;
         ui.mode = s.mode;
-        ui.world.equip(ui.progress.data.equipment, ITEMS);
-        ui.game.start(s.course, false, { mode: s.mode, round: { cloudId: m.roundId, rotationKey: s.rotationKey || '' } });
+        ui.world.equip(m.roundEquipment || ui.progress.data.equipment, ITEMS);
+        ui.game.start(s.course, false, {
+          mode: s.mode, holeIndex: s.hole,
+          round: { cloudId: m.roundId, rotationKey: s.rotationKey || '', roomRule: s.rule, ...(s.holeCount ? { holeCount: s.holeCount } : {}) },
+        });
+        ui.game.round.strokes = m.scores?.slice() || [];
+        loaded = true;
       }
       if (ui.game.holeReveal) return;
       if (s.hole > ui.game.index) {
@@ -403,6 +397,18 @@ export function installExpansion(ui) {
         ui.game.round.strokes = m.scores.slice();
         ui.pendingResult = null;
         ui.game.loadHole(s.hole);
+        loaded = true;
+      }
+      if (loaded && m.nextHole <= s.hole && m.turnReplay?.length) {
+        try {
+          const { physics, strokes } = replayRoomLie({ mode: s.mode, course: s.course, equipment: m.roundEquipment }, s.hole, m.turnReplay, m.turnEndTick);
+          Object.assign(ui.game, { physics, strokes, ticks: m.turnEndTick, transcript: m.turnReplay.slice() });
+          ui.game.autoAim({ forceCamera: true });
+          ui.world.resetCamera?.(physics.ball, { cut: true });
+          ui.render();
+        } catch {
+          ui.toast('Your lie could not be restored. Rejoin the room to retry.');
+        }
       }
       if (m.nextHole > s.hole && ["playing", "paused"].includes(ui.game.state) && !ui.pendingResult) {
         ui.game.round.strokes = m.scores.slice();
@@ -431,6 +437,7 @@ export function installExpansion(ui) {
     const g = ui.game,
       h = ui.hud;
     ui.tickMeters();
+    ui.roomRules.update();
     if (h?.fill?.isConnected) {
       h.status.textContent =
         g.state === "complete"
@@ -441,6 +448,7 @@ export function installExpansion(ui) {
               ? "BALL IN PLAY"
               : g.charging
                 ? (g.meterStyle() === 'fluid' ? "2 · HOLD POWER · RELEASE TO SWING" : g.shotPhase === "direction" ? "2 · CLICK TO LOCK DIRECTION" : "1 · RELEASE TO LOCK POWER")
+                : g.roomShotAllowed?.() === false ? "WAITING TO PLAY"
                 : g.meterStyle() === 'fluid' ? "1 · PRESS TO LOCK DIRECTION" : "READY FOR YOUR SHOT";
       const p = g.mode === "golf" ? ui.world.golferScreen() : ui.world.ballScreen();
       h.plate.style.transform = `translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;
@@ -495,6 +503,11 @@ export function installExpansion(ui) {
     if(action==='club-welcome-done'){ui.closeModal();ui.navigate('club-pass');return;}
     try {
       if (ui.launching) return;
+      if (multiplayerLobbyAction(ui, action, data)) return;
+      if (action === "skip-hole" && ui.game.roomSkipAllowed?.() === false) {
+        ui.toast("Wait for the room countdown before skipping.");
+        return;
+      }
       if (action.startsWith("community-") || action === "return-community") {
         if (ui.communityBusy) return;
         ui.communityBusy = true;
@@ -625,10 +638,10 @@ export function installExpansion(ui) {
         if (ui.roomBusy) return;
         const payload =
           action === "create-room"
-            ? { mode: ui.mode, course: Number(document.querySelector("#room-course").value) }
+            ? multiplayerCreatePayload(ui)
             : action === "join-room"
-              ? { code: document.querySelector("#room-code").value }
-              : { roomId: ui.cloud.room.id, botId:data.id };
+              ? { code: document.querySelector("#room-code").value, roomProtocol: 1 }
+              : { roomId: ui.cloud.room.id, botId: data.id, skill: multiplayerBotSkill(ui) };
         if(action === 'join-room' && !/^[A-HJ-NP-Z2-9]{6}$/i.test(payload.code.trim())) throw Error('Enter the six-character room code from your friend.');
         ui.roomBusy = true;
         try {

@@ -3,7 +3,7 @@ import { getGolfHole } from "./golf-courses.js";
 import { PhysicsManager, FIXED_STEP } from "./physics.js";
 import { GolfPhysics } from "./golf-physics.js";
 import { miniStats, golfGear } from "./equipment.js";
-export function verifyHole(round, index, commands, endTick, { featureOnly = false } = {}) {
+export function verifyHole(round, index, commands, endTick, { featureOnly = false, partial = false } = {}) {
   if (
     !Array.isArray(commands) ||
     commands.length < 1 ||
@@ -78,9 +78,18 @@ export function verifyHole(round, index, commands, endTick, { featureOnly = fals
     } else throw Error("Unknown replay action.");
   }
   while (tick < endTick && !done) step();
+  if (partial) {
+    if (done || p.active) throw Error("Wait for the ball to stop before ending your turn.");
+    return { physics: p, strokes, penalties, distance: Math.hypot(p.ball.x - h.cup.x, p.ball.z - h.cup.z) };
+  }
   if (!done && !featureOnly) throw Error("The replay did not finish the hole.");
   if (featureOnly === 'pumpkin' && !pumpkinHit) throw Error('The replay did not hit the pumpkin.');
   if(featureOnly==='darby'&&!darbyFound)throw Error('The replay did not find Darby.');
   if (featureOnly && featureOnly !== 'pumpkin' && featureOnly !== 'darby' && !pirateHit) throw Error("The replay did not hit the pirate ship.");
   return { index, strokes, par: h.par, penalties, collectible: collected, pirateHit, pumpkinHit, darbyFound, time: endTick / 120 };
+}
+
+
+export function replayRoomLie(round, index, commands, endTick) {
+  return verifyHole(round, index, commands, endTick, { partial: true });
 }

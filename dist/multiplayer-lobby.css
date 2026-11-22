@@ -1,0 +1,261 @@
+/* Private round setup and waiting lobby */
+#app .page:has(.mp-layout) {
+  --mp-surface: var(--club-panel);
+  --mp-raised: var(--club-raised);
+  --mp-line: var(--club-line);
+  --mp-ink: var(--club-ink);
+  --mp-muted: var(--club-muted);
+  --mp-accent: var(--club-gold);
+}
+
+#app .page:has(.mp-layout) > .page-heading,
+.mp-layout { width: min(100%, 1260px); margin-inline: auto; }
+#app .page:has(.mp-layout) > .page-heading { margin-bottom: 22px; }
+
+.mp-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, .44fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 58px);
+  color: var(--mp-ink);
+}
+.mp-layout[data-invited=true] { grid-template-areas: "main side"; }
+.mp-layout[data-invited=true] > .mp-main { grid-area: main; }
+.mp-layout[data-invited=true] > .mp-side { grid-area: side; }
+
+.mp-layout h2, .mp-layout h3 { margin: 0; }
+.mp-layout h2 { font: 600 25px/1.13 "Outfit", sans-serif; letter-spacing: -.02em; }
+.mp-layout h3 { font: 600 17px/1.2 "Outfit", sans-serif; }
+.mp-muted { color: var(--mp-muted); font-size: 12px; line-height: 1.45; }
+.mp-main { min-width: 0; }
+.mp-host-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; }
+#app .mp-layout button.mp-jump-join { display: none; }
+
+.mp-step, .mp-bots { border-top: 1px solid var(--mp-line); margin-top: 18px; padding-top: 15px; }
+.mp-step-heading, .mp-roster-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  margin-bottom: 11px;
+}
+
+.mp-segment, .mp-length, .mp-bot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#app .mp-layout button.mp-choice {
+  min-height: 42px;
+  min-width: 42px;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--mp-muted);
+  border: 1px solid var(--mp-line);
+  border-radius: 6px;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+#app .mp-layout button.mp-choice[aria-pressed=true] {
+  background: color-mix(in srgb, var(--mp-accent) 15%, var(--mp-raised));
+  border-color: color-mix(in srgb, var(--mp-accent) 58%, var(--mp-line));
+  color: var(--mp-ink);
+}
+
+.mp-courses, .mp-rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 9px;
+}
+
+.mp-layout :is(button.mp-course-option, button.mp-rule-choice) {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--mp-ink);
+  font-size: 14px;
+  text-align: left;
+  line-height: 1.2;
+  box-shadow: none;
+}
+
+#app .mp-layout button.mp-course-option {
+  min-width: 0;
+  padding: 5px 8px 5px 5px;
+  background: transparent;
+  border: 1px solid var(--mp-line);
+  border-radius: 8px;
+}
+
+#app .mp-layout button.mp-course-option[aria-pressed=true],
+.mp-rule-option[data-selected=true] {
+  background: color-mix(in srgb, var(--mp-accent) 10%, var(--mp-raised));
+  border-color: color-mix(in srgb, var(--mp-accent) 54%, var(--mp-line));
+}
+
+#app .mp-layout :is(button.mp-course-option, button.mp-choice):hover:not(:disabled),
+.mp-rule-option:hover {
+  border-color: var(--mp-accent);
+  background: var(--mp-raised);
+}
+
+.mp-course-cover {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 5px;
+  background: var(--mp-raised);
+}
+
+.mp-course-copy, .mp-course-summary > div, .mp-rule-choice > span { min-width: 0; flex: 1; }
+.mp-course-copy strong, .mp-course-summary strong, .mp-rule-choice strong { display: block; overflow-wrap: anywhere; }
+.mp-course-copy small, .mp-course-summary small, .mp-rule-choice small {
+  display: block;
+  margin-top: 4px;
+  color: var(--mp-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.mp-course-option > svg { width: 16px; height: 16px; flex: none; color: var(--mp-accent); }
+.mp-course-option:disabled { opacity: .69; }
+
+.mp-rule-option {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid var(--mp-line);
+  border-radius: 8px;
+}
+
+#app .mp-layout button.mp-rule-choice {
+  min-height: 58px;
+  border: 0;
+  border-radius: 7px 0 0 7px;
+  padding: 8px 2px 8px 11px;
+  background: transparent;
+}
+.mp-rule-choice > svg, .mp-review-rule > svg { flex: none; width: 17px; height: 17px; color: var(--mp-accent); }
+
+#app .mp-layout button.mp-rule-info {
+  position: relative;
+  margin-inline: 2px;
+  min-width: 42px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--mp-muted);
+  box-shadow: none;
+  font: 600 13px/1 Georgia, serif;
+}
+#app .mp-layout button.mp-rule-info::after {
+  content: "";
+  position: absolute;
+  inset: 13px 12px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  pointer-events: none;
+}
+#app .mp-layout button.mp-rule-info:hover { color: var(--mp-accent); }
+
+.mp-side { position: sticky; top: 0; display: grid; gap: 16px; min-width: 0; }
+.mp-sheet { display: grid; gap: 12px; min-width: 0; padding: 16px; border: 1px solid var(--mp-line); border-radius: 9px; }
+.mp-review { background: var(--mp-surface); }
+.mp-sheet .mp-muted { margin: 0; }
+.mp-course-summary, .mp-review-rule { display: flex; align-items: center; gap: 10px; }
+.mp-review-rule { min-height: 24px; margin: 0; color: var(--mp-muted); font-size: 14px; }
+.mp-review-rule .mp-rule-info { margin-left: auto; }
+.mp-join label { margin: 0; }
+.mp-join input {
+  min-height: 45px; min-width: 0; width: 100%;
+  text-transform: uppercase; letter-spacing: .165em; font-variant-numeric: tabular-nums;
+}
+.mp-room-code { display: grid; gap: 3px; }
+.mp-room-code span { color: var(--mp-muted); font-size: 12px; }
+.mp-room-code strong { color: var(--mp-ink); font: 650 clamp(23px, 4vw, 36px)/1.2 "Outfit", sans-serif; letter-spacing: .13em; overflow-wrap: anywhere; }
+
+.mp-roster-heading p, .mp-bots-copy p { margin: 4px 0 0; }
+.mp-players { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--mp-line); }
+.mp-players > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 59px;
+  gap: 6px 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--mp-line);
+}
+.mp-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 33px;
+  height: 33px;
+  background: var(--mp-raised);
+  border: 1px solid var(--mp-line);
+  border-radius: 6px;
+}
+.mp-avatar svg { width: 16px; height: 16px; }
+.mp-avatar[data-bot=duffer] { color: #f3be96; }
+.mp-avatar[data-bot=weekend] { color: #ecdc9a; }
+.mp-avatar[data-bot=stick] { color: #acdcd2; }
+.mp-avatar[data-bot=master] { color: #f3c9e6; }
+html[data-theme=light] .mp-avatar[data-bot] { color: var(--mp-ink); }
+.mp-player-name { flex: 1 1 98px; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 3px 7px; }
+.mp-player-name small { color: var(--mp-muted); font-size: 11px; }
+.mp-player-name .profile-link { padding: 0; min-width: 0; color: inherit; }
+.mp-player-name .golfer-nameplate { max-width: 100%; }
+.mp-player-name .golfer-nameplate strong { overflow: hidden; text-overflow: ellipsis; }
+.mp-seat-status { font-size: 11px; color: var(--mp-muted); }
+.mp-seat-status[data-ready=true] { color: var(--mp-accent); }
+#app .mp-layout :is(button.mp-leave, button.mp-remove) {
+  min-height: 42px; padding: 4px 8px;
+  color: var(--mp-muted); background: transparent; border: 0; box-shadow: none; font-size: 12px;
+}
+#app .mp-layout :is(button.mp-leave, button.mp-remove):hover { color: var(--mp-ink); text-decoration: underline; }
+.mp-bots { margin-top: 18px; }
+.mp-bot-controls { display: grid; gap: 10px; margin-top: 10px; }
+.mp-bot-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.mp-rules-dialog header { display: flex; align-items: center; gap: 12px; padding-inline-end: 35px; }
+.mp-rules-dialog header svg { width: 25px; height: 25px; flex: none; color: var(--club-gold); }
+.mp-rules-dialog header h2 { margin: 0; }
+.mp-rules-dialog dl { margin: 15px 0; }
+.mp-rules-dialog dl > div { padding: 12px 0; border-top: 1px solid var(--club-line); }
+.mp-rules-dialog dt { font: 600 16px "Outfit", sans-serif; }
+.mp-rules-dialog dd { margin: 4px 0 0; color: var(--club-muted); font-size: 14px; line-height: 1.55; }
+
+@media (min-width: 1090px) {
+  .mp-courses { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 790px) {
+  .mp-layout { grid-template-columns: minmax(0, 1fr); gap: 17px; }
+  .mp-layout[data-invited=true] { grid-template-areas: "side" "main"; }
+  .mp-side { position: static; }
+  .mp-layout h2 { font-size: 22px; }
+  #app .mp-layout button.mp-jump-join {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 0 4px 5px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--mp-accent);
+    font-size: 12px;
+  }
+}
+@media (max-width: 540px) {
+  .mp-courses, .mp-rules { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .mp-course-cover { width: 49px; height: 49px; }
+  .mp-players > li { gap: 6px 8px; }
+}

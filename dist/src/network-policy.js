@@ -6,7 +6,10 @@ export const READ_ACTIONS = new Set(['me', 'room', 'friends', 'notifications', '
 
 export function roomPollInterval(room, hidden = false) {
   if (hidden) return 30000;
-  return room?.state?.phase === 'playing' ? 8000 : 4000;
+  const state = room?.state;
+  if (state?.phase !== 'playing') return 4000;
+  if (state.rule && (!state.holeStartAt || state.rule === 'turn' || state.rule === 'distance')) return 1800;
+  return 8000;
 }
 
 export function retryDelay(failures, base = 4000, cap = 60000) {

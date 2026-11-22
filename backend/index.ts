@@ -3,7 +3,7 @@ import { redeemProgressionGift } from './shared/progression-gift.js';
 import {auctionAction} from './auctions.ts';
 import { NEW_HOLE_EFFECT_IDS } from './shared/hole-effects-catalog.js';
 import {courseAvailable,courseRotationKey} from './shared/rotating-courses.js';
-import {roomAction} from './rooms.ts';
+import {ROOM_ACTIONS,roomAction,verifyRoomSubmission} from './rooms.ts';
 import {rankFor,awardRankPlates} from './shared/ranks.js';
 import {halloweenActive} from './shared/season.js';
 import {grantPattern,rollPattern} from './shared/finishes.js';
@@ -29,7 +29,7 @@ const table=(name:string,q='')=>api('/rest/v1/golf_'+name+'?'+q);
 const rpc=(name:string,body:unknown)=>api('/rest/v1/rpc/golf_'+name,body);
 const insert=(name:string,body:unknown)=>api('/rest/v1/golf_'+name,body);
 const update=(name:string,q:string,body:unknown,representation=true)=>api('/rest/v1/golf_'+name+'?'+q,body,'PATCH',KEY,representation);
-const lightActions=new Set(['notifications','friends','honors_inbox','ack_accolade','gift_accolade','profile','search_players','friend_action','community_maps','create_room','join_room','ready_room','replay_room','start_room','leave_room','room','add_room_bot','fill_room_bots','remove_room_bot']);
+const lightActions=new Set(['notifications','friends','honors_inbox','ack_accolade','gift_accolade','profile','search_players','friend_action','community_maps',...ROOM_ACTIONS]);
 async function player(id:string,action=''){
  const light=lightActions.has(action),select=light?'&select=id,username,is_guest,xp:state->xp,equipment:state->equipment':'';
  const p=(await table('players','id=eq.'+id+select))[0];if(!p)throw Error('This account is not a PolyGolf golfer.');
@@ -82,15 +82,18 @@ async function auth(action:string,b:any,req:Request){
  }
  try{const session=await api('/auth/v1/token?grant_type=password',{email,password});if(session.user.id!==accountId)throw Error('Account mismatch.');const p=await player(accountId);return{session,state:p.state,username:p.username,usernameChanges:p.username_changes||0};}catch(e){if(action==='login')throw Error('Username or password is incorrect.');throw e;}
 }
-async function submit(p:any,b:any){
+async function submit(p:any,b:any,forceRoomSkip=false,submittedAt=Date.now()){
  const r=(await table('rounds','id=eq.'+encodeURIComponent(b.roundId)+'&user_id=eq.'+p.id))[0];if(!r)throw Error('Round not found.');if(r.rules_version!==RULES_VERSION)throw Error('This round uses an older course. Return to the clubhouse and start a new round.');if(!Number.isInteger(b.index)||b.index<0)throw Error('Invalid hole.');
  if(r.next_hole>b.index)return{state:p.state,result:r.holes[b.index],duplicate:true,finished:r.finished,bonus:r.holes[b.index]?.bonus};if(r.finished||r.next_hole!==b.index)throw Error('Finish the current hole first.');
  if(r.competitive_id){const s=await rpc('ranked_status',{p_user:p.id});if(s.match?.id!==r.competitive_id||s.match.phase!=='playing')throw Error('This competitive match has ended.');}
- if(r.room_id){const room=(await table('rooms','id=eq.'+r.room_id))[0];if(!room||room.state.phase!=='playing'||room.state.hole!==b.index||!room.state.members.some((m:any)=>m.id===p.id))throw Error('This room is not playing that hole.');}
- const result=verifyHole(r,b.index,b.transcript,b.endTick);const elapsed=(Date.now()-new Date(r.updated_at).getTime())/1000;if(result.time>elapsed+3)throw Error('Replay time is ahead of the server.');
+ const room=r.room_id?(await table('rooms','id=eq.'+r.room_id))[0]:null;
+ const roomScore=r.room_id?verifyRoomSubmission(room,p,r,b,submittedAt,forceRoomSkip):null;
+ const result=verifyHole(r,b.index,b.transcript,b.endTick);const elapsed=(submittedAt-new Date(r.updated_at).getTime())/1000;if(result.time>elapsed+3)throw Error('Replay time is ahead of the server.');
+ if(roomScore?.raceTime!==undefined)result.raceTime=roomScore.raceTime;
  result.skipped=b.transcript.some((c:any)=>c.kind==='skip');const pm=progress(p);if(result.pirateHit)pm.discoverPirate();if(result.pumpkinHit)pm.discoverPumpkin();if(result.darbyFound)pm.discoverDarby();if(b.index===0)pm.data.stats.games++;const reward=result.skipped?{coins:0,xp:0}:pm.completeHole({...result,time:elapsed,round:{practice:false}});if(result.collectible&&!result.skipped)pm.collectible(false);
  const holes=[...r.holes,result],count=r.hole_count,finished=holes.length===count;let record=null,bonus={coins:0,xp:0};
- if(finished){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,rotationKey:r.rotation_key,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
+ const standardRoom=!roomScore?.rule||(roomScore.rule!=='speed'&&count===(r.mode==='golf'?golfHoleCount(r.course):9));
+ if(finished&&standardRoom){const seconds=Math.round((Date.now()-new Date(r.created_at).getTime())/1000),round={mode:r.mode,courseIndex:r.course,rotationKey:r.rotation_key,practice:holes.some(h=>h.skipped),strokes:holes.map(h=>h.strokes),time:seconds};bonus=pm.completeCourse(round,holes.map(h=>h.par),await roundRandom(r.id,p.id));if(!holes.some(h=>h.skipped))record={username:p.username,strokes:round.strokes.reduce((a,b)=>a+b,0),score:holes.reduce((sum,h)=>sum+h.strokes-h.par,0),seconds,level:pm.level.level};}
  result.finished=finished;if(finished)result.bonus=bonus;const state=await save(p,pm,{p_round:r.id,p_hole:b.index,p_result:result,p_record:record});return{state,result,reward,bonus,finished};
 }
 const matchPlates=new Map();
@@ -103,6 +106,7 @@ async function enrichRanked(p:any,result:any){
  }Object.assign(m,plates);}return result;
 }
 Deno.serve(async req=>{
+ const receivedAt=Date.now();
  const origin=req.headers.get('origin')||'',headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origins.has(origin)?origin:'https://littlelinks.study','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Access-Control-Max-Age':'600','Cache-Control':'no-store','Vary':'Origin'};
  if(req.method==='OPTIONS')return new Response(null,{headers});if(req.method!=='POST')return new Response(JSON.stringify({error:'Use POST.'}),{status:405,headers});
  try{
@@ -143,7 +147,7 @@ Deno.serve(async req=>{
   else if(['profile','update_profile','search_players','friends','notifications','friend_action'].includes(action))result=await socialAction(action,p,b,{table,rpc,update});
   else if(['ranked_status','ranked_queue','ranked_leave','ranked_shot'].includes(action))result=await enrichRanked(p,await competitiveAction(action,p,b,{table,rpc}));
   else if(action==='start_round'){const c=info(b.mode,b.course);if(c.id==='planetfall')throw Error('Planetfall uses its own distance board. Launch it from the Hole of the Day card.');if(b.mode==='golf'&&!courseAvailable(b.course))throw Error('This featured course has rotated. Choose the current course.');if(levelInfo(p.state.xp).level<c.level)throw Error('Reach level '+c.level+' to unlock ranked play here.');const r=(await insert('rounds',{user_id:p.id,mode:b.mode,course:b.course,equipment:p.state.equipment,rules_version:RULES_VERSION,hole_count:b.mode==='golf'?golfHoleCount(b.course):9,rotation_key:b.mode==='golf'?courseRotationKey(b.course):''}))[0];result={roundId:r.id,rotationKey:r.rotation_key};}
-  else if(action==='submit_hole')result=await submit(p,b);
+  else if(action==='submit_hole')result=await submit(p,b,false,receivedAt);
   else if(action==='claim_ship'||action==='claim_pumpkin'||action==='claim_darby'){
    const darby=action==='claim_darby',pumpkin=action==='claim_pumpkin',discovery=darby?'darby':pumpkin?'pumpkin':'pirate';
    if(pumpkin&&!halloweenActive())throw Error('The Halloween event has ended. Your earned items are yours to keep.');
@@ -217,7 +221,7 @@ Deno.serve(async req=>{
   }else if(action==='open_locker'||action==='buy_bundle'){const pm=progress(p);const random=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296;const outcome=action==='open_locker'?(b.count===undefined?openLocker(pm,b.id,b.requestId,random):openLockers(pm,b.id,b.count,b.requestId,random)):buyBundle(pm,b.id);result={state:await save(p,pm),outcome};}
   else if(action==='claim_achievement'){const pm=progress(p),outcome=pm.claimAchievement(b.id);result={state:await save(p,pm),outcome};}
   else if(action==='save_map'){requireEditor(progress(p));const layout=validateMap(b.map),existing=(await table('maps','user_id=eq.'+p.id+'&name=eq.'+encodeURIComponent(layout.name)))[0];if(existing)await update('maps','id=eq.'+existing.id,{layout,updated_at:new Date().toISOString()});else{const count=await table('maps','user_id=eq.'+p.id+'&select=id');if(count.length>=30)throw Error('Your account holds up to 30 maps. Reuse a name to update one.');await insert('maps',{user_id:p.id,name:layout.name,layout});}result={ok:true};}
-  else if(['create_room','join_room','ready_room','replay_room','start_room','leave_room','room','add_room_bot','fill_room_bots','remove_room_bot'].includes(action)){
+  else if(ROOM_ACTIONS.includes(action)){
    result=await roomAction(action,p,b,{table,rpc,insert,player,submit});
    if(action==='room'&&Number.isInteger(b.knownRevision)&&result.room?.revision===b.knownRevision)result={serverNow:result.serverNow,unchanged:true,roomId:result.room.id,revision:result.room.revision};
   }

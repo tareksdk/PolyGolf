@@ -54,7 +54,7 @@ export class GameManager {
     const random = new Uint32Array(1);
     globalThis.crypto?.getRandomValues?.(random);
     this.pirateRoundSeed = random[0] || Math.floor(Math.random() * 0xffffffff);
-    this.loadHole(0);
+    this.loadHole(options.holeIndex ?? 0);
   }
   loadHole(index) {
     this.clearInput();
@@ -155,6 +155,7 @@ export class GameManager {
   }
   meterStyle() { return this.world.settings?.shotMeter === 'fluid' ? 'fluid' : 'classic'; }
   beginPower() {
+    if (this.roomShotAllowed?.() === false) return;
     if (this.state !== 'playing' || this.physics.active || this.pendingSwing || this.charging || this.world.waterMoment || (this.world.pirateMoment || this.world.adventureMoment)) return;
     this.charging = true;
     this.shotPhase = 'power';
@@ -173,6 +174,7 @@ export class GameManager {
     this.displayedAccuracy = 0;
   }
   shoot() {
+    if (this.roomShotAllowed?.() === false) return;
     const fluid = this.meterStyle() === 'fluid';
     if (!this.charging || this.shotPhase !== (fluid ? 'power' : 'direction')) return;
     if (
@@ -191,6 +193,7 @@ export class GameManager {
     } else this.fire(shot);
   }
   fire(shot) {
+    if (this.roomShotAllowed?.() === false) return;
     const { dir, power, options } = shot;
     if (this.physics.shoot(dir.x, dir.z, power, options)) {
       this.transcript.push({
@@ -212,6 +215,7 @@ export class GameManager {
   }
 
   reset() {
+    if (this.roomShotAllowed?.() === false) return;
     if (this.round?.sudden) return;
     if (this.state !== "playing" || this.pendingSwing || this.physics.sunk) return;
     if(this.hole.space){this.planetfallMiss('Ball recalled');return;}
@@ -295,7 +299,7 @@ export class GameManager {
     }
   }
   skip() {
-    if (this.round?.sudden) return;
+    if (this.round?.sudden || this.roomSkipAllowed?.() === false) return;
     if (!["paused", "playing"].includes(this.state)) return;
     if(this.hole.space){this.finishHole();return;}
     this.pendingSwing = null;
@@ -327,6 +331,7 @@ export class GameManager {
       transcript: this.transcript,
       endTick: this.ticks,
     };
+    this.onHoleSettled?.(result);
     const duration = this.physics.sunk ? this.world.celebrate?.(this.hole.cup, this.world.holeColor) : 1.15;
     this.holeReveal = { remaining: duration || 1.15, result };
     this.onUpdate();
@@ -549,7 +554,9 @@ export class GameManager {
         this.directionTime += dt;
         this.accuracy = directionAccuracy(this.directionTime);
       }
-      this.accumulator = Math.min(this.accumulator + dt, 0.1);
+      // Idle waits in a room are not part of a player's physics replay.
+      const roomIdle = !this.physics.active && !this.pendingSwing && this.roomShotAllowed?.() === false;
+      this.accumulator = roomIdle ? 0 : Math.min(this.accumulator + dt, 0.1);
       while (this.accumulator >= FIXED_STEP && this.state === "playing") {
         this.physics.update(FIXED_STEP);
         this.ticks++;

@@ -64,6 +64,7 @@ export class GolfCloud {
     return !!this.session?.user?.app_metadata?.polygolf_guest;
   }
   set room(value) {
+    if (value && value.id === this._room?.id && value.revision < this._room.revision) return;
     if (this._room?.id !== value?.id) { this.nextRoomPoll = 0; this.roomFailures = 0; }
     this._room = value;
     try {
@@ -88,13 +89,19 @@ export class GolfCloud {
       if (roomId) {
         try {
           const r = await this.call("room", { roomId });
-          if (["waiting", "playing"].includes(r.room.state.phase)) {
+          if (["waiting", "starting", "playing"].includes(r.room.state.phase)) {
             this.room = r.room;
             this.ui.screen = "multiplayer";
+            if (r.room.state.phase === "starting") this.ui.render();
             this.ui.syncRoom(r.room);
           } else this.room = null;
-        } catch {
-          this.room = null;
+        } catch (error) {
+          if (/not a member|room not found|older course/i.test(error.message)) this.room = null;
+          else {
+            this.status = 'Reconnecting to your room…';
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = setTimeout(() => this.restore(), Math.max(5000, error.retryAfterMs || 0));
+          }
         }
       }
     } catch (error) {
@@ -300,7 +307,7 @@ export class GolfCloud {
       const result = await this.call('room', { roomId, knownRevision: this.room.revision });
       if (this.session?.user.id !== actor || this.room?.id !== roomId) return;
       if (result.room) this.room = result.room;
-      else if (!result.unchanged || result.roomId !== roomId || result.revision !== this.room.revision) throw Error('Room update interrupted.');
+      else if (!result.unchanged || result.roomId !== roomId || result.revision > this.room.revision) throw Error('Room update interrupted.');
       this.roomFailures = 0;
       this.nextRoomPoll = Date.now() + roomPollInterval(this.room, typeof document !== 'undefined' && document.hidden);
       this.ui.syncRoom(this.room);
@@ -308,6 +315,15 @@ export class GolfCloud {
       this.status = this.isGuest ? "Guest online · saved in this browser" : "Account synced";
     } catch (e) {
       if (this.session?.user.id !== actor || this.room?.id !== roomId) return;
+      if (/not a member of this room/i.test(e.message)) {
+        this.room = null;
+        this.ui.closeModal();
+        if (this.ui.game.round?.roomRule) this.ui.game.leave();
+        this.ui.screen = 'multiplayer';
+        this.ui.render();
+        this.ui.toast('Your seat in this room has closed.');
+        return;
+      }
       this.roomFailures = (this.roomFailures || 0) + 1;
       this.nextRoomPoll = Date.now() + retryDelay(this.roomFailures);
       this.status = "Reconnecting…";

@@ -1,6 +1,6 @@
 {
   "name": "polygolf",
-  "version": "1.21.0",
+  "version": "1.25.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,4 +1,6 @@
 import { DEFAULT_EQUIPMENT } from './catalog.js';
+import { roomBotPresentation } from './room-bots.js';
+export { ROOM_BOT_SKILLS, makeRoomBot, planRoomBotHole } from './room-bots.js';
 
 export const BOT_NAMES = ['Birdie Bot','Cedar Bot','Chip Bot','Putter Bot','Sandy Bot','Robin Bot','Bogey Bot'];
 // Round totals: 30% +1, 40% even, 26% -1, 3% -2, 1% -3.
@@ -21,6 +23,7 @@ export function makeBot(pars, index=0, random=Math.random) {
 // Presentation follows the server's saved score plan and clock. It never submits scores.
 export function botPresentation(member, ui, time) {
   const match=ui.ranked?.match, room=ui.cloud.room?.state, ranked=!!match?.bot&&ui.game.round?.competitiveId===match.id;
+  if(!ranked&&member.botSkill)return roomBotPresentation(member,ui,time);
   let index=room?.hole||0, started=room?.botHoleStartedAt, plan=member.plan, sudden=false;
   if(ranked){
     plan=match.bot.plan;started=Date.parse(match.created_at);index=0;

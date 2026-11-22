@@ -3,7 +3,7 @@ import { buildClub, mountClub, trimClubCache } from "./club-models.js";
 import { finishItem } from './finishes.js';
 
 // Local -Z faces the ball. The target line runs along local -X.
-export function createGolfer(w) {
+export function createGolfer(w, [shirt = "#e5ba60", cap = "#365749"] = []) {
   const root = new THREE.Group(),
     torso = new THREE.Group(),
     rig = new THREE.Group();
@@ -13,11 +13,11 @@ export function createGolfer(w) {
   const part = (shape, color, x, y, z, sx, sy, sz, parent = root) =>
     w.mesh(shape, color, x, y, z, sx, sy, sz, parent);
   torso.position.y = 0.91;
-  part("box", "#e5ba60", 0, 0.23, 0, 0.46, 0.46, 0.27, torso);
+  part("box", shirt, 0, 0.23, 0, 0.46, 0.46, 0.27, torso);
   part("box", "#f6ecd4", 0, 0.45, -0.03, 0.19, 0.055, 0.27, torso);
   part("box", "#dfb88f", 0, 0.67, -0.025, 0.3, 0.32, 0.28, torso);
-  part("box", "#365749", 0, 0.86, -0.025, 0.34, 0.085, 0.32, torso);
-  part("box", "#365749", 0, 0.81, -0.23, 0.33, 0.045, 0.18, torso);
+  part("box", cap, 0, 0.86, -0.025, 0.34, 0.085, 0.32, torso);
+  part("box", cap, 0, 0.81, -0.23, 0.33, 0.045, 0.18, torso);
   part("box", "#263c33", 0, 0.03, 0, 0.45, 0.11, 0.28, torso);
   for (const x of [-0.18, 0.18]) {
     const leg = part("box", "#d8d0b4", x, 0.48, 0.035, 0.18, 0.73, 0.22);

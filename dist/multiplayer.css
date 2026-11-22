@@ -242,3 +242,53 @@
   .room-watch-touch { display: inline; }
   .room-watch-mouse { display: none; }
 }
+
+.room-rule-banner {
+  position: fixed;
+  z-index: 17;
+  left: 50%;
+  top: max(80px, 13%);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: min(90%, 460px);
+  padding: 8px 15px;
+  border: 1px solid #dce7ca65;
+  border-radius: 999px;
+  color: #faf4db;
+  background: #102d25ec;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.room-rule-banner[hidden], .room-rule-banner :empty { display: none; }
+.room-rule-banner.is-countdown {
+  top: 43%;
+  transform: translate(-50%, -50%);
+  min-width: min(230px, 70vw);
+  padding: 13px 24px 19px;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at center bottom, #294936, #10251f 73%);
+  border-color: #e4cf84b3;
+  box-shadow: 0 0 55px #edce642c, 0 12px 28px #071e1660;
+  letter-spacing: .04em;
+}
+.room-rule-banner strong {
+  display: block;
+  color: #ffe596;
+  font: 750 clamp(64px, 16svh, 132px)/.98 Outfit, sans-serif;
+  text-shadow: 0 5px #7d6641, 0 0 28px #ffdb6636;
+  font-variant-numeric: tabular-nums;
+}
+.room-scorecard.is-speed-card .scorecard-ink { min-width: 57px; font-size: 11px; }
+.room-scorecard.is-speed-card .scorecard-total { min-width: 69px; font-variant-numeric: tabular-nums; }
+#room-race-time { display: inline; color: inherit; font: inherit; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.speed-results { font-variant-numeric: tabular-nums; }
+.speed-results td { white-space: nowrap; }
+@media (max-width: 650px) {
+  .room-rule-banner { top: max(78px, 18%); font-size: 12px; }
+  .room-rule-banner.is-countdown { top: 45%; }
+}

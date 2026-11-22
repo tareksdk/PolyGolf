@@ -20,7 +20,7 @@ mock.timers.enable({apis:['Date'],now:new Date('2026-10-15T12:00:00Z')});
 // Execute the actual Edge handler, with all network I/O replaced by an in-memory service.
 const players=new Map([['a',{id:'a',username:'local_a',revision:0,state:defaultSave()}],['b',{id:'b',username:'local_b',revision:0,state:defaultSave()}]]),maps=[];
 let handler;
-const rounds=new Map();let ratings=[];
+const rounds=new Map(), rooms=new Map(), records=[];let ratings=[];
 globalThis.Deno={env:{get:k=>k==='SUPABASE_URL'?'https://local-supabase.invalid':'local-test-only'},serve:fn=>{handler=fn;}};
 globalThis.fetch=async(raw,options={})=>{
  const url=new URL(raw);assert.equal(url.origin,'https://local-supabase.invalid','No external network is allowed in this test');
@@ -29,13 +29,38 @@ globalThis.fetch=async(raw,options={})=>{
  if(path==='/auth/v1/user'){const id=options.headers.Authorization.slice(7);return players.has(id)?reply({id}):reply({message:'Unauthorized'},401);}
  if(path.endsWith('/rpc/golf_rate'))return reply(true);
  if(path.endsWith('/rpc/golf_ranked_join')){assert.equal(body.p_user,'a');assert.deepEqual(body.p_equipment,players.get('a').state.equipment);return reply({queued:true,rating:{elo:1000},match:null});}
- if(path.endsWith('/rpc/golf_commit')){const p=players.get(body.p_user);if(p.revision!==body.p_revision)return reply({message:'State changed. Refresh and try again.'},409);if(body.p_round){const r=rounds.get(body.p_round);if(r.next_hole!==body.p_hole||r.finished)return reply({message:'Already recorded'},409);r.holes.push(body.p_result);r.next_hole++;r.finished=body.p_result.finished;}p.state=body.p_state;p.revision++;return reply(p.revision);}
+ if(path.endsWith('/rpc/golf_room_cas')){
+  const room=rooms.get(body.p_id);
+  if(room.revision!==body.p_revision)return reply({message:'Room changed. Try again.'},409);
+  room.state=structuredClone(body.p_state);
+  return reply(++room.revision);
+ }
+ if(path.endsWith('/golf_rooms')){
+  if(method==='POST'){
+   const room={...body,id:'private-room-'+rooms.size,revision:0};
+   rooms.set(room.id,room);return reply([room]);
+  }
+  return reply([...rooms.values()].filter(room=>['id','code'].every(key=>!url.searchParams.has(key)||url.searchParams.get(key)==='eq.'+room[key])));
+ }
+ if(path.endsWith('/rpc/golf_commit')){const p=players.get(body.p_user);if(p.revision!==body.p_revision)return reply({message:'State changed. Refresh and try again.'},409);if(body.p_round){const r=rounds.get(body.p_round);if(r.next_hole!==body.p_hole||r.finished)return reply({message:'Already recorded'},409);r.holes.push(body.p_result);r.next_hole++;r.finished=body.p_result.finished;if(r.room_id)r.updated_at=new Date().toISOString();if(body.p_record)records.push({round:r.id,...body.p_record});}p.state=body.p_state;p.revision++;return reply(p.revision);}
  if(path.endsWith('/golf_ratings')){assert.equal(url.searchParams.get('matches'),'gt.0');assert.equal(url.searchParams.get('order'),'elo.desc,wins.desc,user_id.asc');assert.equal(url.searchParams.get('limit'),'100');return reply(ratings);}
- if(path.endsWith('/golf_rounds')&&method==='GET'){const r=rounds.get(url.searchParams.get('id')?.slice(3));return reply(r&&r.user_id===url.searchParams.get('user_id')?.slice(3)?[structuredClone(r)]:[]);}
+ if(path.endsWith('/golf_rounds')&&method==='GET'){
+  const id=url.searchParams.get('id'), roomId=url.searchParams.get('room_id'), userId=url.searchParams.get('user_id');
+  if(id?.startsWith('in.('))return reply(id.slice(4,-1).split(',').map(id=>rounds.get(id)).filter(Boolean));
+  if(roomId)return reply([...rounds.values()].filter(r=>'eq.'+r.room_id===roomId));
+  const round=rounds.get(id?.slice(3));
+  return reply(round&&(!userId||'eq.'+round.user_id===userId)?[round]:[]);
+ }
  if(path.endsWith('/golf_players')){if(url.searchParams.get('id')?.startsWith('in.(')){const ids=url.searchParams.get('id').slice(4,-1).split(',');return reply(ids.map(id=>players.get(id)).filter(Boolean).map(p=>structuredClone(p)));}const id=url.searchParams.get('id')?.slice(3),row=players.get(id);if(method==='PATCH'){Object.assign(row,body);return reply([row]);}if(!id)return reply([...players.values()].map(p=>structuredClone(p)));return reply(row?[structuredClone(row)]:[]);}
  if(path.endsWith('/golf_trades'))return reply([]);
  if(path.endsWith('/golf_friends'))return reply([]);
- if(path.endsWith('/golf_rounds')&&method==='POST'){const r={...body,id:'round-test',holes:[],next_hole:0,finished:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};rounds.set(r.id,r);return reply([r]);}
+ if(path.endsWith('/golf_rounds')&&method==='POST'){
+  const rows=Array.isArray(body)?body:[body], now=new Date().toISOString();
+  return reply(rows.map(values=>{
+   const round={...values,id:values.room_id?'private-round-'+rounds.size:'round-test',holes:[],next_hole:0,finished:false,created_at:now,updated_at:now};
+   rounds.set(round.id,round);return round;
+  }));
+ }
  if(path.endsWith('/golf_public_maps')){
   if(method==='POST'){const row={...body,id:'map-'+maps.length};maps.push(row);return reply([row]);}
   const rows=maps.filter(m=>(!url.searchParams.has('user_id')||m.user_id===url.searchParams.get('user_id').slice(3))&&(!url.searchParams.has('id')||m.id===url.searchParams.get('id').slice(3)));
@@ -52,8 +77,8 @@ let competitive=await readFile(new URL('../backend/competitive.ts',import.meta.u
 source=source.replace("'./competitive.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(competitive)).toString('base64')));
 let trading=await readFile(new URL('../backend/trading.ts',import.meta.url),'utf8');trading=trading.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./trading.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(trading)).toString('base64')));
-let rooms=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');rooms=rooms.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
-source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(rooms)).toString('base64')));
+let roomsSource=await readFile(new URL('../backend/rooms.ts',import.meta.url),'utf8');roomsSource=roomsSource.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
+source=source.replace("'./rooms.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(roomsSource)).toString('base64')));
 let auctions=await readFile(new URL('../backend/auctions.ts',import.meta.url),'utf8');auctions=auctions.replaceAll("'./shared/","'"+new URL('../dist/src/',import.meta.url).href);
 source=source.replace("'./auctions.ts'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(auctions)).toString('base64')));
 // Exercise the existing all-access reward with a test-only code alias.
@@ -291,9 +316,8 @@ test('public Elo leaderboard returns only safe rating fields and usernames',asyn
  assert.deepEqual(Object.keys(result.rows[0]).sort(),['user_id','username','elo','rank','wins','losses','matches'].sort());
  ratings=[];assert.deepEqual((await call('ranked_leaderboard',{},null)).rows,[]);
 });
-test('verified final-hole crate grant is atomic and retries return the same completion receipt',async()=>{
- const player=players.get('a');player.state=defaultSave();
- const equipment=player.state.equipment,hole=getHole(0,8),transcript=[];let p=new PhysicsManager(),ticks=0;p.load(hole);
+function miniSinkReplay(equipment,index){
+ const hole=getHole(0,index),transcript=[];let p=new PhysicsManager(),ticks=0;p.load(hole);
  while(!p.sunk && transcript.length<24){
   const n=nearestPoint(hole,p.ball.x,p.ball.z),targets=[-.03,0,.03,.06,.13,.22,.34,.5,.8].map(v=>hole.samples[Math.max(0,Math.min(153,Math.round((n.t+v)*160)))]);targets.push(hole.cup);let best;
   for(const target of targets){for(const power of [.015,.035,.06,.1,.16,.22,.28,.45,.65,.85]){
@@ -304,12 +328,164 @@ test('verified final-hole crate grant is atomic and retries return the same comp
   }if(best?.q.sunk)break;}
   assert.ok(best&&best.score>=0);transcript.push(best.command);ticks+=best.steps;p=best.q;p.events=[];
  }
- assert.ok(p.sunk,'Planner must finish the real last hole');
+ assert.ok(p.sunk,'Planner must finish the real hole');
+ return {transcript,endTick:ticks};
+}
+
+test('verified final-hole crate grant is atomic and retries return the same completion receipt',async()=>{
+ const player=players.get('a');player.state=defaultSave();
+ const equipment=player.state.equipment;
+ const {transcript,endTick}=miniSinkReplay(equipment,8);
  let id;for(let i=0;i<1000;i++){const candidate='fixture-drop-'+i;if(createHmac('sha256','local-test-only').update('round-locker-v1:'+candidate+':a').digest().readUInt32BE(0)/4294967296<.1){id=candidate;break;}}assert.ok(id);
  rounds.set(id,{id,user_id:'a',mode:'mini',course:0,equipment,rules_version:RULES_VERSION,hole_count:9,next_hole:8,holes:Array.from({length:8},()=>({strokes:3,par:3,skipped:false})),finished:false,created_at:new Date(Date.now()-900000).toISOString(),updated_at:new Date(Date.now()-900000).toISOString()});
- const payload={roundId:id,index:8,transcript,endTick:ticks};const attempts=await Promise.allSettled([call('submit_hole',payload),call('submit_hole',payload)]);
+ const payload={roundId:id,index:8,transcript,endTick};const attempts=await Promise.allSettled([call('submit_hole',payload),call('submit_hole',payload)]);
  assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);const result=attempts.find(r=>r.status==='fulfilled').value;
  assert.ok(result.bonus.locker);assert.equal(player.state.lockers[result.bonus.locker],1);const coins=player.state.coins;
  const retry=await call('submit_hole',payload);assert.equal(retry.duplicate,true);assert.deepEqual(retry.bonus,result.bonus);assert.equal(player.state.coins,coins);assert.equal(player.state.lockers[result.bonus.locker],1);
 });
 
+
+async function readyPrivateRoom(rule, holeCount=2) {
+  const {room:waiting}=await call('create_room',{mode:'mini',course:0,holeCount,rule});
+  await assert.rejects(call('join_room',{code:waiting.code},'b'),/Refresh PolyGolf/);
+  await call('join_room',{code:waiting.code,roomProtocol:1},'b');
+  const params={roomId:waiting.id};
+  await call('ready_room',params,'b');
+  const {room}=await call('start_room',params);
+  return {room, params, a:room.state.members[0].roundId, b:room.state.members[1].roundId};
+}
+
+async function loadPrivateHole(fixture, index) {
+  const {room:pending}=await call('loaded_room',{...fixture.params,roundId:fixture.a,hole:index});
+  assert.equal(pending.state.holeStartAt,null);
+  const {room}=await call('loaded_room',{...fixture.params,roundId:fixture.b,hole:index},'b');
+  assert.equal(room.state.holeStartAt-Date.now(),index === 0 ? 10000 : 3000);
+  return room;
+}
+
+test('private room settings choose a length and wait on the last renderer before the 10- and 3-second starts',async()=>{
+ await assert.rejects(call('create_room',{mode:'mini',course:0,holeCount:10,rule:'free'}),/between 1 and 9/);
+ await assert.rejects(call('create_room',{mode:'mini',course:0,holeCount:1,rule:'unknown'}),/format/);
+ const f=await readyPrivateRoom('free');
+ assert.equal(rounds.get(f.a).hole_count,2);
+ assert.equal(f.room.state.holeStartAt,null);
+ const skip={index:0,transcript:[{kind:'skip',tick:0}],endTick:0};
+ await assert.rejects(call('submit_hole',{roundId:f.a,...skip}),/countdown/);
+ const first=await loadPrivateHole(f,0);
+ await assert.rejects(call('submit_hole',{roundId:f.a,...skip}),/countdown/);
+ mock.timers.setTime(first.state.holeStartAt);
+ await Promise.all([call('submit_hole',{roundId:f.a,...skip}),call('submit_hole',{roundId:f.b,...skip},'b')]);
+ const {room:between}=await call('room',f.params);
+ assert.equal(between.state.hole,1);
+ assert.equal(between.state.holeStartAt,null);
+ const second=await loadPrivateHole(f,1);
+ mock.timers.setTime(second.state.holeStartAt);
+ await Promise.all([call('submit_hole',{roundId:f.a,...skip,index:1}),call('submit_hole',{roundId:f.b,...skip,index:1},'b')]);
+ const {room:finished}=await call('room',f.params);
+ assert.equal(finished.state.phase,'finished');
+ assert.equal(finished.state.members[0].scores.length,2);
+});
+
+test('turn ledgers reject played-out-of-order and rewritten shots and restore the settled actor only',async()=>{
+ const f=await readyPrivateRoom('turn');
+ const started=await loadPrivateHole(f,0);
+ mock.timers.setTime(started.state.holeStartAt);
+ const reset={kind:'reset',tick:0}, partial={...f.params,hole:0,transcript:[reset],endTick:0};
+ assert.equal(started.state.turnId,'a');
+ await assert.rejects(call('room_shot',{...partial,roundId:f.b},'b'),/your turn/);
+ const {room:after}=await call('room_shot',{...partial,roundId:f.a});
+ assert.equal(after.state.turnId,'b');
+ assert.deepEqual(after.state.members[0].turnReplay,[reset]);
+ const {room:other}=await call('room',f.params,'b');
+ assert.equal(other.state.members[0].turnReplay,undefined);
+ assert.equal(other.state.members[0].turnCommands,1);
+ const retry=await call('room_shot',{...partial,roundId:f.a});
+ assert.equal(retry.room.state.turnId,'b');
+ await assert.rejects(call('room_shot',{...partial,roundId:f.a,transcript:[{...reset,tick:1}],endTick:1}),/saved turn/);
+ const {room:rotated}=await call('room_shot',{...partial,roundId:f.b},'b');
+ assert.equal(rotated.state.turnId,'a');
+});
+
+test('distance play tees off in sequence then lets a farther golfer retain the turn',async()=>{
+ const f=await readyPrivateRoom('distance',1);
+ const started=await loadPrivateHole(f,0);
+ mock.timers.setTime(started.state.holeStartAt);
+ const reset={kind:'reset',tick:0};
+ const {room:afterReset}=await call('room_shot',{...f.params,roundId:f.a,hole:0,transcript:[reset],endTick:0});
+ assert.equal(afterReset.state.turnId,'b');
+
+ const hole=getHole(0,0), target=hole.samples[25], p=new PhysicsManager();p.load(hole);
+ const distance=Math.hypot(target.x-p.ball.x,target.z-p.ball.z);
+ const shot={kind:'shot',tick:0,dx:(target.x-p.ball.x)/distance,dz:(target.z-p.ball.z)/distance,power:.1,shape:0,spin:0,club:'putter'};
+ assert.equal(p.shoot(shot.dx,shot.dz,shot.power,{gear:miniStats(rounds.get(f.b).equipment)}),true);
+ let tick=0;while(p.active&&tick<5000){p.update(FIXED_STEP);tick++;}
+ assert.ok(!p.active&&!p.sunk&&!p.events.includes('water'),'Fixture stops in play.');
+ mock.timers.setTime(Date.now()+Math.ceil(tick/120)*1000);
+ const {room:afterShot}=await call('room_shot',{...f.params,roundId:f.b,hole:0,transcript:[shot],endTick:tick,distance:99_999},'b');
+ assert.ok(afterShot.state.members[0].distance>afterShot.state.members[1].distance);
+ assert.equal(afterShot.state.turnId,'a');
+ const {room:retained}=await call('room_shot',{...f.params,roundId:f.a,hole:0,transcript:[reset,reset],endTick:0});
+ assert.equal(retained.state.turnId,'a');
+});
+
+test('a stalled renderer is removed after the load limit and the remaining player can start',async()=>{
+ const f=await readyPrivateRoom('speed',1);
+ await call('loaded_room',{...f.params,roundId:f.a,hole:0});
+ mock.timers.setTime(f.room.state.loadDeadline+1);
+ const {room}=await call('room',f.params);
+ assert.deepEqual(room.state.members.map(m=>m.id),['a']);
+ assert.equal(room.state.departed[0].withdrawn,true);
+ assert.equal(room.state.holeStartAt-Date.now(),10000);
+ await assert.rejects(call('loaded_room',{...f.params,roundId:f.b,hole:0},'b'),/not a member/);
+});
+
+test('speed rooms save server elapsed times for real sinks and never write public course records',async()=>{
+ const f=await readyPrivateRoom('speed',1), start=(await loadPrivateHole(f,0)).state.holeStartAt;
+ const transcript=miniSinkReplay(rounds.get(f.a).equipment,0);
+ const recordCount=records.length;
+ const elapsed=Math.ceil(transcript.endTick/120)+2, delayed=(elapsed*1000+2123)/1000;
+ mock.timers.setTime(start+elapsed*1000);
+ const first=await call('submit_hole',{roundId:f.a,index:0,...transcript,raceTime:-100});
+ assert.equal(first.result.raceTime,elapsed);
+ mock.timers.setTime(start+elapsed*1000+2123);
+ const second=await call('submit_hole',{roundId:f.b,index:0,...transcript,raceTime:1},'b');
+ assert.equal(second.result.raceTime,delayed);
+ assert.equal((await call('submit_hole',{roundId:f.a,index:0,...transcript})).result.raceTime,elapsed);
+ const {room}=await call('room',f.params);
+ assert.equal(room.state.phase,'finished');
+ assert.deepEqual(room.state.members.map(m=>m.times),[[elapsed],[delayed]]);
+ assert.equal(records.length,recordCount);
+});
+
+test('speed timeout saves a DNF and lets the room advance',async()=>{
+ const f=await readyPrivateRoom('speed',1), started=await loadPrivateHole(f,0);
+ mock.timers.setTime(started.state.deadline+1);
+ const {room}=await call('room',f.params);
+ assert.equal(room.state.phase,'finished');
+ assert.deepEqual(room.state.members.map(m=>m.times),[[null],[null]]);
+ assert.deepEqual([rounds.get(f.a).next_hole,rounds.get(f.b).next_hole],[1,1]);
+});
+
+test('an ordered bot keeps one shot per turn and runs on the server clock',async()=>{
+ const {room}=await call('create_room',{mode:'mini',course:0,rule:'turn',holeCount:1});
+ const params={roomId:room.id};
+ await call('add_room_bot',{...params,skill:'master'});
+ rooms.get(room.id).state.members[1].botSeed='ordered-bot-backend-fixture';
+ const {room:ready}=await call('start_room',params);
+ const roundId=ready.state.members[0].roundId;
+ const {room:started}=await call('loaded_room',{...params,roundId,hole:0});
+ mock.timers.setTime(started.state.holeStartAt);
+ const {room:afterHuman}=await call('room_shot',{...params,roundId,hole:0,transcript:[{kind:'reset',tick:0}],endTick:0});
+ const bot=afterHuman.state.members[1];
+ assert.equal(bot.botSkill,'master');
+ assert.equal(afterHuman.state.turnId,bot.id);
+ assert.equal(bot.botPlan,undefined);
+ assert.equal(bot.botShotsPlayed,0);
+ const persisted=rooms.get(room.id).state.members[1].botPlan;
+ assert.ok(persisted.shots.length>1,'Fixture should require multiple bot shots.');
+ mock.timers.setTime(bot.botShotStartedAt+persisted.shots[0].durationMs);
+ const {room:afterBot}=await call('room',params);
+ assert.equal(afterBot.state.turnId,'a');
+ assert.equal(afterBot.state.members[1].botShotsPlayed,1);
+ assert.equal(afterBot.state.members[1].nextHole,0);
+});

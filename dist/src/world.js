@@ -121,6 +121,7 @@ export class World {
     });
   }
   load(h) {
+    this.renderedFrames = 0;
     if(h.space)return buildPlanetfallWorld(this,h);
     if (h.mode === "golf") return buildGolf(this, h);
     this.camera.near = 0.1;
@@ -913,6 +914,7 @@ export class World {
     }
     try {
       renderFrame(this.renderer, scene, this.camera, innerWidth, innerHeight, stage);
+      if (this.mode === 'play' && this.renderedFrames < 3 && !this.renderer.getContext().isContextLost()) this.renderedFrames++;
       if (viewport && stage.width && stage.height)
         viewport.toggleAttribute('data-live', !this.renderer.getContext().isContextLost());
     } finally {

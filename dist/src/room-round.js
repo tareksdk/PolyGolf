@@ -2,6 +2,7 @@ import { getHole } from './courses.js';
 import { getGolfHole } from './golf-courses.js';
 import { icon } from './icons.js';
 import { currentRoomRound } from './live-state.js';
+import { formatRoomTime, hasRoomTime, roomNow } from './room-rules.js';
 import { SpectatorCamera } from './spectator-camera.js';
 import { button, esc } from './views.js';
 
@@ -31,10 +32,10 @@ export function roomSpectatorTargets(room, golfer, hole) {
     !(member.nextHole > hole || recorded(member.scores?.[hole])));
 }
 
-function sheetMarkup(members, pars, ownId) {
+function sheetMarkup(members, pars, ownId, speed) {
   return `<caption class="room-sr-only">Hole by hole, with totals for completed holes</caption>
-    <thead><tr><th scope="col" class="scorecard-golfer">Golfer</th>${pars.map((_, i) => `<th scope="col" data-hole-column="${i}">${i+1}</th>`).join('')}<th scope="col" class="scorecard-total">Total</th></tr></thead>
-    <tbody><tr class="scorecard-par"><th scope="row" class="scorecard-golfer">Par</th>${pars.map((par, i) => `<td data-hole-column="${i}">${par}</td>`).join('')}<td class="scorecard-total">${pars.reduce((sum, par) => sum + par, 0)}</td></tr>
+    <thead><tr><th scope="col" class="scorecard-golfer">Golfer</th>${pars.map((_, i) => `<th scope="col" data-hole-column="${i}">${i+1}</th>`).join('')}<th scope="col" class="scorecard-total">${speed ? "Time" : "Total"}</th></tr></thead>
+    <tbody>${speed ? "" : `<tr class="scorecard-par"><th scope="row" class="scorecard-golfer">Par</th>${pars.map((par, i) => `<td data-hole-column="${i}">${par}</td>`).join('')}<td class="scorecard-total">${pars.reduce((sum, par) => sum + par, 0)}</td></tr>`}
     ${members.map(member => `<tr class="scorecard-player${member.id === ownId ? ' is-you' : ''}"><th scope="row" class="scorecard-golfer"><span title="${esc(member.name)}">${esc(member.name)}</span>${member.id === ownId ? '<small>YOU</small>' : ''}</th>${pars.map((_, i) => `<td data-hole-column="${i}"><span class="scorecard-ink">—</span></td>`).join('')}<td class="scorecard-total">—</td></tr>`).join('')}</tbody>`;
 }
 
@@ -70,6 +71,7 @@ export function installRoomRound(ui) {
   const card = find('.room-scorecard'), scroll = find('.room-score-scroll'), table = find('table');
   const watch = find('.room-spectator'), free = find('.room-watch-free'), follow = find('select');
   const scoreHole = find('.scorecard-hole'), ready = find('.scorecard-ready'), deadline = find('.scorecard-deadline');
+  const title = find('summary strong');
   const resultLine = find('.room-watch-result'), watchStatus = find('.room-watch-status');
   const mouseHelp = find('.room-watch-mouse'), touchHelp = find('.room-watch-touch');
   let currentRound, rosterKey, activeHole = -1, selectedKey = '', entry, pars, entries;
@@ -103,7 +105,10 @@ export function installRoomRound(ui) {
   });
 
   function updateSheet(room, golfer) {
-    const { members, deadline: end, phase } = room.state;
+    const { members, deadline: end, phase, holeStartAt } = room.state;
+    const speed = room.state.rule === 'speed';
+    text(title, speed ? 'Race times' : 'Scorecard');
+    card.classList.toggle('is-speed-card', speed);
     const hole = game.index;
     const key = JSON.stringify(members.map(({ id, name }) => [id, name]));
     const newRound = game.round !== currentRound;
@@ -116,7 +121,7 @@ export function installRoomRound(ui) {
     }
     if (newRound || key !== rosterKey) {
       rosterKey = key;
-      table.innerHTML = sheetMarkup(members, pars, golfer);
+      table.innerHTML = sheetMarkup(members, pars, golfer, speed);
       entries = [...table.querySelectorAll('.scorecard-player')].map(row => ({
         row, ink: [...row.querySelectorAll('.scorecard-ink')], total: row.querySelector('.scorecard-total'),
       }));
@@ -138,9 +143,30 @@ export function installRoomRound(ui) {
     const finished = members.filter(member => member.nextHole > hole || recorded(member.scores?.[hole]) || (member.id === golfer && entry)).length;
     text(ready, `${finished} / ${members.length} finished`);
     const seconds = Math.max(0, Math.ceil((end - Date.now() - (ui.cloud.serverOffset || 0)) / 1000));
-    text(deadline, phase === 'playing' && Number.isFinite(seconds)
+    text(deadline, phase === 'playing' && end > 0 && Number.isFinite(seconds)
       ? `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')} left` : '');
+    if (speed) {
+      const clock = overlay.parentElement?.querySelector('#room-race-time');
+      const saved = members.find(member => member.id === golfer)?.times?.[hole];
+      const milliseconds = Number.isFinite(holeStartAt) ? Math.max(0, roomNow(ui.cloud) - holeStartAt) : 0;
+      const elapsed = saved ?? entry?.raceTime ?? (game.state === 'playing' ? Math.floor(milliseconds / 100) / 10 : null);
+      if (clock) text(clock, formatRoomTime(elapsed));
+    }
     if (!card.open) return;
+    if (speed) {
+      members.forEach((member, index) => {
+        const { row, ink, total } = entries[index];
+        row.classList.toggle('is-followed', member.id === camera.targetId);
+        const official = member.times?.filter(hasRoomTime) || [];
+        text(total, official.length ? formatRoomTime(official.reduce((sum, elapsed) => sum + elapsed, 0)) : '—');
+        ink.forEach((cell, holeIndex) => {
+          const saved = member.times?.[holeIndex];
+          const time = saved ?? (member.id === golfer && holeIndex === hole ? entry?.raceTime : null);
+          text(cell, hasRoomTime(time) ? formatRoomTime(time) : (member.nextHole > holeIndex ? 'DNF' : '—'));
+        });
+      });
+      return;
+    }
     const rows = roomScoreRows(members, pars.length, hole, golfer, game.strokes, entry?.strokes, id => peer(id)?.sample);
     for (const [i, { id, scores, total }] of rows.entries()) {
       const { row, ink, total: sum } = entries[i];
@@ -173,7 +199,7 @@ export function installRoomRound(ui) {
     follow.disabled = available.length === 0;
     if (free.getAttribute('aria-pressed') !== String(!chosen)) free.setAttribute('aria-pressed', String(!chosen));
     const r = entry.reward, bonus = [r?.coins ? `+${r.coins} coins` : '', r?.xp ? `+${r.xp} XP` : ''].filter(Boolean);
-    text(resultLine, [`Hole ${entry.index+1} complete`, recorded(entry.strokes) ? `${entry.strokes} stroke${entry.strokes === 1 ? '' : 's'}` : '', ...bonus].filter(Boolean).join(' · '));
+    text(resultLine, [`Hole ${entry.index+1} complete`, room.state.rule === 'speed' ? formatRoomTime(entry.raceTime ?? room.state.members.find(m => m.id === golfer)?.times?.[entry.index]) : recorded(entry.strokes) ? `${entry.strokes} stroke${entry.strokes === 1 ? '' : 's'}` : '', ...bonus].filter(Boolean).join(' · '));
     text(watchStatus, chosen ? (peer(chosen.id)?.viewTarget ? `Following ${chosen.name}` : `Waiting for ${chosen.name}'s live view…`)
       : available.length ? 'Free view · Choose a golfer to follow' : 'Waiting for the next hole or round results');
     text(mouseHelp, chosen ? 'Drag to orbit · Scroll to zoom' : 'Drag to orbit · WASD or arrow keys to move · Scroll to zoom');
@@ -215,11 +241,11 @@ export function installRoomRound(ui) {
   };
   ui.tick = () => { tick(); sync(); };
   ui.roomRound = {
-    begin(strokes, reward) {
+    begin(strokes, reward, raceTime) {
       const room = currentRoomRound(ui);
       if (!room || room.state.phase !== 'playing' || room.state.hole !== game.index || game.state !== 'complete') return;
       if (!entry) camera.start(game.hole, game.physics.ball);
-      entry = { index: game.index, round: game.round, strokes, reward };
+      entry = { index: game.index, round: game.round, strokes, reward, raceTime };
       ui.closeModal();
       sync();
       world.canvas.focus({ preventScroll: true });
