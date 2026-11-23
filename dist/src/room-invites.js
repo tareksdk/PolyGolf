@@ -15,7 +15,7 @@ export function installInvites(ui) {
   ui.action=async(action,data={})=>{
     if(action!=='copy-room-link')return original(action,data);
     if(!ui.cloud.room)return;
-    const url=roomInviteUrl(ui.cloud.room.code,location.origin);
+    const url=roomInviteUrl(ui.cloud.room.code,location.protocol==='polygolf:'?'https://polygolf.lol':location.origin);
     try{await navigator.clipboard.writeText(url);ui.toast('Invite link copied. Send it to a friend.');}
     catch {ui.modal(`<h2>Invite a friend</h2><p>Copy this link and send it to your friend.</p><input class="invite-link" readonly aria-label="Room invite link" value="${esc(url)}">${button('Done','close-modal','','button yellow')}`);}
   };

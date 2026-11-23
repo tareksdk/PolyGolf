@@ -45,7 +45,8 @@ export async function decodeMap(code) {
 }
 
 export function shareLink(code) {
-  return `${location.origin}${location.pathname}#map=${code}`;
+  const page = location.protocol === 'polygolf:' ? 'https://polygolf.lol/' : location.origin + location.pathname;
+  return `${page}#map=${code}`;
 }
 
 export async function copyText(ui, text, label = "Copied to your clipboard.") {

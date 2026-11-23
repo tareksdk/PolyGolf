@@ -1,5 +1,6 @@
 import { installHomeMenu } from './home-menu.js';
 import { initializeCrazyGames } from './crazygames.js';
+import { installTouchControls } from './touch-controls.js';
 import { installCrazyGamesUI } from './crazygames-ui.js';
 import { setProgressStorage } from './progress-storage.js';
 import { installPlanetfall } from './planetfall-ui.js';
@@ -114,6 +115,9 @@ try {
   installMinimap(ui);
   installHomeMenu(ui);
   installCrazyGamesUI(ui);
+  if (location.protocol === 'polygolf:' || window.matchMedia('(pointer: coarse)').matches) {
+    installTouchControls(ui);
+  }
   ui.render();
   installInvites(ui);
   registerTools(ui);

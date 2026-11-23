@@ -17,7 +17,36 @@ function diagram(phase, drive, targetPower) {
   return `<svg class="swing-diagram" viewBox="0 0 188 54" aria-hidden="true">${detail}</svg>`;
 }
 
+function mobileCard({phase, drive, targetPower, signIn}) {
+  const titles = {
+    setup: drive ? 'Choose your driver' : 'Look around the green',
+    aim: drive ? 'Aim down the range' : 'Aim at the flag',
+    power: 'Choose your power',
+    strike: 'Time the direction',
+    flight: drive ? 'Watch the landing' : 'Follow the ball'
+  };
+  let body;
+  if (phase === 'setup' && !drive) {
+    body = `<ul class="lesson-camera">
+      <li data-tried="orbit"><i aria-hidden="true"></i><span>Put two fingers on the grass. Slide both sideways together to turn the camera.</span></li>
+      <li data-tried="zoom"><i aria-hidden="true"></i><span>Spread them to zoom in. Pinch to zoom out.</span></li>
+    </ul><button class="lesson-next" data-action="tutorial-next">Aim my putt</button>
+    ${signIn ? '<button class="lesson-signin" data-action="tutorial-signin">Sign in</button>' : ''}`;
+  } else if (phase === 'setup') {
+    body = '<p>Tap the club name and pick Driver.</p><div class="lesson-club-slot"></div>';
+  } else if (phase === 'aim' || phase === 'power') {
+    const aim = phase === 'aim' ? 'Drag one finger left or right to aim. ' : '';
+    body = `<p>${aim}<span class="lesson-timed">Hold the yellow button, then lift near <b>${targetPower}%</b>.</span><span class="lesson-preset">Slide to <b>${targetPower}%</b>, then tap Swing.</span></p>`;
+  } else if (phase === 'strike') {
+    body = '<p>Tap Swing when the white line reaches the green center.</p>';
+  } else {
+    body = '';
+  }
+  return `<header class="lesson-head"><h2>${titles[phase]}</h2><button data-action="tutorial-skip" aria-label="Skip tutorial">Skip</button></header>${body}`;
+}
+
 export function firstSwingCard({phase, drive, targetPower, touch, signIn}) {
+  if (touch) return mobileCard({phase, drive, targetPower, signIn});
   const stages = [drive ? 'Club' : 'Camera', 'Aim', 'Power', 'Strike'];
   const stage = {setup:0, aim:1, power:2, strike:3, flight:3}[phase];
   const title = {
@@ -31,17 +60,15 @@ export function firstSwingCard({phase, drive, targetPower, touch, signIn}) {
   if (phase === 'setup' && drive) {
     body = '<p>Carry the ball downrange. Press <kbd>C</kbd>, use the arrows, or open the club switcher and pick <b>Driver</b>.</p><div class="lesson-club-slot"></div>';
   } else if (phase === 'setup') {
-    body = touch
-      ? '<ul class="lesson-camera"><li data-tried="orbit"><i></i><span><b>Look around</b>Drag with two fingers.</span></li><li data-tried="zoom"><i></i><span><b>Zoom in or out</b>Pinch or spread two fingers.</span></li></ul>'
-      : '<ul class="lesson-camera"><li data-tried="orbit"><i></i><span><b>Look around</b>Right-drag with a mouse, or two-finger click and drag on a trackpad.</span></li><li data-tried="zoom"><i></i><span><b>Zoom in or out</b>Scroll the wheel or swipe up or down with two fingers on a trackpad.</span></li></ul>';
+    body = '<ul class="lesson-camera"><li data-tried="orbit"><i></i><span><b>Look around</b>Right-drag with a mouse, or two-finger click and drag on a trackpad.</span></li><li data-tried="zoom"><i></i><span><b>Zoom in or out</b>Scroll the wheel or swipe up or down with two fingers on a trackpad.</span></li></ul>';
     next = 'Aim my putt';
   } else if (phase === 'aim') {
-    body = `<p>${touch ? 'Touch and hold a point on the course to aim there and start building power.' : 'Move the pointer over the course. Use <kbd>←</kbd> <kbd>→</kbd> for small adjustments.'} ${drive ? 'Follow the arc to the landing spot.' : 'Point the guide through the cup.'}</p>`;
+    body = `<p>Move the pointer over the course. Use <kbd>←</kbd> <kbd>→</kbd> for small adjustments. ${drive ? 'Follow the arc to the landing spot.' : 'Point the guide through the cup.'}</p>`;
     next = 'Set power';
   } else if (phase === 'power') {
-    body = `<p>${touch ? 'Hold on the course' : 'Hold the left mouse button or <kbd>Space</kbd>'}. Release near <b>${targetPower}%</b>${targetPower<40?' for a gentle tap':''}.</p>`;
+    body = `<p>Hold the left mouse button or <kbd>Space</kbd>. Release near <b>${targetPower}%</b>${targetPower<40?' for a gentle tap':''}.</p>`;
   } else if (phase === 'strike') {
-    body = `<p>${touch ? 'Tap the course' : 'Click the course or press <kbd>Space</kbd>'} as the white marker crosses the green centre. A centred strike travels straight.</p>`;
+    body = `<p>Click the course or press <kbd>Space</kbd> as the white marker crosses the green centre. A centred strike travels straight.</p>`;
   } else {
     body = drive ? '<p>The range measures your distance after the ball stops.</p>' : '<p>If it rolls past the flag, use less power on the next putt.</p>';
   }

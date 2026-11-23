@@ -1,0 +1,116 @@
+/* The native view is inset to the device safe area in both orientations. */
+:root { --dock-space: 154px; -webkit-text-size-adjust: 100%; }
+#world { touch-action: none; -webkit-touch-callout: none; }
+.play-hud .ph-center, .play-hud .round-version, .play-hud .ph-left:has(.ph-shot.is-collapsed),
+[data-action="fullscreen"] { display: none !important; }
+.play-hud .ph-left {
+  position: absolute; inset: auto auto var(--dock-space) max(8px, calc(50% - 264px));
+  width: min(285px, calc(100% - 16px)); max-height: calc(100% - var(--dock-space) - 58px);
+  overflow: auto; overscroll-behavior: contain; z-index: 12; pointer-events: auto;
+}
+.play-hud .ph-shot { width: 100%; max-height: none; }
+.play-hud .ph-shot button, .play-hud .ph-shot input,
+.touch-toolbar button, .touch-toolbar summary, .tutorial-heading button,
+#first-swing .button, #first-swing .tutorial-signin, .minimap-collapse {
+  min-width: 44px; min-height: 44px; touch-action: manipulation;
+}
+.touch-dock, .touch-toolbar { font: 600 14px/1.25 -apple-system, BlinkMacSystemFont, sans-serif; }
+.play-hud .touch-dock {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: min(528px, calc(100% - 16px)); padding: 4px 10px 10px; box-sizing: border-box;
+  color: #f3f4df; background: #163e33f5; border: 1px solid #91a786; border-radius: 16px;
+  box-shadow: 0 4px 14px #0a2b2538; z-index: 10; pointer-events: auto;
+}
+.touch-dock button, .touch-toolbar summary { -webkit-appearance: none; border: 0; cursor: pointer; }
+.touch-readout, .touch-meter, .touch-actions { display: flex; align-items: center; gap: 7px; }
+.touch-readout { justify-content: space-between; }
+.touch-club { min-width: 44px; min-height: 44px; padding: 0 6px; font: inherit; color: #ffe4a0; background: transparent; }
+.touch-score, .touch-meter-label { font-size: 12px; font-variant-numeric: tabular-nums; }
+.touch-score { color: #eef1de; text-align: right; }
+.touch-meter { min-height: 23px; margin: 0 4px 6px; }
+.touch-meter-label { color: #e1e9d3; }
+.touch-track { flex: 1; position: relative; background: #092b23; border-radius: 6px; height: 10px; overflow: hidden; }
+.touch-track[hidden] { display: none; }
+.touch-marker { display: block; height: 100%; background: #f6d47b; transform-origin: left; }
+.touch-dock:is([data-phase="direction"],[data-phase="flow"]) .touch-track {
+  overflow: visible; background: linear-gradient(90deg,#9b624a 0% 42%,#679877 42% 58%,#9b624a 58% 100%);
+}
+.touch-dock:is([data-phase="direction"],[data-phase="flow"]) .touch-marker {
+  width: 4px; height: 18px; border-radius: 2px; background: white;
+  position: absolute; top: -4px; margin-left: -2px; box-shadow: 0 0 0 1px #0b271e;
+}
+.touch-actions button {
+  min-height: 48px; min-width: 48px; padding: 0 12px; touch-action: manipulation;
+  border-radius: 10px; font-weight: 700; color: #fff5d8; background: #305c4c;
+}
+.touch-actions .touch-fine { font-size: 30px; font-weight: 500; line-height: 1; }
+.touch-actions .touch-swing { flex: 1; background: #f4ce71; color: #15382b; font-size: 16px; }
+.touch-actions button:disabled { opacity: .6; }
+.touch-club:disabled { cursor: default; }
+.touch-dock button:focus-visible, .touch-toolbar summary:focus-visible {
+  outline: 3px solid white; outline-offset: 1px;
+}
+.touch-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.play-hud .touch-toolbar {
+  position: absolute; top: 8px; right: 8px; display: flex; align-items: start; gap: 6px;
+  z-index: 15; pointer-events: auto;
+}
+.touch-toolbar > button, .touch-tools summary {
+  background: #173f35f2; color: #f3f4df; border: 1px solid #9baf8c; border-radius: 10px;
+}
+.touch-tools summary { display: grid; align-items: center; padding: 0 12px; list-style: none; }
+.touch-tools summary::-webkit-details-marker { display: none; }
+.touch-tools-panel {
+  position: absolute; right: 0; top: 50px; width: min(276px, calc(100vw - 16px));
+  max-height: calc(100dvh - 70px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 10px; border: 1px solid #97ad90; border-radius: 12px; background: #153b32;
+}
+.play-hud .touch-tools-panel :is(.ph-tools,.camera-controls,.course-weather) {
+  position: static !important; inset: auto !important; display: flex !important; flex-wrap: wrap;
+  gap: 6px; transform: none !important; max-width: none; width: auto; height: auto; margin: 0 0 6px;
+}
+.touch-tools-panel :last-child { margin-bottom: 0; }
+.play-hud .touch-tools-panel button, .touch-toolbar > button { min-width: 44px; min-height: 44px; }
+.play-hud .touch-toolbar [hidden] { display: none !important; }
+body.ball-moving .play-hud :is(.touch-dock,.touch-toolbar) { visibility: visible !important; opacity: 1 !important; }
+.touch-toolbar:has(details[open]) { z-index: 25; }
+body:has(.touch-toolbar details[open]) .course-minimap { visibility: hidden; }
+.tutorial-round .camera-controls, .tutorial-round .course-weather, .tutorial-round .ph-right { display: none !important; }
+.tutorial-round .first-swing { width: min(310px, calc(100% - 16px)); left: 8px; top: 8px; }
+.tutorial-round .first-swing p { font-size: 14px; }
+.tutorial-round .tutorial-visual { display: none; }
+.course-minimap .minimap-collapse { min-width: 44px; }
+.ios-help p { font-size: 15px; line-height: 1.5; }
+@media (max-height: 460px) {
+  :root { --dock-space: 136px; }
+  .play-hud .touch-dock { width: min(430px, calc(100% - 16px)); bottom: 4px; padding-bottom: 6px; }
+  .touch-meter { min-height: 16px; margin-bottom: 4px; }
+  .tutorial-round .first-swing { max-height: calc(100% - var(--dock-space) - 8px); overflow-y: auto; }
+  .tutorial-round .first-swing :is(.tutorial-steps,.tutorial-signin) { display: none; }
+}
+@media (max-width: 360px) {
+  .touch-score { font-size: 11px; }
+  .touch-actions { gap: 5px; }
+}
+
+.touch-mode {
+  min-height: 44px; min-width: 44px; padding: 0 7px; font: inherit;
+  color: #ffe4a0; background: transparent; text-decoration: underline;
+}
+.touch-mode[hidden], .touch-power[hidden] { display: none; }
+.touch-power { flex: 1; min-width: 56px; height: 44px; accent-color: #f4ce71; }
+.touch-dock:has(.touch-power:not([hidden])) .touch-meter { margin-bottom: 2px; }
+.touch-actions .touch-swing { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.touch-tools:not([open]) .touch-tools-panel { display: none; }
+.tutorial-round .first-swing {
+  box-sizing: border-box; width: min(290px, calc(100% - 32px)); padding: 5px 12px 8px;
+  max-height: min(34dvh, 200px); overflow-y: auto; overscroll-behavior: contain;
+}
+.tutorial-round .first-swing h2 { margin: 0; font-size: 16px; line-height: 1.2; }
+.tutorial-round .first-swing .lesson-head button,
+.tutorial-round .first-swing .lesson-next,
+.tutorial-round .first-swing .lesson-signin { min-width: 44px; min-height: 44px; }
+.tutorial-round .first-swing :is(.lesson-camera,p) { margin: 0 0 4px; font-size: 13px; line-height: 1.3; }
+.tutorial-round .first-swing .lesson-camera { gap: 4px; }
+.tutorial-round .first-swing:has(.lesson-club-slot) { max-height: calc(100dvh - var(--dock-space) - 20px); }
+[data-touch-power-mode="preset"] .lesson-timed, [data-touch-power-mode="meter"] .lesson-preset { display: none; }

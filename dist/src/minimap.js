@@ -50,7 +50,10 @@ export function installMinimap(ui) {
   const tee = widget.querySelector('.minimap-tee'), cup = widget.querySelector('.minimap-cup'), you = widget.querySelector('.minimap-you');
   const outside = widget.querySelector('.minimap-outside'), label = widget.querySelector('.minimap-you-label');
   const distance = widget.querySelector('.minimap-distance');
-  let hole = null, model = null, collapsed = false, position = null, drag = null, lastLabel = '';
+  let hole = null, model = null, collapsed = globalThis.matchMedia?.('(pointer: coarse)').matches || globalThis.location?.protocol === 'polygolf:', position = null, drag = null, lastLabel = '';
+  expanded.hidden = collapsed;
+  tab.hidden = !collapsed;
+  widget.classList.toggle('is-collapsed', collapsed);
   const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
   const startY = () => {
     const planetfallHeader = window.innerWidth <= 650 && ui.root.querySelector('.planetfall-route');

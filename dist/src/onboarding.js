@@ -53,7 +53,7 @@ export function installOnboarding(ui) {
     const distance=Math.hypot(g.hole.cup.x-g.physics.ball.x,g.hole.cup.z-g.physics.ball.z);
     const targetPower=lesson==='drive'?80:Math.min(95,Math.max(5,Math.round(16*Math.sqrt(distance/18))*5));
     card.innerHTML=firstSwingCard({phase,drive:lesson==='drive',targetPower,
-      touch:matchMedia('(pointer: coarse)').matches,signIn:!ui.platform?.active});
+      touch:ui.root.dataset?.touchControls === 'true' || matchMedia('(pointer: coarse)').matches,signIn:!ui.platform?.active});
     if(selector)card.querySelector('.lesson-club-slot')?.append(selector);
     card.dataset.phase=phase;
     updateCameraChecks();
