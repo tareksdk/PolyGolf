@@ -1,3 +1,4 @@
+import { addTeeFans } from './tee-fans.js';
 import { buildPlanetfallWorld } from './planetfall-render.js';
 import { CameraRig } from './camera-rig.js';
 import { createCaddieStage } from './caddie-stage.js';
@@ -262,6 +263,7 @@ export class World {
         this.mesh('cylinder','#536743',x,s*1.55,z,s*.1,s*.27,s*.1,decorations);
       }
     }
+    addTeeFans(this,h);
     batchScenery(this);
   }
   ribbon(h, width, y, colors, surfaces = false) {

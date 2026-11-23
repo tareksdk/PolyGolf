@@ -1,3 +1,4 @@
+import { addTeeFans } from './tee-fans.js';
 import { buildPondWater } from './pond-water.js';
 import { buildVolcanicScenery } from './volcanic-render.js';
 import { buildSkyIslands } from './sky-islands.js';
@@ -191,6 +192,7 @@ export function buildGolf(world, h) {
   // Tee markers, distance posts and course furniture come from the Blender kit (course-assets.js).
   world.ball.position.set(h.start.x, world.surfaceHeight(h.start.x, h.start.z) + 0.1, h.start.z);
   world.previewPosition = new THREE.Vector3(0, 0, -h.length * 0.3);
+  addTeeFans(world,h);
   buildLongCourseScenery(world,h);
   batchScenery(world);
 }

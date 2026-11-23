@@ -221,3 +221,28 @@ test('repeated resets finish at the stroke cap rather than leaving an unshootabl
   for(let i=0;i<g.hole.par+8;i++)g.reset();
   assert.equal(g.state,'complete');assert.equal(g.charging,false);assert.equal(g.round.strokes[0],g.hole.par+8);
 });
+
+test('two-finger orbit and pinch cancel a held touch shot and preserve its original aim',()=>{
+  const {g,pointer,world}=game();
+  const finger={...click,pointerType:'touch',buttons:1};
+  const second={...finger,pointerId:2,clientX:480};
+  const aim={...g.direction},zoom=world.zoom,orbit=world.orbit;
+  pointer.pointerdown(finger);g.update(.2);
+  pointer.pointerdown(second);
+  pointer.pointermove({...second,clientX:520,clientY:320});
+  assert.ok(world.zoom<zoom);
+  assert.notEqual(world.orbit,orbit);
+  assert.deepEqual(g.direction,aim);
+  pointer.pointerup(second);pointer.pointerup(finger);g.update(.6);
+  assert.equal(g.strokes,0);assert.equal(g.shotPhase,'aim');
+  // A two-finger gesture can also start while the direction meter is waiting.
+  pointer.pointerdown(finger);g.update(.3);pointer.pointerup(finger);
+  assert.equal(g.shotPhase,'direction');
+  pointer.pointerdown(finger);pointer.pointerdown(second);
+  pointer.pointercancel(second);pointer.pointerup(finger);
+  assert.equal(g.pendingSwing,null);assert.equal(g.strokes,0);
+  // The next one-finger shot still works through both phases.
+  pointer.pointerdown(finger);g.update(.3);pointer.pointerup(finger);
+  pointer.pointerdown(finger);pointer.pointerup(finger);g.update(.6);
+  assert.equal(g.strokes,1);
+});

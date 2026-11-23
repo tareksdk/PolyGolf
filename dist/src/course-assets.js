@@ -170,9 +170,13 @@ export function courseAssets(w, h) {
   // The first-swing garden uses the existing Blender kit and shares instanced
   // geometry with the rest of the course. Keep the entire putting line open.
   if(h.tutorialGarden){
-    add('flowers',-14,-18,.85,.4);
-    add('flowers',-14.8,-19,.7,1.2);
-    add('bush',-15.5,-18.8,.6,.3);
+    // Frame both shoulders of the practice green and leave a clean view of the cup.
+    for (const side of [-1, 1]) {
+      for (const [x,z,size] of [[13,-13,.7],[14,-17,.9],[13.6,-20,.72]]) {
+        add('flowers', side*x, z, size, side*.7);
+        add('bush', side*(x+1.3), z-.7, size*.85, side*.35);
+      }
+    }
   }
 
   // ---- Distance posts: white every 100 m to the green, red at the 50s.

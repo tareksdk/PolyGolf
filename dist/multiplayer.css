@@ -195,9 +195,9 @@
 .room-scorecard :is(summary,[tabindex]):focus-visible { outline: 2px solid #83583b; outline-offset: -3px; }
 #app .room-spectator :is(button,select):focus-visible { outline: 2px solid #f3df9c; outline-offset: 2px; }
 
-.room-opponent-label { gap: 2px; max-width: 112px; }
-.room-opponent-label small:empty { display: none; }
-.room-opponent-name, .room-opponent-label small {
+.opponent-label { gap: 2px; max-width: 112px; }
+.opponent-label small:empty { display: none; }
+.golfer-tag, .opponent-label small {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -211,15 +211,15 @@
   text-shadow: 0 1px 3px #09251e, 0 0 3px #09251e;
   box-shadow: none;
 }
-.room-opponent-label small { font-size: 9px; color: #e0efdb; }
-.is-room-round .ball-nameplate {
+.opponent-label small { font-size: 9px; color: #e0efdb; }
+.hud .ball-nameplate, .play-hud .ball-nameplate {
   background: transparent;
   border: 0;
   padding: 0 !important;
   box-shadow: none;
   max-width: 112px;
 }
-.is-room-round .ball-nameplate .room-opponent-name { display: block; }
+.ball-nameplate .golfer-tag { display: block; }
 
 @media (max-width: 1000px), (max-height: 480px) {
   .room-scorecard[open] { width: min(470px, calc(100vw - var(--room-gutter) - 12px)); }

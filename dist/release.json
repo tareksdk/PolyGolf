@@ -1,6 +1,6 @@
 {
   "version": "polygolf-v11",
-  "contentVersion": "driver-rewards-1.27",
+  "contentVersion": "first-swing-1.28",
   "date": "2026-11-22",
   "items": 649,
   "lockers": 10,
@@ -22,7 +22,7 @@
   "bots": true,
   "guestLeaderboards": true,
   "inviteLinks": true,
-  "appVersion": "1.27",
+  "appVersion": "1.28",
   "crazyGamesDataModule": true,
   "firstSwingTutorial": true,
   "tutorialDrivingRange": true,

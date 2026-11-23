@@ -6,7 +6,7 @@ import { installTrails } from './trails.js';
 import { ballFinish } from './item-designs.js';
 import { finishItem } from './finishes.js';
 import { applyFinish } from './finish-material.js';
-import { nameplate } from './nameplates.js';
+import { golferTag } from './nameplates.js';
 import { emoteKind } from './emotes.js';
 import { LiveBuffer } from './live-state.js';
 import { ROOM_BOT_SKILLS } from './room-bots.js';
@@ -52,11 +52,7 @@ export class LiveOpponent {
     this.pulse=new THREE.Mesh(new THREE.RingGeometry(.75,1,32),new THREE.MeshBasicMaterial({color:'#e9c567',transparent:true,depthWrite:false,side:THREE.DoubleSide}));
     this.pulse.rotation.x=-Math.PI/2;this.pulse.visible=false;this.group.add(this.pulse);
     this.label=document.createElement('div');this.label.className='opponent-label';
-    if (room) {
-      this.label.classList.add('room-opponent-label');
-      const name=document.createElement('span');name.className='room-opponent-name';name.textContent=member.name;
-      this.label.append(name,document.createElement('small'));
-    } else this.label.innerHTML=nameplate(member.name,member.nameplate,{compact:true})+'<small></small>';
+    this.label.innerHTML=golferTag(member.name)+'<small></small>';
     this.label.hidden = true;
     layer.append(this.label);
     this.status=this.label.querySelector('small');this.projected=new THREE.Vector3();this.eventIds={};

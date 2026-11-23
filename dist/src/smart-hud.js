@@ -15,7 +15,7 @@ export function installSmartHud(ui) {
   const vector=new THREE.Vector3(),points=Array.from({length:7},()=>({x:0,y:0,visible:false}));
   let panels=[],hud=null;
   ui.render=()=>{
-    render();hud=ui.root.querySelector('.play-hud');panels=hud?[...hud.querySelectorAll('.ph-left,.ph-center,.golfer-nameplate')]:[];
+    render();hud=ui.root.querySelector('.play-hud');panels=hud?[...hud.querySelectorAll('.ph-left,.ph-center,.golfer-tag')]:[];
     if(hud)hud.dataset.hudStyle=hudStyle(ui.progress.data.settings);
     if(ui.game.state==='menu'&&ui.screen==='garage'){
       ui.root.querySelector('.caddie-bag-panel .caddie-options-menu')

@@ -1,3 +1,4 @@
+import { addTeeFans } from './tee-fans.js';
 import * as THREE from '../vendor/three.module.js';
 import { PLANETS, ASTEROIDS, asteroidPosition, nextPlanet } from './planetfall.js';
 
@@ -150,6 +151,7 @@ export function buildPlanetfallWorld(w,h) {
     root.add(owned(new THREE.Line(geo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.65,blending:THREE.AdditiveBlending,depthWrite:false}))));
     data.comets.push({root,head});
   }
+  addTeeFans(w,h);
   updatePlanetfallScene(w,0,{clock:0});
   w.renderer.shadowMap.needsUpdate=true;
 }

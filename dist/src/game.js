@@ -31,6 +31,7 @@ export class GameManager {
     this.accumulator = 0;
     this.elapsed = 0;
     this.heldKeys = new Set();
+    this.touches = new Map();
     this.bindInput();
   }
   start(courseIndex, practice = false, options = {}) {
@@ -131,7 +132,7 @@ export class GameManager {
   cancelShot() {
     const input = this.shotInput;
     this.shotInput = null;
-    if (input?.type === 'pointer') this.releasePointer(input.id);
+    if (input?.type === 'pointer' || input?.type === 'touch-confirm') this.releasePointer(input.id);
     this.charging = false;
     this.shotPhase = 'aim';
     this.accuracy = 0;
@@ -148,6 +149,10 @@ export class GameManager {
     this.cameraPointer = null;
     this.rotating = false;
     this.lastPointer = null;
+    for (const touch of this.touches.keys()) this.releasePointer(touch);
+    this.touches.clear();
+    this.touchCamera = false;
+    this.touchAimBefore = null;
     this.heldKeys.clear();
     this.aimTarget = null;
     this.cancelShot();
@@ -369,12 +374,58 @@ export class GameManager {
       this.lastPointer = null;
       this.releasePointer(id);
     };
+    const rotateBy = (dx, dy) => {
+      this.world.cameraManualInput?.();
+      this.world.orbit -= dx * .006 * (this.world.settings?.cameraSensitivity || 1);
+      this.world.pitch = Math.max(.16, Math.min(1.2, (this.world.pitch || .32) + dy * .003));
+    };
+    const zoomTo = distance => {
+      this.world.cameraManualInput?.();
+      const golf = this.mode === 'golf';
+      this.world.zoom = Math.max(golf ? 8 : 10, Math.min(golf ? 240 : 34, distance));
+    };
+    const touchPair = () => {
+      const [a, b] = this.touches.values();
+      return {x:(a.x+b.x)/2, y:(a.y+b.y)/2, span:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))};
+    };
+    const releaseTouch = e => {
+      if (!this.touches.delete(e.pointerId)) return false;
+      const wasCamera = this.touchCamera;
+      if (!this.touches.size) {
+        this.touchCamera = false;
+        this.touchAimBefore = null;
+      }
+      return wasCamera;
+    };
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     canvas.addEventListener("pointerdown", (e) => {
       if (this.state !== "playing" || this.pendingSwing || this.world.waterMoment || (this.world.pirateMoment || this.world.adventureMoment)) return;
       e.preventDefault?.();
       canvas.focus?.({ preventScroll: true });
       this.onEvent("interact");
+      if (e.pointerType === 'touch') {
+        this.touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        canvas.setPointerCapture?.(e.pointerId);
+        if (this.touches.size >= 2 || this.touchCamera) {
+          // Keep both pointers captured until lift, including the one that started charging.
+          if (!this.touchCamera && this.touchAimBefore) this.direction = this.touchAimBefore;
+          this.touchCamera = true;
+          this.shotInput = null;
+          this.cancelShot();
+          this.aimTarget = null;
+          return;
+        }
+        if (this.shotPhase === 'direction') {
+          this.shotInput = {type:'touch-confirm', id:e.pointerId};
+          return;
+        }
+        if (!this.physics.active && !this.charging) {
+          this.touchAimBefore = {...this.direction};
+          this.aimTarget = null;
+          this.aimAt(e);
+          if (this.aimTarget) this.direction = {...this.aimTarget};
+        }
+      }
       if (e.button === 2 || (e.button === 0 && e.ctrlKey)) {
         if (this.cameraPointer == null) orbit(e);
       } else if (e.button === 0 && !this.physics.active && !this.shotInput && !this.rotating) {
@@ -390,23 +441,33 @@ export class GameManager {
     });
     canvas.addEventListener("pointermove", (e) => {
       if (this.state !== 'playing' || this.world.waterMoment || (this.world.pirateMoment || this.world.adventureMoment)) return;
+      if (this.touches.has(e.pointerId)) {
+        if (this.touchCamera && this.touches.size === 2) {
+          const before = touchPair();
+          this.touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
+          const after = touchPair();
+          rotateBy(after.x-before.x, after.y-before.y);
+          zoomTo(this.world.zoom * before.span / after.span);
+        } else this.touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        return;
+      }
       // A mouse chord sends pointermove, not a second pointerdown. Orbit wins
       // over a held shot so releasing the last button cannot fire accidentally.
       if (!this.rotating && (e.buttons & 2) && !this.pendingSwing) orbit({ pointerId:e.pointerId, clientX:e.clientX, clientY:e.clientY, button:2 });
       if (this.rotating) {
         if (e.pointerId !== this.cameraPointer) return;
         if (e.buttons !== undefined && !(e.buttons & this.cameraButtons)) { stopOrbit(); return; }
-        this.world.cameraManualInput?.();
-        this.world.orbit -=
-          (e.clientX - this.lastPointer.x) * 0.006 * (this.world.settings?.cameraSensitivity || 1);
-        this.world.pitch = Math.max(
-          0.16,
-          Math.min(1.2, (this.world.pitch || 0.32) + (e.clientY - this.lastPointer.y) * 0.003),
-        );
+        rotateBy(e.clientX - this.lastPointer.x, e.clientY - this.lastPointer.y);
         this.lastPointer = { x: e.clientX, y: e.clientY };
       } else if (!e.buttons && !this.physics.active && !this.pendingSwing && !this.charging) this.aimAt(e);
     });
     canvas.addEventListener("pointerup", (e) => {
+      if (releaseTouch(e)) return;
+      if (this.shotInput?.type === 'touch-confirm' && this.shotInput.id === e.pointerId) {
+        this.shotInput = null;
+        this.shoot();
+        return;
+      }
       if (e.pointerId === this.cameraPointer) { stopOrbit(); return; }
       if (e.button === 0 && this.shotInput?.type === 'pointer' && this.shotInput.id === e.pointerId) {
         this.shotInput = null;
@@ -415,6 +476,8 @@ export class GameManager {
       }
     });
     const cancelPointer = (e) => {
+      if (releaseTouch(e)) return;
+      if (this.shotInput?.type === 'touch-confirm' && this.shotInput.id === e.pointerId) this.shotInput = null;
       if (e.pointerId === this.cameraPointer) stopOrbit();
       if (this.shotInput?.type === 'pointer' && this.shotInput.id === e.pointerId) this.cancelShot();
     };
@@ -425,14 +488,8 @@ export class GameManager {
       (e) => {
         if (this.state === "playing") {
           e.preventDefault();
-          this.world.cameraManualInput?.();
-          this.world.zoom = Math.max(
-            this.mode === "golf" ? 8 : 10,
-            Math.min(
-              this.mode === "golf" ? 240 : 34,
-              this.world.zoom + e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1) * (this.mode === "golf" ? 0.05 : 0.013) * (this.world.settings?.zoomSensitivity || 1),
-            ),
-          );
+          const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
+          zoomTo(this.world.zoom + e.deltaY * unit * (this.mode === 'golf' ? .05 : .013) * (this.world.settings?.zoomSensitivity || 1));
         }
       },
       { passive: false },
@@ -464,7 +521,7 @@ export class GameManager {
         this.club = bag[(bag.findIndex((c) => c.id === this.club) + 1) % bag.length].id;
         this.onUpdate();
       }
-      if (e.code === "Space" && !e.repeat && !this.physics.active && !this.pendingSwing && !this.shotInput && !this.rotating) {
+      if (e.code === "Space" && !e.repeat && !this.physics.active && !this.pendingSwing && !this.shotInput && !this.rotating && !this.touchCamera) {
         e.preventDefault();
         if (this.shotPhase === 'direction') this.shoot();
         else {
