@@ -220,7 +220,7 @@ test('normal golf publishing checks level and validates water, without trusting 
  await assert.rejects(call('publish_map',{map:{...newGolfMap(),water:[{x:0,z:0,rx:5,rz:5}]}}),/tee/);
 });
 test('custom domain preflight permits the new site and does not reflect unrelated origins',async()=>{
- for(const origin of ['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol']){const r=await handler(new Request('http://test.local',{method:'OPTIONS',headers:{Origin:origin}}));assert.equal(r.headers.get('Access-Control-Allow-Origin'),origin);}
+ for(const origin of ['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol','https://polygolf.site','https://www.polygolf.site']){const r=await handler(new Request('http://test.local',{method:'OPTIONS',headers:{Origin:origin}}));assert.equal(r.headers.get('Access-Control-Allow-Origin'),origin);}
  const r=await handler(new Request('http://test.local',{method:'OPTIONS',headers:{Origin:'https://unrelated.invalid'}}));assert.notEqual(r.headers.get('Access-Control-Allow-Origin'),'https://unrelated.invalid');
 });
 test('ranked queue authenticates the player, requires an account and and snapshots server equipment',async()=>{const p=players.get('a');p.state=defaultSave();await assert.rejects(call('ranked_queue',{},null),/Sign in/);p.state.xp=0;await assert.rejects(call('ranked_queue',{rulesVersion:'old'}),/Reload/);const s=await call('ranked_queue',{userId:'b',equipment:{driver:'driver-alpha'}});assert.equal(s.queued,true);});

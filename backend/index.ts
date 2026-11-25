@@ -23,7 +23,7 @@ import {normalizeUsername} from './shared/usernames.js';
 import {verifyHole} from './shared/replay.js';
 
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const origins=new Set(['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol','https://room-310.com','https://www.room-310.com','https://papaya-gecko-9391bd.netlify.app','https://dapper-mochi-14469a.netlify.app','https://little-links-golf-room310.tarekgreenfield.chatgpt.site','https://little-links-golf.netlify.app','http://127.0.0.1:5173','http://localhost:5173']);
+const origins=new Set(['https://littlelinks.study','https://www.littlelinks.study','https://polygolf.lol','https://www.polygolf.lol','https://polygolf.site','https://www.polygolf.site','https://room-310.com','https://www.room-310.com','https://papaya-gecko-9391bd.netlify.app','https://dapper-mochi-14469a.netlify.app','https://little-links-golf-room310.tarekgreenfield.chatgpt.site','https://little-links-golf.netlify.app','http://127.0.0.1:5173','http://localhost:5173']);
 async function api(path:string,body?:unknown,method=body?'POST':'GET',token=KEY,representation=true){const r=await fetch(URL+path,{method,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:representation?'return=representation':'return=minimal'},...(body?{body:JSON.stringify(body)}:{})});const data=await r.json().catch(()=>null);if(!r.ok)throw Error(data?.msg||data?.message||data?.error_description||'The server could not complete that request.');return data;}
 const table=(name:string,q='')=>api('/rest/v1/golf_'+name+'?'+q);
 const rpc=(name:string,body:unknown)=>api('/rest/v1/rpc/golf_'+name,body);
